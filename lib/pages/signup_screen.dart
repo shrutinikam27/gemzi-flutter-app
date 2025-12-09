@@ -22,6 +22,13 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool _isLoading = false;
 
+  // Password validation function
+  bool _isPasswordStrong(String password) {
+    // At least 8 characters, one number, one special symbol
+    final regex = RegExp(r'^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[a-zA-Z]).{8,}$');
+    return regex.hasMatch(password);
+  }
+
   @override
   void dispose() {
     nameCtrl.dispose();
@@ -41,7 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
             height: MediaQuery.of(context).size.height * 0.45,
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("assets/auth/3.png"),
+                image: AssetImage("assets/auth/log.png"),
                 fit: BoxFit.cover,
               ),
             ),
@@ -107,7 +114,15 @@ class _SignupScreenState extends State<SignupScreen> {
 
                     _inputField("Password", Icons.lock_outline, passCtrl,
                         obscure: true),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 5),
+                    Text(
+                      "Password must be at least 8 characters long, include at least one number and one special symbol (!@#\$%^&*).",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.subtitleBrown,
+                      ),
+                    ),
+                    const SizedBox(height: 13),
 
                     _inputField(
                         "Re-type Password", Icons.lock_reset, repassCtrl,
@@ -182,6 +197,12 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (pass != repass) {
       _showError("Passwords do not match.");
+      return;
+    }
+
+    if (!_isPasswordStrong(pass)) {
+      _showError(
+          "Password must be at least 8 characters long, include at least one number and one special symbol (!@#\$%^&*).");
       return;
     }
 

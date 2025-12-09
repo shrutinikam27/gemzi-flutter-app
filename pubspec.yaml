@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  marquee: ^2.2.3
   cupertino_icons: ^1.0.8
 
   # --- Firebase packages ---
@@ -32,3 +32,12 @@ flutter:
     - assets/auth/3.png
     - assets/auth/bg.png
     - assets/auth/google.png
+    - assets/auth/gs.png
+    - assets/auth/bangle.png
+    - assets/auth/earring.png
+    - assets/auth/coin.png
+    - assets/auth/necklace.png
+    - assets/auth/log.png
+
+
+  

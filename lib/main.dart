@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-// import 'package:flutter_project/pages/success_screen.dart';
+
 import 'firebase_options.dart';
 import 'pages/splash_screen.dart';
+import 'pages/get_started.dart';
 import 'pages/login_screen.dart';
 import 'pages/signup_screen.dart';
 import 'pages/explore_screen.dart';
 import 'pages/homepage.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -22,21 +22,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var materialApp = MaterialApp(
+    return MaterialApp(
       title: "Gemzi",
       debugShowCheckedModeBanner: false,
 
-      // Initial Page
+      // FIRST PAGE
       home: const SplashScreen(),
-      // ROUTES
+
       routes: {
-        "/home": (_) => HomePage(),
+        "/get-started": (_) => const GetStartedPage(),
+        "/home": (_) => const HomePage(),
         "/login": (_) => const LoginScreen(),
         "/signup": (_) => const SignupScreen(),
         "/explore": (_) => const ExploreScreen(),
-        // "/success": (_) => const SignupSuccessScreen(),
       },
     );
-    return materialApp;
   }
 }

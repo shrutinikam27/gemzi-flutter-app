@@ -5,8 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../themes/app_colors.dart';
-import 'explore_screen.dart';
 import 'signup_screen.dart';
+import 'homepage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
             height: MediaQuery.of(context).size.height * 0.45,
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("assets/auth/1.png"),
+                image: AssetImage("assets/auth/log.png"),
                 fit: BoxFit.cover,
               ),
             ),
@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                  MaterialPageRoute(builder: (_) => const HomePage()),
                 );
               },
               child: const Text("OK"),
@@ -263,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                  MaterialPageRoute(builder: (_) => const HomePage()),
                 );
               },
               child: const Text("OK"),

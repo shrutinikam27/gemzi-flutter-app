@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
+import 'get_started.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,13 +13,12 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      }
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const GetStartedPage()),
+      );
     });
   }
 
@@ -31,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Text(
           "Gemzi",
           style: TextStyle(
-            fontSize: 36,
+            fontSize: 40,
             fontWeight: FontWeight.bold,
             color: Colors.brown.shade700,
           ),

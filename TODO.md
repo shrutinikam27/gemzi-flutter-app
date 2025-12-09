@@ -1,0 +1,3 @@
+- [ ] Add import for HomePage in lib/pages/login_screen.dart
+- [ ] Update navigation in _loginUser function to HomePage
+- [ ] Update navigation in _loginWithGoogle function to HomePage
