@@ -1,0 +1,87 @@
+# Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+flutter_*.log
+*.jks
+*.pem
+*.p12
+*.key
+*.keystore
+
+# Android
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+android/app/src/debug/
+android/app/src/profile/
+android/app/src/release/
+android/gradle.properties
+android/gradle-wrapper.jar
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/key.properties
+
+# iOS
+ios/Flutter/Flutter-Debug.xcconfig
+ios/Flutter/Flutter-Release.xcconfig
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/App.framework
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
+ios/build/
+ios/Flutter/Flutter.podspec
+
+# macOS
+macos/Flutter/Flutter-Debug.xcconfig
+macos/Flutter/Flutter-Release.xcconfig
+macos/Flutter/Generated.xcconfig
+macos/Flutter/ephemeral/
+macos/Flutter/app.flx
+macos/Flutter/app.zip
+macos/Flutter/flutter_assets/
+macos/Flutter/App.framework
+macos/Runner/GeneratedPluginRegistrant.h
+macos/Runner/GeneratedPluginRegistrant.m
+macos/build/
+macos/Flutter/Flutter.podspec
+
+# Linux
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+linux/flutter/generated_plugins.cmake
+linux/build/
+
+# Windows
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
+windows/build/
+
+# Web
+web/index.html
+web/favicon.png
+web/icons/
+web/manifest.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local

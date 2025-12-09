@@ -1,0 +1,11 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    invalid_annotation_target: ignore
+
+linter:
+  rules:
+    # Enable or disable lint rules below
+    # avoid_print: false
+    # prefer_single_quotes: true
