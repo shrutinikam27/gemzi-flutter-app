@@ -74,7 +74,7 @@ class GetStartedPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "My Jewelry",
+                    "Gemzi",
                     style: TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.bold,

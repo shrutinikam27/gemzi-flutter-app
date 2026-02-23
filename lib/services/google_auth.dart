@@ -1,4 +1,4 @@
-import 'dart:developer'; // ✅ REQUIRED for using log()
+import 'dart:developer'; // REQUIRED for using log()
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -39,7 +39,7 @@ class GoogleAuthService {
 
       return user;
     } catch (e) {
-      log("Google Sign-In Error: $e"); // ✅ Now works
+      log("Google Sign-In Error: $e");
       return null;
     }
   }
