@@ -11,7 +11,6 @@ class GemziHome extends StatefulWidget {
 }
 
 class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
-  // 💎 Emerald + Gold Palette
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
   final Color richGold = const Color(0xFFD4AF37);
@@ -28,7 +27,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     "assets/auth/necklace.png",
     "assets/auth/earring.png",
     "assets/auth/bangles.jpeg",
-    "assets/auth/coin.png",
+    "assets/auth/coin.jpeg",
   ];
 
   final List<String> categoryLabels = [
@@ -43,12 +42,48 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     {
       "name": "Diamond Ring",
       "price": "₹50,000",
-      "image": "assets/auth/ring.png",
+      "image": "assets/auth/ring.png"
     },
     {
       "name": "Emerald Earrings",
       "price": "₹35,000",
-      "image": "assets/auth/earring.png",
+      "image": "assets/auth/emeraldearrings.jpeg"
+    },
+    {
+      "name": "Gold Necklace",
+      "price": "₹75,000",
+      "image": "assets/auth/necklace.png"
+    },
+    {
+      "name": "Royal Bangles",
+      "price": "₹60,000",
+      "image": "assets/auth/bangles.jpeg"
+    },
+    {"name": "Gold Coin", "price": "₹15,000", "image": "assets/auth/coin.jpeg"},
+    {
+      "name": "Luxury Ring",
+      "price": "₹80,000",
+      "image": "assets/auth/luxuryring.jpeg"
+    },
+    {
+      "name": "Pearl Necklace",
+      "price": "₹45,000",
+      "image": "assets/auth/pearlnecklace.jpeg"
+    },
+    {
+      "name": "Diamond Bangles",
+      "price": "₹90,000",
+      "image": "assets/auth/diamondbangles.jpeg"
+    },
+    {
+      "name": "Gold Earrings",
+      "price": "₹30,000",
+      "image": "assets/auth/earring.png"
+    },
+    {
+      "name": "Premium Coin",
+      "price": "₹20,000",
+      "image": "assets/auth/coin.jpeg"
     },
   ];
 
@@ -107,9 +142,11 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 children: [
                   _buildTopHeader(),
                   _buildSearchBar(),
+                  const SizedBox(height: 15),
                   _buildSavingAdsCarousel(),
                   _buildCategoryList(),
                   _buildLiveGoldRate(),
+                  _buildCollectionTitle(),
                   _buildTrendingItems(),
                   _buildARSection(),
                 ],
@@ -206,7 +243,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
     return FadeInRight(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
             height: 140,
@@ -286,20 +322,23 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            // ignore: deprecated_member_use
                             color: richGold.withOpacity(0.4),
                             blurRadius: 15,
                           )
                         ],
                       ),
                       child: ClipOval(
-                        child: Image.network(categoryImages[index],
-                            fit: BoxFit.cover),
+                        child: Image.asset(
+                          categoryImages[index],
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(categoryLabels[index],
-                        style: TextStyle(color: textLight, fontSize: 12)),
+                    Text(
+                      categoryLabels[index],
+                      style: TextStyle(color: textLight, fontSize: 12),
+                    ),
                   ],
                 ),
               );
@@ -307,6 +346,79 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCollectionTitle() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, top: 15, bottom: 10),
+      child: Text(
+        "Our Collection",
+        style: TextStyle(
+          color: textLight,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTrendingItems() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: trendingItems.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 0.9,
+        ),
+        itemBuilder: (context, index) {
+          final item = trendingItems[index];
+
+          return Container(
+            decoration: BoxDecoration(
+              color: white,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              children: [
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(15)),
+                  child: Image.asset(
+                    item["image"]!,
+                    height: 110,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    children: [
+                      Text(
+                        item["name"]!,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        item["price"]!,
+                        style: TextStyle(
+                          color: richGold,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -318,7 +430,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           color: surfaceDark,
           borderRadius: BorderRadius.circular(15),
-          // ignore: deprecated_member_use
           border: Border.all(color: richGold.withOpacity(0.4)),
         ),
         child: Row(
@@ -335,43 +446,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildTrendingItems() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: trendingItems.map((item) {
-          return Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(right: 10),
-              decoration: BoxDecoration(
-                color: white,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Column(
-                children: [
-                  Image.network(item["image"]!, height: 120, fit: BoxFit.cover),
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      children: [
-                        Text(item["name"]!,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        Text(item["price"]!,
-                            style: TextStyle(
-                                color: richGold, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   Widget _buildARSection() {
     return FadeInUp(
       child: Container(
@@ -380,7 +454,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [surfaceDark, darkBg]),
           borderRadius: BorderRadius.circular(20),
-          // ignore: deprecated_member_use
           border: Border.all(color: richGold.withOpacity(0.3)),
         ),
         child: Row(
@@ -389,11 +462,13 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Try Jewellery in AR",
-                      style: TextStyle(
-                          color: richGold,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold)),
+                  Text(
+                    "Try Jewellery in AR",
+                    style: TextStyle(
+                        color: richGold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
                   GestureDetector(
                     onTap: () => HapticFeedback.mediumImpact(),
@@ -414,11 +489,11 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 ],
               ),
             ),
-            Icon(Icons.camera_alt_outlined,
-                // ignore: deprecated_member_use
-                size: 60,
-                // ignore: deprecated_member_use
-                color: richGold.withOpacity(0.5)),
+            Icon(
+              Icons.camera_alt_outlined,
+              size: 60,
+              color: richGold.withOpacity(0.5),
+            ),
           ],
         ),
       ),
@@ -438,7 +513,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         alignment: Alignment.center,
         border: 2,
         linearGradient: LinearGradient(
-          // ignore: deprecated_member_use
           colors: [surfaceDark.withOpacity(0.9), darkBg.withOpacity(0.6)],
         ),
         borderGradient: LinearGradient(colors: [richGold, bronze]),
@@ -461,11 +535,13 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(icon, color: active ? richGold : textSubdued),
-        Text(label,
-            style: TextStyle(
-                fontSize: 10,
-                color: active ? richGold : textSubdued,
-                fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: TextStyle(
+              fontSize: 10,
+              color: active ? richGold : textSubdued,
+              fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
@@ -484,11 +560,13 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           children: [
             Icon(Icons.add, color: Colors.white, size: 18),
             SizedBox(width: 4),
-            Text("Try-On",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold)),
+            Text(
+              "Try-On",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),

@@ -38,6 +38,12 @@ flutter:
     - assets/auth/necklace.png
     - assets/auth/log.png
     - assets/auth/ring.png
+    - assets/auth/coin.jpeg
+    - assets/auth/emeraldearrings.jpeg
+    - assets/auth/luxuryring.jpeg
+    - assets/auth/pearlnecklace.jpeg
+    - assets/auth/diamondbangles.jpeg
+
   
 
 
