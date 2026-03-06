@@ -46,7 +46,7 @@ class GetStartedPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const HomePage()),
+                  MaterialPageRoute(builder: (_) => GemziHome()),
                 );
               },
               child: Text(

@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  animate_do: ^3.3.4        
+  glassmorphism: ^3.0.0 
   marquee: ^2.2.3
   cupertino_icons: ^1.0.8
 
@@ -29,15 +31,14 @@ flutter:
   assets:
     - assets/auth/1.png
     - assets/auth/2.png
-    - assets/auth/3.png
-    - assets/auth/bg.png
     - assets/auth/google.png
     - assets/auth/gs.png
-    - assets/auth/bangle.png
+    - assets/auth/bangles.jpeg
     - assets/auth/earring.png
-    - assets/auth/coin.png
     - assets/auth/necklace.png
     - assets/auth/log.png
+    - assets/auth/ring.png
+  
 
 
   

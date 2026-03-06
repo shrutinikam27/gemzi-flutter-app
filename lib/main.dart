@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
 
       routes: {
         "/get-started": (_) => const GetStartedPage(),
-        "/home": (_) => const HomePage(),
+        "/home": (_) => GemziHome(),
         "/login": (_) => const LoginScreen(),
         "/signup": (_) => const SignupScreen(),
         "/explore": (_) => const ExploreScreen(),

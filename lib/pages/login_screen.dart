@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const HomePage()),
+                  MaterialPageRoute(builder: (_) => GemziHome()),
                 );
               },
               child: const Text("OK"),
@@ -263,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const HomePage()),
+                  MaterialPageRoute(builder: (_) => GemziHome()),
                 );
               },
               child: const Text("OK"),
