@@ -1,0 +1,247 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class ProductDetailPage extends StatefulWidget {
+  final String name;
+  final String price;
+  final String image;
+  final String rating;
+
+  const ProductDetailPage({
+    super.key,
+    required this.name,
+    required this.price,
+    required this.image,
+    required this.rating,
+  });
+
+  @override
+  State<ProductDetailPage> createState() => _ProductDetailPageState();
+}
+
+class _ProductDetailPageState extends State<ProductDetailPage> {
+  bool isLiked = false;
+
+  @override
+  Widget build(BuildContext context) {
+    const Color darkBg = Color(0xFF0F2F2B);
+    const Color surfaceDark = Color(0xFF17453F);
+    const Color richGold = Color(0xFFD4AF37);
+
+    return Scaffold(
+      backgroundColor: darkBg,
+      appBar: AppBar(
+        backgroundColor: surfaceDark,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          widget.name,
+          style: const TextStyle(
+            color: Colors.white,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  children: [
+                    /// Product Image + Wishlist
+                    Stack(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              widget.image,
+                              width: double.infinity,
+                              height: 320,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 25,
+                          top: 30,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isLiked = !isLiked;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                isLiked
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: isLiked ? Colors.red : Colors.black,
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+
+                    /// Product Info Section
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: const BoxDecoration(
+                          color: surfaceDark,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(25),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            /// Product Name
+                            Text(
+                              widget.name,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            /// Rating
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  color: Colors.orange,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  widget.rating,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            /// Price
+                            Text(
+                              widget.price,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                color: richGold,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            const SizedBox(height: 15),
+
+                            /// Description
+                            const Text(
+                              "Premium handcrafted jewellery made with pure gold and certified diamonds. "
+                              "Perfect for weddings, engagements and special occasions.",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                height: 1.5,
+                              ),
+                            ),
+
+                            const Spacer(),
+
+                            /// Buttons Row
+                            Row(
+                              children: [
+                                /// Add to Cart
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      HapticFeedback.mediumImpact();
+
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Added to cart"),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      backgroundColor: richGold,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      "Add to Cart",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(width: 10),
+
+                                /// Buy Now
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      HapticFeedback.mediumImpact();
+
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content:
+                                              Text("Proceeding to checkout..."),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      backgroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      "Buy Now",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

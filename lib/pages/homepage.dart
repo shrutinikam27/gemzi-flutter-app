@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:glassmorphism/glassmorphism.dart';
+import '../screens/products/rings_page.dart';
+import '../screens/products/product_detail_page.dart';
 
 class GemziHome extends StatefulWidget {
   const GemziHome({super.key});
@@ -42,17 +44,20 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     {
       "name": "Diamond Ring",
       "price": "₹50,000",
-      "image": "assets/auth/ring.png"
+      "image": "assets/auth/ring.png",
+      "rating": "4.8"
     },
     {
       "name": "Emerald Earrings",
       "price": "₹35,000",
-      "image": "assets/auth/emeraldearrings.jpeg"
+      "image": "assets/auth/emeraldearrings.jpeg",
+      "rating": "4.7"
     },
     {
       "name": "Gold Necklace",
       "price": "₹75,000",
-      "image": "assets/auth/necklace.png"
+      "image": "assets/auth/necklace.png",
+      "rating": "4.9"
     },
     {
       "name": "Royal Bangles",
@@ -300,7 +305,10 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           child: Text(
             "Categories",
             style: TextStyle(
-                color: textLight, fontWeight: FontWeight.bold, fontSize: 16),
+              color: textLight,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
         ),
         const SizedBox(height: 10),
@@ -311,35 +319,50 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: categoryImages.length,
             itemBuilder: (context, index) {
-              return Container(
-                margin: const EdgeInsets.only(right: 15),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: richGold.withOpacity(0.4),
-                            blurRadius: 15,
-                          )
-                        ],
+              return GestureDetector(
+                onTap: () {
+                  if (categoryLabels[index] == "Rings") {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RingsPage(),
                       ),
-                      child: ClipOval(
-                        child: Image.asset(
-                          categoryImages[index],
-                          fit: BoxFit.cover,
+                    );
+                  }
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(right: 15),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: richGold.withOpacity(0.4),
+                              blurRadius: 15,
+                            )
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            categoryImages[index],
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      categoryLabels[index],
-                      style: TextStyle(color: textLight, fontSize: 12),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        categoryLabels[index],
+                        style: TextStyle(
+                          color: textLight,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -379,42 +402,59 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         itemBuilder: (context, index) {
           final item = trendingItems[index];
 
-          return Container(
-            decoration: BoxDecoration(
-              color: white,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Column(
-              children: [
-                ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(15)),
-                  child: Image.asset(
-                    item["image"]!,
-                    height: 110,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetailPage(
+                    name: item["name"]!,
+                    price: item["price"]!,
+                    image: item["image"]!,
+                    rating: item["rating"] ?? "4.5",
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    children: [
-                      Text(
-                        item["name"]!,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        item["price"]!,
-                        style: TextStyle(
-                          color: richGold,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: white,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(15)),
+                    child: Image.asset(
+                      item["image"]!,
+                      height: 110,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                )
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      children: [
+                        Text(
+                          item["name"]!,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          item["price"]!,
+                          style: TextStyle(
+                            color: richGold,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
             ),
           );
         },
