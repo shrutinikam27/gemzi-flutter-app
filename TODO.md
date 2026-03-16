@@ -1,28 +1,13 @@
-# Flutter Setup &amp; Device Fix - Progress Tracker
+# Git Merge Conflict Resolution Plan for Gemzi Flutter App
 
-## Approved Plan Steps:
+## Steps:
+- [ ] 1. Resolve merge conflicts in `lib/pages/homepage.dart` by merging remote UI improvements (shadows, gradients, animations) while preserving navigation logic.
+- [ ] 2. Verify `pubspec.yaml` and `lib/screens/products/necklaces_page.dart` (already staged/clean).
+- [ ] 3. `git commit` to complete merge.
+- [ ] 4. `flutter pub get`.
+- [ ] 5. `flutter analyze`.
+- [ ] 6. `git push origin master`.
+- [ ] 7. Test app navigation and UI.
 
-**Step 1: [x] Fix PowerShell << error in diagnostic.ps1**
-- Update to use `flutter doctor -v | Out-String -Stream`
-- Test execution.
-
-**Step 2: [x] Test diagnostics**
-- Flutter PATH OK, Java 24, no ADB.
-- Flutter corrupted - use fix_flutter.bat instructions to reinstall.
-
-**Step 3: [TODO] JDK17 install**
-- `choco install temurin17`
-- set_java_home.bat update if needed.
-
-**Step 4: [TODO] Android SDK**
-- `choco install androidstudio`
-- Accept licenses: `flutter doctor --android-licenses`
-
-**Step 5: [TODO] Device/Emulator**
-- AVD Manager create/start.
-- `flutter devices`
-
-**Step 6: [TODO] Complete verification**
-- `flutter run`
-- Mark all [x] done.
+Progress will be updated after each step.
 
