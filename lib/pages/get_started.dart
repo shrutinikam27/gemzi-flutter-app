@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../themes/app_colors.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
 import 'homepage.dart';
@@ -7,68 +6,93 @@ import 'homepage.dart';
 class GetStartedPage extends StatelessWidget {
   const GetStartedPage({super.key});
 
+  final Color darkBg = const Color(0xFF0F2F2B);
+  final Color surfaceDark = const Color(0xFF17453F);
+  final Color richGold = const Color(0xFFD4AF37);
+  final Color textLight = const Color(0xFFFFFFFF);
+  final Color textSubdued = const Color(0xFFB8D1CD);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBeige,
       body: Stack(
         children: [
-          // ----------- BACKGROUND IMAGE -----------
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image:
-                    AssetImage("assets/auth/gs.png"), // 🔥 your jewellery image
-                fit: BoxFit.cover,
+          // IMAGE WITH CLIPPED CORNERS
+          Align(
+            alignment: Alignment.topCenter,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(30),
               ),
-            ),
-          ),
-
-          // ----------- TOP GRADIENT -----------
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.4),
-                  Colors.transparent.withValues(alpha: 0),
-                ],
-              ),
-            ),
-          ),
-
-          // ----------- SKIP BUTTON -----------
-          Positioned(
-            top: 45,
-            right: 20,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => GemziHome()),
-                );
-              },
-              child: Text(
-                "Skip",
-                style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.60,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("assets/auth/gs.png"),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ),
           ),
 
-          // ----------- MAIN CONTENT -----------
+          // IMAGE OVERLAY
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.60,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.transparent,
+                    darkBg,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // SKIP BUTTON
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 20, top: 10),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const GemziHome()),
+                    );
+                  },
+                  child: Text(
+                    "Skip",
+                    style: TextStyle(
+                      color: textLight,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // MAIN CONTENT
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
-              height: MediaQuery.of(context).size.height * 0.43,
-              decoration: const BoxDecoration(
-                color: AppColors.lightBeige,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+              height: MediaQuery.of(context).size.height * 0.45,
+              decoration: BoxDecoration(
+                color: surfaceDark,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(40),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,31 +100,31 @@ class GetStartedPage extends StatelessWidget {
                   Text(
                     "Gemzi",
                     style: TextStyle(
-                      fontSize: 34,
+                      fontSize: 36,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.titleBrown,
+                      color: richGold,
                     ),
                   ),
 
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 14),
 
                   Text(
                     "Find your dream jewellery",
                     style: TextStyle(
                       fontSize: 16,
-                      color: AppColors.subtitleBrown,
+                      color: textSubdued,
                     ),
                   ),
 
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 30),
 
-                  // ----------- LOGIN BUTTON -----------
+                  // LOGIN BUTTON
                   SizedBox(
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.white,
+                        backgroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
@@ -117,7 +141,7 @@ class GetStartedPage extends StatelessWidget {
                         "LOGIN",
                         style: TextStyle(
                           fontSize: 18,
-                          color: AppColors.titleBrown,
+                          color: darkBg,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -126,13 +150,13 @@ class GetStartedPage extends StatelessWidget {
 
                   const SizedBox(height: 15),
 
-                  // ----------- REGISTER BUTTON -----------
+                  // REGISTER BUTTON
                   SizedBox(
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGold,
+                        backgroundColor: richGold,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),

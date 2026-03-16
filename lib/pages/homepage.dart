@@ -371,9 +371,24 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                   margin: const EdgeInsets.only(right: 15),
                   child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 35,
-                        backgroundImage: AssetImage(categoryImages[index]),
+                      Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: richGold.withValues(alpha: 0.4),
+                              blurRadius: 15,
+                            )
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            categoryImages[index],
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -388,6 +403,30 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           ),
         )
       ],
+    );
+  }
+
+  Widget _buildLiveGoldRate() {
+    return FadeInUp(
+      child: Container(
+        margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: surfaceDark,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: richGold.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.show_chart, color: Colors.green),
+            const SizedBox(width: 10),
+            Text("Gold Rate Live", style: TextStyle(color: textLight)),
+            const Spacer(),
+            Text("₹6,840/gm",
+                style: TextStyle(color: richGold, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -471,69 +510,53 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildLiveGoldRate() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: surfaceDark,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.show_chart, color: Colors.green),
-          const SizedBox(width: 10),
-          Text("Gold Rate Live", style: TextStyle(color: textLight)),
-          const Spacer(),
-          Text("₹6,840/gm",
-              style: TextStyle(color: richGold, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
   Widget _buildARSection() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [surfaceDark, darkBg]),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: richGold.withOpacity(0.4)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Try Jewellery in AR",
-                  style: TextStyle(
-                      color: richGold,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [richGold, bronze]),
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: const Text(
-                    "Try Now",
+    return FadeInUp(
+      child: Container(
+        margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [surfaceDark, darkBg]),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: richGold.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Try Jewellery in AR",
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                        color: richGold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
-                )
-              ],
+                  const SizedBox(height: 10),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: [richGold, bronze]),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: const Text(
+                      "Try Now",
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Icon(Icons.camera_alt_outlined,
-              size: 60, color: richGold.withOpacity(0.5)),
-        ],
+            Icon(
+              Icons.camera_alt_outlined,
+              size: 60,
+              color: richGold.withValues(alpha: 0.5),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -550,7 +573,10 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         blur: 20,
         border: 2,
         linearGradient: LinearGradient(
-          colors: [surfaceDark.withOpacity(0.9), darkBg.withOpacity(0.6)],
+          colors: [
+            surfaceDark.withValues(alpha: 0.9),
+            darkBg.withValues(alpha: 0.6)
+          ],
         ),
         borderGradient: LinearGradient(colors: [richGold, bronze]),
         child: Row(
