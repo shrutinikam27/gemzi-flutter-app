@@ -1,53 +1,71 @@
 import 'package:flutter/material.dart';
 import 'product_detail_page.dart'; // ✅ fixed import path
 
-class NecklacesPage extends StatefulWidget {
-  const NecklacesPage({super.key});
+class BanglesPage extends StatefulWidget {
+  const BanglesPage({super.key});
 
   @override
-  State<NecklacesPage> createState() => _NecklacesPageState();
+  State<BanglesPage> createState() => _BanglesPageState();
 }
 
-class _NecklacesPageState extends State<NecklacesPage> {
+class _BanglesPageState extends State<BanglesPage> {
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
   final Color richGold = const Color(0xFFD4AF37);
 
   List<Map<String, String>> necklace = [
     {
-      "name": "Pearl Necklace",
-      "price": "₹55,000",
-      "image": "assets/auth/nacklace1.jpeg",
+      "name": "Straight Bangle",
+      "price": "₹50,000",
+      "image": "assets/auth/starlightbangles.jpeg",
       "rating": "4.8"
     },
     {
-      "name": "Pearl Necklace",
-      "price": "₹65,500",
-      "image": "assets/auth/nacklace2.jpeg",
-      "rating": "4.6"
+      "name": "Royal Pearl Bangle",
+      "price": "₹70,500",
+      "image": "assets/auth/royalpearlset.jpeg",
+      "rating": "4.8"
     },
     {
-      "name": "Royal Necklace",
-      "price": "₹80,200",
-      "image": "assets/auth/nacklace3.jpeg",
+      "name": "Pearl Blossom Bangle",
+      "price": "₹65,200",
+      "image": "assets/auth/pearlblossombangles.jpeg",
       "rating": "4.7"
     },
     {
-      "name": "Authentic Necklace",
+      "name": "Temple Carved Bangle",
       "price": "₹60,000",
-      "image": "assets/auth/nacklace4.jpeg",
+      "image": "assets/auth/templecarvedbangles.jpeg",
       "rating": "4.9"
     },
     {
-      "name": "Authentic Necklace",
-      "price": "₹61,000",
-      "image": "assets/auth/nacklace5.jpeg",
+      "name": "Leaf Gold Bangles",
+      "price": "₹85,000",
+      "image": "assets/auth/leafgoldbangles.jpeg",
       "rating": "4.5"
     },
     {
-      "name": "Diamond Necklace",
-      "price": "₹90,000",
-      "image": "assets/auth/nacklace6.jpeg",
+      "name": "Slim Pattern Bangles",
+      "price": "₹70,000",
+      "image": "assets/auth/slimpatternbangles.jpeg",
+      "rating": "4.8"
+    },
+    {
+      "name": "Crystal Bridal Bangles",
+      "price": "₹75,000",
+      "image": "assets/auth/crystalbridalbangles.jpeg",
+      "rating": "4.8"
+    },
+    {
+      "name": "Kundan Kada",
+      "price": "₹70,000",
+      "image": "assets/auth/kundankada.jpeg",
+      "rating": "4.8"
+    },
+    {
+      "name": "Classic Gold Bangles",
+      "price": "₹60,000",
+      "image": "assets/auth/classicgoldbangles.jpeg",
       "rating": "4.8"
     },
   ];
@@ -69,7 +87,7 @@ class _NecklacesPageState extends State<NecklacesPage> {
         backgroundColor: surfaceDark,
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
-          "Necklaces",
+          "Bangles",
           style: TextStyle(
             color: Colors.white,
             fontStyle: FontStyle.italic,

@@ -1,53 +1,77 @@
 import 'package:flutter/material.dart';
 import 'product_detail_page.dart'; // ✅ fixed import path
 
-class NecklacesPage extends StatefulWidget {
-  const NecklacesPage({super.key});
+class EarringsPage extends StatefulWidget {
+  const EarringsPage({super.key});
 
   @override
-  State<NecklacesPage> createState() => _NecklacesPageState();
+  State<EarringsPage> createState() => _EarringsPageState();
 }
 
-class _NecklacesPageState extends State<NecklacesPage> {
+class _EarringsPageState extends State<EarringsPage> {
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
   final Color richGold = const Color(0xFFD4AF37);
 
-  List<Map<String, String>> necklace = [
+  List<Map<String, String>> earrings = [
     {
-      "name": "Pearl Necklace",
-      "price": "₹55,000",
-      "image": "assets/auth/nacklace1.jpeg",
+      "name": "Crystal Drops",
+      "price": "₹50,000",
+      "image": "assets/auth/crystaldrops.jpeg",
       "rating": "4.8"
     },
     {
-      "name": "Pearl Necklace",
-      "price": "₹65,500",
-      "image": "assets/auth/nacklace2.jpeg",
-      "rating": "4.6"
+      "name": "Halo Drops",
+      "price": "₹70,500",
+      "image": "assets/auth/halodrops.jpeg",
+      "rating": "4.8"
     },
     {
-      "name": "Royal Necklace",
-      "price": "₹80,200",
-      "image": "assets/auth/nacklace3.jpeg",
+      "name": "Pearl Bow Earrings",
+      "price": "₹65,200",
+      "image": "assets/auth/pearlbowerrings.jpeg",
       "rating": "4.7"
     },
     {
-      "name": "Authentic Necklace",
+      "name": "Pearl Rose Earrings",
       "price": "₹60,000",
-      "image": "assets/auth/nacklace4.jpeg",
+      "image": "assets/auth/pearlroseearrings.jpeg",
       "rating": "4.9"
     },
     {
-      "name": "Authentic Necklace",
-      "price": "₹61,000",
-      "image": "assets/auth/nacklace5.jpeg",
+      "name": "Crystal Studs",
+      "price": "₹60,000",
+      "image": "assets/auth/crystalstuds.jpeg",
+      "rating": "4.8"
+    },
+    {
+      "name": "Golden Loop Drops",
+      "price": "₹85,000",
+      "image": "assets/auth/goldenloopdrops.jpeg",
       "rating": "4.5"
     },
     {
-      "name": "Diamond Necklace",
-      "price": "₹90,000",
-      "image": "assets/auth/nacklace6.jpeg",
+      "name": "Sapphire Jhumka",
+      "price": "₹70,000",
+      "image": "assets/auth/sapphirejhumka.jpeg",
+      "rating": "4.8"
+    },
+    {
+      "name": "Lotus Jhumka",
+      "price": "₹60,000",
+      "image": "assets/auth/lotusjhumka.jpeg",
+      "rating": "4.8"
+    },
+    {
+      "name": "Temple Jhumka",
+      "price": "₹75,000",
+      "image": "assets/auth/templejhumka.jpeg",
+      "rating": "4.8"
+    },
+    {
+      "name": "Royal Leaf Chandbali",
+      "price": "₹70,000",
+      "image": "assets/auth/royalleafchandbali.jpeg",
       "rating": "4.8"
     },
   ];
@@ -58,7 +82,7 @@ class _NecklacesPageState extends State<NecklacesPage> {
   @override
   void initState() {
     super.initState();
-    isLiked = List.generate(necklace.length, (index) => false);
+    isLiked = List.generate(earrings.length, (index) => false);
   }
 
   @override
@@ -69,7 +93,7 @@ class _NecklacesPageState extends State<NecklacesPage> {
         backgroundColor: surfaceDark,
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
-          "Necklaces",
+          "Earrings",
           style: TextStyle(
             color: Colors.white,
             fontStyle: FontStyle.italic,
@@ -79,7 +103,7 @@ class _NecklacesPageState extends State<NecklacesPage> {
       ),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: necklace.length,
+        itemCount: earrings.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 14,
@@ -87,7 +111,7 @@ class _NecklacesPageState extends State<NecklacesPage> {
           childAspectRatio: 0.82,
         ),
         itemBuilder: (context, index) {
-          final ring = necklace[index];
+          final ring = earrings[index];
 
           return GestureDetector(
             onTap: () {
