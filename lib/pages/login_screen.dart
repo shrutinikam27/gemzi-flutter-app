@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import '../themes/app_colors.dart';
 import 'signup_screen.dart';
 import 'homepage.dart';
 
@@ -21,46 +20,71 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
 
+  final Color darkBg = const Color(0xFF0F2F2B);
+  final Color surfaceDark = const Color(0xFF17453F);
+  final Color richGold = const Color(0xFFD4AF37);
+  final Color textLight = const Color(0xFFFFFFFF);
+  final Color textSubdued = const Color(0xFFB8D1CD);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // TOP IMAGE
+          // BACKGROUND GRADIENT
           Container(
-            height: MediaQuery.of(context).size.height * 0.45,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/auth/log.png"),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-
-          // GRADIENT OVERLAY
-          Container(
-            height: MediaQuery.of(context).size.height * 0.45,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Colors.black.withOpacity(0.6),
-                  AppColors.roseGold.withOpacity(0.1),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+                colors: [darkBg, surfaceDark, darkBg],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
           ),
 
-          // MAIN CONTENT
+          // TOP IMAGE (COVER STYLE)
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.40,
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("assets/auth/log.png"),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+
+          // IMAGE GRADIENT OVERLAY
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.40,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    surfaceDark,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          ),
+
+          // LOGIN CARD
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.63,
+              height: MediaQuery.of(context).size.height * 0.65,
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
-              decoration: const BoxDecoration(
-                color: AppColors.lightBeige,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+              decoration: BoxDecoration(
+                color: surfaceDark,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(40),
+                ),
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -69,50 +93,54 @@ class _LoginScreenState extends State<LoginScreen> {
                     Center(
                       child: Container(
                         height: 5,
-                        width: 50,
+                        width: 60,
                         decoration: BoxDecoration(
-                          color: AppColors.roseGold.withOpacity(0.6),
+                          color: richGold,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-
-                    Text(
-                      "Hello!",
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.titleBrown,
-                      ),
-                    ),
-
-                    const SizedBox(height: 6),
-                    Text(
-                      "Welcome back to the Jewellery world.",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.subtitleBrown,
                       ),
                     ),
 
                     const SizedBox(height: 25),
 
-                    _inputField("Your Email", Icons.email_outlined, emailCtrl),
+                    Text(
+                      "Welcome Back",
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: textLight,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    Text(
+                      "Login to continue your jewellery journey",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textSubdued,
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    _inputField(
+                        "Email Address", Icons.email_outlined, emailCtrl),
+
                     const SizedBox(height: 16),
 
                     _inputField("Password", Icons.lock_outline, passCtrl,
                         obscure: true),
 
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 25),
 
-                    // ⭐ EMAIL LOGIN BUTTON
+                    // SIGN IN BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryGold,
+                          backgroundColor: richGold,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
@@ -121,31 +149,36 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: _isLoading
                             ? const CircularProgressIndicator(
                                 color: Colors.white)
-                            : const Text("Sign In",
+                            : const Text(
+                                "Sign In",
                                 style: TextStyle(
-                                    color: Colors.white, fontSize: 18)),
+                                    color: Colors.white, fontSize: 18),
+                              ),
                       ),
                     ),
 
                     const SizedBox(height: 18),
 
-                    // ⭐ GOOGLE LOGIN BUTTON
+                    // GOOGLE LOGIN
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: AppColors.titleBrown),
+                          side: BorderSide(color: richGold),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
                         onPressed: _loginWithGoogle,
-                        child: const Text("Continue with Google"),
+                        child: Text(
+                          "Continue with Google",
+                          style: TextStyle(color: textLight),
+                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 18),
 
                     Center(
                       child: GestureDetector(
@@ -159,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Text(
                           "Don't have an account? Register Now",
                           style: TextStyle(
-                            color: AppColors.roseGold,
+                            color: richGold,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -175,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ⭐ EMAIL LOGIN FUNCTION
+  // EMAIL LOGIN FUNCTION
   Future<void> _loginUser() async {
     final email = emailCtrl.text.trim();
     final password = passCtrl.text.trim();
@@ -195,39 +228,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text("Login Successful"),
-          content: const Text("Welcome back!"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => GemziHome()),
-                );
-              },
-              child: const Text("OK"),
-            ),
-          ],
-        ),
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const GemziHome()),
       );
     } on FirebaseAuthException catch (e) {
-      String msg = "Login failed.";
-
-      if (e.code == "user-not-found") msg = "No user found with this email.";
-      if (e.code == "wrong-password") msg = "Incorrect password.";
-      if (e.code == "invalid-email") msg = "Invalid email format.";
-
-      _showPopup("Login Failed", msg);
+      _showPopup("Login Failed", e.message ?? "Login failed.");
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  // ⭐ GOOGLE SIGN-IN FUNCTION
+  // GOOGLE LOGIN
   Future<void> _loginWithGoogle() async {
     try {
       setState(() => _isLoading = true);
@@ -235,13 +247,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final GoogleSignIn googleSignIn = GoogleSignIn();
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
-      if (googleUser == null) {
-        setState(() => _isLoading = false);
-        return; // User canceled
-      }
+      if (googleUser == null) return;
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final googleAuth = await googleUser.authentication;
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -252,24 +260,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text("Success"),
-          content: const Text("Logged in with Google successfully!"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => GemziHome()),
-                );
-              },
-              child: const Text("OK"),
-            ),
-          ],
-        ),
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const GemziHome()),
       );
     } catch (e) {
       _showPopup("Google Login Error", e.toString());
@@ -278,7 +271,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // ⭐ POPUP FUNCTION
   void _showPopup(String title, String message) {
     showDialog(
       context: context,
@@ -295,30 +287,24 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ⭐ CUSTOM INPUT FIELD
   Widget _inputField(
       String hint, IconData icon, TextEditingController controller,
       {bool obscure = false}) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: darkBg,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.softShadow,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: richGold.withOpacity(0.4)),
       ),
       child: TextField(
         controller: controller,
         obscureText: obscure,
+        style: TextStyle(color: textLight),
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: AppColors.roseGold),
+          prefixIcon: Icon(icon, color: richGold),
           border: InputBorder.none,
           hintText: hint,
-          hintStyle: TextStyle(color: AppColors.subtitleBrown),
+          hintStyle: TextStyle(color: textSubdued),
         ),
       ),
     );
