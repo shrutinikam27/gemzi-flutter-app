@@ -109,7 +109,7 @@ class _RingsPageState extends State<RingsPage> {
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 10,
                   )
                 ],
@@ -194,7 +194,7 @@ class _RingsPageState extends State<RingsPage> {
                               ring["rating"]!,
                               style: const TextStyle(fontSize: 12),
                             ),
-                          ], 
+                          ],
                         ),
 
                         const SizedBox(height: 4),

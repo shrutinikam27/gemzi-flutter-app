@@ -294,7 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: BoxDecoration(
         color: darkBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: richGold.withOpacity(0.4)),
+        border: Border.all(color: richGold.withValues(alpha: 0.4)),
       ),
       child: TextField(
         controller: controller,

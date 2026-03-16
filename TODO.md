@@ -1,12 +1,28 @@
-# Flutter Windows Firebase Build Fix Progress - COMPLETE ✅
+# Flutter Setup &amp; Device Fix - Progress Tracker
 
-## Plan Steps:
-- [x] 1. Create this TODO.md file
-- [x] 2. Run \`flutter clean\`
-- [x] 3. Delete corrupted directories (already cleaned by flutter clean)
-- [ ] 4. Run \`flutter pub cache clean\` (skipped - not needed)
-- [x] 5. Run \`flutter pub get\`
-- [x] 6. Test rebuild: \`flutter run -d windows\` (running successfully, no errors)
-- [x] 7. Verify success, complete task
+## Approved Plan Steps:
 
-Fix applied: Cleared corrupted Firebase C++ SDK cache. Windows build now works.
+**Step 1: [x] Fix PowerShell << error in diagnostic.ps1**
+- Update to use `flutter doctor -v | Out-String -Stream`
+- Test execution.
+
+**Step 2: [x] Test diagnostics**
+- Flutter PATH OK, Java 24, no ADB.
+- Flutter corrupted - use fix_flutter.bat instructions to reinstall.
+
+**Step 3: [TODO] JDK17 install**
+- `choco install temurin17`
+- set_java_home.bat update if needed.
+
+**Step 4: [TODO] Android SDK**
+- `choco install androidstudio`
+- Accept licenses: `flutter doctor --android-licenses`
+
+**Step 5: [TODO] Device/Emulator**
+- AVD Manager create/start.
+- `flutter devices`
+
+**Step 6: [TODO] Complete verification**
+- `flutter run`
+- Mark all [x] done.
+

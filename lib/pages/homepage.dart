@@ -341,7 +341,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: richGold.withOpacity(0.4),
+                              color: richGold.withValues(alpha: 0.4),
                               blurRadius: 15,
                             )
                           ],
@@ -470,7 +470,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           color: surfaceDark,
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: richGold.withOpacity(0.4)),
+          border: Border.all(color: richGold.withValues(alpha: 0.4)),
         ),
         child: Row(
           children: [
@@ -494,7 +494,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [surfaceDark, darkBg]),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: richGold.withOpacity(0.3)),
+          border: Border.all(color: richGold.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -532,7 +532,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             Icon(
               Icons.camera_alt_outlined,
               size: 60,
-              color: richGold.withOpacity(0.5),
+              color: richGold.withValues(alpha: 0.5),
             ),
           ],
         ),
@@ -553,7 +553,10 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         alignment: Alignment.center,
         border: 2,
         linearGradient: LinearGradient(
-          colors: [surfaceDark.withOpacity(0.9), darkBg.withOpacity(0.6)],
+          colors: [
+            surfaceDark.withValues(alpha: 0.9),
+            darkBg.withValues(alpha: 0.6)
+          ],
         ),
         borderGradient: LinearGradient(colors: [richGold, bronze]),
         child: Row(
