@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../themes/app_colors.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -21,15 +22,20 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool _isLoading = false;
 
-  final Color darkBg = const Color(0xFF0F2F2B);
-  final Color surfaceDark = const Color(0xFF17453F);
-  final Color richGold = const Color(0xFFD4AF37);
-  final Color textLight = const Color(0xFFFFFFFF);
-  final Color textSubdued = const Color(0xFFB8D1CD);
-
+  // Password validation function
   bool _isPasswordStrong(String password) {
+    // At least 8 characters, one number, one special symbol
     final regex = RegExp(r'^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[a-zA-Z]).{8,}$');
     return regex.hasMatch(password);
+  }
+
+  @override
+  void dispose() {
+    nameCtrl.dispose();
+    emailCtrl.dispose();
+    passCtrl.dispose();
+    repassCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -37,66 +43,41 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // BACKGROUND GRADIENT
+          // TOP IMAGE
           Container(
+            height: MediaQuery.of(context).size.height * 0.45,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/auth/log.png"),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+
+          // OVERLAY GRADIENT
+          Container(
+            height: MediaQuery.of(context).size.height * 0.45,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [darkBg, surfaceDark, darkBg],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                colors: [
+                  Colors.black.withOpacity(0.6),
+                  AppColors.roseGold.withOpacity(0.1),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
           ),
 
-          // TOP IMAGE
-          Align(
-            alignment: Alignment.topCenter,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(30),
-              ),
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.35,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("assets/auth/su.png"),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // IMAGE GRADIENT OVERLAY
-          Align(
-            alignment: Alignment.topCenter,
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.35,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.black.withOpacity(0.4),
-                    Colors.transparent,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-          ),
-
-          // SIGNUP CARD
+          // MAIN BOTTOM SHEET
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.70,
+              height: MediaQuery.of(context).size.height * 0.65,
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
-              decoration: BoxDecoration(
-                color: surfaceDark,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(40),
-                ),
+              decoration: const BoxDecoration(
+                color: AppColors.lightBeige,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -105,49 +86,56 @@ class _SignupScreenState extends State<SignupScreen> {
                     Center(
                       child: Container(
                         height: 5,
-                        width: 60,
+                        width: 50,
                         decoration: BoxDecoration(
-                          color: richGold,
+                          color: AppColors.roseGold.withOpacity(0.6),
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 20),
+
                     Text(
                       "Create Account",
                       style: TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
-                        color: textLight,
+                        color: AppColors.titleBrown,
                       ),
                     ),
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 10),
+
                     _inputField("Full Name", Icons.person, nameCtrl),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
+
                     _inputField(
                         "Email Address", Icons.email_outlined, emailCtrl),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
+
                     _inputField("Password", Icons.lock_outline, passCtrl,
                         obscure: true),
                     const SizedBox(height: 5),
                     Text(
-                      "Password must be 8+ characters with a number & special symbol.",
+                      "Password must be at least 8 characters long, include at least one number and one special symbol (!@#\$%^&*).",
                       style: TextStyle(
                         fontSize: 12,
-                        color: textSubdued,
+                        color: AppColors.subtitleBrown,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 13),
+
                     _inputField(
                         "Re-type Password", Icons.lock_reset, repassCtrl,
                         obscure: true),
                     const SizedBox(height: 25),
+
+                    // SIGNUP BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: richGold,
+                          backgroundColor: AppColors.primaryGold,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
@@ -163,7 +151,9 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                       ),
                     ),
-                    const SizedBox(height: 18),
+
+                    const SizedBox(height: 16),
+
                     Center(
                       child: GestureDetector(
                         onTap: () {
@@ -176,8 +166,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: Text(
                           "Already have an account? Sign In",
                           style: TextStyle(
-                            color: richGold,
+                            color: AppColors.roseGold,
                             fontWeight: FontWeight.w600,
+                            fontSize: 15,
                           ),
                         ),
                       ),
@@ -192,6 +183,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
+  // ⭐ SIGNUP FUNCTION WITH POPUP SUCCESS MESSAGE
   Future<void> _registerUser() async {
     final name = nameCtrl.text.trim();
     final email = emailCtrl.text.trim();
@@ -209,7 +201,8 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     if (!_isPasswordStrong(pass)) {
-      _showError("Password must contain number & special symbol.");
+      _showError(
+          "Password must be at least 8 characters long, include at least one number and one special symbol (!@#\$%^&*).");
       return;
     }
 
@@ -227,11 +220,32 @@ class _SignupScreenState extends State<SignupScreen> {
         "createdAt": DateTime.now(),
       });
 
+      // 🎉 SUCCESS POPUP → Go to Login
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text(
+            "Success",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            "Account created successfully!",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // close dialog
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: const Text("OK"),
+            )
+          ],
+        ),
       );
     } on FirebaseAuthException catch (e) {
       _showError(e.message ?? "Signup failed.");
@@ -240,6 +254,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  // ERROR POPUP
   void _showError(String msg) {
     showDialog(
       context: context,
@@ -256,24 +271,30 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
+  // INPUT FIELD UI
   Widget _inputField(
       String hint, IconData icon, TextEditingController controller,
       {bool obscure = false}) {
     return Container(
       decoration: BoxDecoration(
-        color: darkBg,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: richGold.withOpacity(0.4)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.softShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: TextField(
         controller: controller,
         obscureText: obscure,
-        style: TextStyle(color: textLight),
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: richGold),
+          prefixIcon: Icon(icon, color: AppColors.roseGold),
           border: InputBorder.none,
           hintText: hint,
-          hintStyle: TextStyle(color: textSubdued),
+          hintStyle: TextStyle(color: AppColors.subtitleBrown),
         ),
       ),
     );
