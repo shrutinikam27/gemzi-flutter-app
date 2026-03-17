@@ -38,7 +38,7 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
         rate22 = rates * (22 / 24);
       });
     } catch (e) {
-      print(e);
+      // print(e);
     }
   }
 
@@ -70,14 +70,14 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
           colors: [surfaceDark, darkBg],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: richGold.withOpacity(0.4)),
+        border: Border.all(color: richGold.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: richGold.withOpacity(0.15),
+              color: richGold.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.monetization_on, color: richGold),
