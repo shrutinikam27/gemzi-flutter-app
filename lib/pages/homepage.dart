@@ -8,6 +8,8 @@ import '../screens/products/product_detail_page.dart';
 import '../screens/products/necklaces_page.dart' as necklaces_page;
 import '../screens/products/bangles_page.dart' as bangles_page;
 import '../screens/products/earrings_page.dart' as earrings_page;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GemziHome extends StatefulWidget {
   const GemziHome({super.key});
@@ -24,10 +26,51 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   final Color textLight = Colors.white;
   final Color textSubdued = const Color(0xFFB8D1CD);
   final Color white = Colors.white;
-
+  String userName = "User";
   String selectedLanguage = "EN";
   final PageController _adController = PageController();
   int _currentAdPage = 0;
+  @override
+  void initState() {
+    super.initState();
+    _startAdScroll();
+    Future.microtask(() => _loadUserName()); // 🔥 FIX
+  }
+
+  // ✅ FETCH USER NAME FROM FIREBASE
+  // ✅ SAFE USER FETCH (NO CRASH)
+  Future<void> _loadUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(user.uid)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data();
+
+        if (data != null && data.containsKey('name')) {
+          setState(() {
+            userName = data['name'];
+          });
+        } else {
+          setState(() {
+            userName = "User";
+          });
+        }
+      } else {
+        setState(() {
+          userName = "User";
+        });
+      }
+    } catch (e) {
+      print("ERROR: $e");
+    }
+  }
 
   final List<String> categoryImages = [
     "assets/auth/ring.png",
@@ -93,12 +136,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       "image": "assets/auth/coin.jpeg"
     },
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _startAdScroll();
-  }
 
   void _startAdScroll() {
     Future.delayed(const Duration(seconds: 4), () {
@@ -170,6 +207,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     );
   }
 
+  // ✅ HEADER UPDATED
   Widget _buildTopHeader() {
     return FadeInDown(
       child: Padding(
@@ -182,7 +220,13 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                   color: richGold, fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 12),
-            Text("Hello", style: TextStyle(color: textSubdued)),
+
+            // 🔥 USER NAME HERE
+            Text(
+              "Hello, $userName",
+              style: TextStyle(color: textSubdued),
+            ),
+
             const Spacer(),
             Icon(Icons.shopping_cart_outlined, color: textLight),
             const SizedBox(width: 15),
@@ -190,36 +234,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               radius: 16,
               backgroundColor: surfaceDark,
               child: Icon(Icons.person_outline, color: richGold),
-            ),
-            const SizedBox(width: 15),
-            PopupMenuButton<String>(
-              color: surfaceDark,
-              icon: Row(
-                children: [
-                  Icon(Icons.translate, color: textLight, size: 20),
-                  const SizedBox(width: 3),
-                  Icon(Icons.keyboard_arrow_down, color: textLight, size: 18),
-                ],
-              ),
-              onSelected: (value) {
-                setState(() {
-                  selectedLanguage = value;
-                });
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: "EN",
-                  child: Text("English", style: TextStyle(color: Colors.white)),
-                ),
-                const PopupMenuItem(
-                  value: "HI",
-                  child: Text("Hindi", style: TextStyle(color: Colors.white)),
-                ),
-                const PopupMenuItem(
-                  value: "MR",
-                  child: Text("Marathi", style: TextStyle(color: Colors.white)),
-                ),
-              ],
             ),
           ],
         ),

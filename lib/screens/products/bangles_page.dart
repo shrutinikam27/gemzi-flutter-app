@@ -127,6 +127,7 @@ class _BanglesPageState extends State<BanglesPage> {
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
+                    // ignore: deprecated_member_use
                     color: Colors.black.withOpacity(0.08),
                     blurRadius: 10,
                   )

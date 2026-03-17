@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'signup_screen.dart';
 import 'homepage.dart';
@@ -31,18 +32,16 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // BACKGROUND GRADIENT
+          // BACKGROUND
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [darkBg, surfaceDark, darkBg],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
               ),
             ),
           ),
 
-          // TOP IMAGE (COVER STYLE)
+          // IMAGE
           Align(
             alignment: Alignment.topCenter,
             child: Container(
@@ -56,19 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // IMAGE GRADIENT OVERLAY
+          // OVERLAY
           Align(
             alignment: Alignment.topCenter,
             child: Container(
               height: MediaQuery.of(context).size.height * 0.40,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Colors.transparent,
-                    surfaceDark,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, surfaceDark],
                 ),
               ),
             ),
@@ -82,9 +76,8 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
               decoration: BoxDecoration(
                 color: surfaceDark,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(40),
-                ),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(40)),
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -100,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 25),
 
                     Text(
@@ -116,10 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     Text(
                       "Login to continue your jewellery journey",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textSubdued,
-                      ),
+                      style: TextStyle(color: textSubdued),
                     ),
 
                     const SizedBox(height: 30),
@@ -134,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 25),
 
-                    // SIGN IN BUTTON
+                    // EMAIL LOGIN BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -149,17 +138,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: _isLoading
                             ? const CircularProgressIndicator(
                                 color: Colors.white)
-                            : const Text(
-                                "Sign In",
+                            : const Text("Sign In",
                                 style: TextStyle(
-                                    color: Colors.white, fontSize: 18),
-                              ),
+                                    color: Colors.white, fontSize: 18)),
                       ),
                     ),
 
                     const SizedBox(height: 18),
 
-                    // GOOGLE LOGIN
+                    // GOOGLE LOGIN BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -208,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // EMAIL LOGIN FUNCTION
+  // ✅ EMAIL LOGIN WITH FIRESTORE FIX
   Future<void> _loginUser() async {
     final email = emailCtrl.text.trim();
     final password = passCtrl.text.trim();
@@ -221,10 +208,25 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       setState(() => _isLoading = true);
 
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final userCred = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      final user = userCred.user;
+
+      // 🔥 CREATE USER DATA IF NOT EXISTS
+      final doc = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(user!.uid)
+          .get();
+
+      if (!doc.exists) {
+        await FirebaseFirestore.instance.collection("users").doc(user.uid).set({
+          "name": user.displayName ?? "User",
+          "email": user.email,
+        });
+      }
 
       if (!mounted) return;
 
@@ -239,14 +241,12 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // GOOGLE LOGIN
+  // ✅ GOOGLE LOGIN WITH FIRESTORE SAVE
   Future<void> _loginWithGoogle() async {
     try {
       setState(() => _isLoading = true);
 
-      final GoogleSignIn googleSignIn = GoogleSignIn();
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
+      final googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) return;
 
       final googleAuth = await googleUser.authentication;
@@ -256,7 +256,15 @@ class _LoginScreenState extends State<LoginScreen> {
         idToken: googleAuth.idToken,
       );
 
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCred =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      final user = userCred.user;
+
+      await FirebaseFirestore.instance.collection("users").doc(user!.uid).set({
+        "name": user.displayName ?? "User",
+        "email": user.email,
+      }, SetOptions(merge: true));
 
       if (!mounted) return;
 
@@ -294,7 +302,7 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: BoxDecoration(
         color: darkBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: richGold.withValues(alpha: 0.4)),
+        border: Border.all(color: richGold.withOpacity(0.4)),
       ),
       child: TextField(
         controller: controller,
