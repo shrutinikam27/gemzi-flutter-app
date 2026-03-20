@@ -14,6 +14,7 @@ dependencies:
   glassmorphism: ^3.0.0 
   marquee: ^2.2.3
   cupertino_icons: ^1.0.8
+  http: ^0.13.6
 
   # --- Firebase packages ---
   firebase_core: ^2.25.4
@@ -55,6 +56,27 @@ flutter:
     - assets/auth/nacklace4.jpeg
     - assets/auth/nacklace5.jpeg
     - assets/auth/nacklace6.jpeg
+    - assets/auth/crystaldrops.jpeg
+    - assets/auth/halodrops.jpeg
+    - assets/auth/pearlbowerrings.jpeg
+    - assets/auth/pearlroseearrings.jpeg
+    - assets/auth/crystalstuds.jpeg
+    - assets/auth/goldenloopdrops.jpeg
+    - assets/auth/sapphirejhumka.jpeg
+    - assets/auth/lotusjhumka.jpeg
+    - assets/auth/templejhumka.jpeg
+    - assets/auth/royalleafchandbali.jpeg
+    - assets/auth/starlightbangles.jpeg
+    - assets/auth/royalpearlset.jpeg
+    - assets/auth/pearlblossombangles.jpeg
+    - assets/auth/templecarvedbangles.jpeg
+    - assets/auth/leafgoldbangles.jpeg
+    - assets/auth/slimpatternbangles.jpeg
+    - assets/auth/crystalbridalbangles.jpeg
+    - assets/auth/kundankada.jpeg
+    - assets/auth/classicgoldbangles.jpeg
+    
+
     
 
   

@@ -10,6 +10,9 @@ import '../screens/products/bangles_page.dart' as bangles_page;
 import '../screens/products/earrings_page.dart' as earrings_page;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/gold_rate_service.dart';
+import 'live_gold_page.dart';
+import 'dart:async';
 
 class GemziHome extends StatefulWidget {
   const GemziHome({super.key});
@@ -30,10 +33,36 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   String selectedLanguage = "EN";
   final PageController _adController = PageController();
   int _currentAdPage = 0;
+  double goldRate = 0;
+  Timer? timer;
+
+  void loadGoldRate() async {
+    try {
+      double rate = await GoldRateService.getGoldRate();
+
+      setState(() {
+        goldRate = rate;
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+
+    // Start gold rate fetch
+    loadGoldRate();
+
+    // Update gold rate every 1 minute
+    timer = Timer.periodic(const Duration(minutes: 1), (Timer t) {
+      loadGoldRate();
+    });
+
+    // Start ads carousel
     _startAdScroll();
+
     Future.microtask(() => _loadUserName()); // 🔥 FIX
   }
 
@@ -68,7 +97,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         });
       }
     } catch (e) {
-      print("ERROR: $e");
+      // Removed print for production - error handled silently
     }
   }
 
@@ -159,6 +188,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    timer?.cancel();
     _adController.dispose();
     super.dispose();
   }
@@ -436,8 +466,15 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             const SizedBox(width: 10),
             Text("Gold Rate Live", style: TextStyle(color: textLight)),
             const Spacer(),
-            Text("₹6,840/gm",
-                style: TextStyle(color: richGold, fontWeight: FontWeight.bold)),
+            Text(
+              goldRate == 0
+                  ? "Loading..."
+                  : "₹${goldRate.toStringAsFixed(2)}/gm",
+              style: TextStyle(
+                color: richGold,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),
@@ -599,7 +636,17 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             _navItem(Icons.home, "Home", true),
             _navItem(Icons.account_balance_wallet, "Wallet", false),
             _buildTryOnButton(),
-            _navItem(Icons.trending_up, "Live", false),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LiveGoldPage(),
+                  ),
+                );
+              },
+              child: _navItem(Icons.trending_up, "Live", false),
+            ),
             _navItem(Icons.settings, "Setting", false),
           ],
         ),
