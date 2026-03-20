@@ -44,7 +44,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         goldRate = rate;
       });
     } catch (e) {
-      print(e);
+      // Silent fail - use fallback rate
     }
   }
 
