@@ -1,23 +1,9 @@
-# FirebaseError Fix Plan for Gemzi Flutter App
+# TODO Steps for Git Pull Resolution
 
-**Status: Approved - Implementing step-by-step**
+## Approved Plan Steps:
+1. [x] Stage and commit local changes to pubspec.yaml (done: commit 55bd2a6)
 
-## Current Analysis:
-- FirebaseError in firebase_core_web core.dart line 60 (JS interop failure on web).
-- Works on Android (assumed). Web-specific: SDK loading/init issue.
-- Fix: Add Firebase JS SDK + config to web/index.html.
-
-## Steps:
-- [x] 1. Analyzed files (pubspec.yaml, main.dart, firebase_options.dart, index.html, configs).
-- [x] 2. Created TODO.md with plan.
-- [x] 3. Edit web/index.html to add Firebase SDK and initializeApp config.
-- [x] 4. Add error handling to lib/main.dart.
-
-- [x] 5. flutter clean && flutter pub get.
-
-- [x] 6. Test `flutter run -d chrome`.
-
-- [ ] 7. attempt_completion if resolved.
-
-Progress tracked here.
-
+2. [ ] Pull latest changes: `git pull origin master`
+3. [ ] Run `flutter pub get` if dependencies updated
+4. [ ] Verify clean status: `git status`
+5. [ ] Run `flutter analyze` and test app
