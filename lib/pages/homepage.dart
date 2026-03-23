@@ -33,20 +33,69 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   String selectedLanguage = "EN";
   final PageController _adController = PageController();
   int _currentAdPage = 0;
-  double goldRate = 0;
+  double rate24 = 0;
+  double rate22 = 0;
+
+  double prev24 = 0;
+  double prev22 = 0;
   Timer? timer;
 
   void loadGoldRate() async {
+    setState(() {
+      prev24 = rate24;
+      prev22 = rate22;
+
+      rate24 = rate;
+      rate22 = rate * (22 / 24);
+    });
+
+  } catch (e) {
+    debugPrint("ERROR: $e");
+
+    setState(() {
+      rate24 = 7200;
+      rate22 = 6600;
+    });
+>>>>>>> a5c38644219ad01094fd41e2be8d01825099f2b1
+=======
     try {
       double rate = await GoldRateService.getGoldRate();
 
       setState(() {
-        goldRate = rate;
+        prev24 = rate24;
+        prev22 = rate22;
+
+        rate24 = rate;
+        rate22 = rate * (22 / 24);
       });
+
     } catch (e) {
-      // Silent fail - use fallback rate
+      debugPrint("ERROR: $e");
+
+      setState(() {
+        rate24 = 7200;
+        rate22 = 6600;
+      });
     }
+=======
+    setState(() {
+      prev24 = rate24;
+      prev22 = rate22;
+
+      rate24 = rate;
+      rate22 = rate * (22 / 24);
+    });
+
+  } catch (e) {
+    debugPrint("ERROR: $e");
+
+    setState(() {
+      rate24 = 7200;
+      rate22 = 6600;
+    });
+>>>>>>> a5c38644219ad01094fd41e2be8d01825099f2b1
   }
+}
 
   @override
   void initState() {
@@ -466,15 +515,22 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             const SizedBox(width: 10),
             Text("Gold Rate Live", style: TextStyle(color: textLight)),
             const Spacer(),
-            Text(
-              goldRate == 0
-                  ? "Loading..."
-                  : "₹${goldRate.toStringAsFixed(2)}/gm",
-              style: TextStyle(
-                color: richGold,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  rate24 == 0
+                      ? "Loading..."
+                      : "24K: ₹${rate24.toStringAsFixed(2)} / gm",
+                  style:
+                      TextStyle(color: richGold, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  rate22 == 0 ? "" : "22K: ₹${rate22.toStringAsFixed(2)} / gm",
+                  style: TextStyle(color: textSubdued),
+                ),
+              ],
+            )
           ],
         ),
       ),

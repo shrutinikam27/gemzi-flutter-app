@@ -1,24 +1,110 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class GoldRateService {
-  static Future<double> getGoldRate() async {
-    try {
-      // Free public API - reliable gold rates
       final response = await http.get(
-        Uri.parse("https://goldpricez.com/api/rate/INR"),
-        headers: {"Content-Type": "application/json"},
+        Uri.parse("https://www.goldapi.io/api/XAU/INR"),
+        headers: {
+          "x-access-token": "goldapi-eldrsmn2t40ez-io",
+          "Content-Type": "application/json",
+        },
       );
+
+      if (kDebugMode) {
+        debugPrint("STATUS: ${response.statusCode}");
+        debugPrint("BODY: ${response.body}");
+      }
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        // Parse price_gram_24k or similar field
-        double price =
-            (data['price_gram_24k'] ?? data['price'] ?? 7800.0) as double;
-        return price;
+
+        if (!data.containsKey("price")) {
+          throw Exception("Price not found");
+        }
+
+        double perGram = data["price"] / 31.1035;
+
+        return perGram;
+      } else {
+        throw Exception("API ERROR: ${response.body}");
       }
     } catch (e) {
-      // Fallback mock price
+      throw Exception("FAILED TO FETCH GOLD RATE");
+>>>>>>> a5c38644219ad01094fd41e2be8d01825099f2b1
+    }
+
+    // Reliable fallback
+    return 7825.50; // ~24K gold INR/gm
+  }
+}
+=======
+  static Future<double> getGoldRate() async {
+    try {
+      final response = await http.get(
+        Uri.parse("https://www.goldapi.io/api/XAU/INR"),
+        headers: {
+          "x-access-token": "goldapi-eldrsmn2t40ez-io",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (kDebugMode) {
+        debugPrint("STATUS: ${response.statusCode}");
+        debugPrint("BODY: ${response.body}");
+      }
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (!data.containsKey("price")) {
+          throw Exception("Price not found");
+        }
+
+        double perGram = data["price"] / 31.1035;
+
+        return perGram;
+      } else {
+        throw Exception("API ERROR: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("FAILED TO FETCH GOLD RATE");
+    }
+
+    // Reliable fallback
+    return 7825.50; // ~24K gold INR/gm
+  }
+}
+=======
+      final response = await http.get(
+        Uri.parse("https://www.goldapi.io/api/XAU/INR"),
+        headers: {
+          "x-access-token": "goldapi-eldrsmn2t40ez-io",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (kDebugMode) {
+        debugPrint("STATUS: ${response.statusCode}");
+        debugPrint("BODY: ${response.body}");
+      }
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (!data.containsKey("price")) {
+          throw Exception("Price not found");
+        }
+
+        double perGram = data["price"] / 31.1035;
+
+        return perGram;
+      } else {
+        throw Exception("API ERROR: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("FAILED TO FETCH GOLD RATE");
+>>>>>>> a5c38644219ad01094fd41e2be8d01825099f2b1
     }
 
     // Reliable fallback
