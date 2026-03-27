@@ -16,6 +16,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^0.13.6
   fl_chart: ^0.68.0
+  shared_preferences: ^2.2.2
 
   # --- Firebase packages ---
   firebase_core: ^2.25.4

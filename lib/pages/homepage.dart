@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:glassmorphism/glassmorphism.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../screens/products/rings_page.dart' as rings_page;
 import '../screens/products/product_detail_page.dart';
@@ -38,29 +39,33 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
   double prev24 = 0;
   double prev22 = 0;
-  Timer? timer;
 
-  void loadGoldRate() async {
-  try {
-    double rate = await GoldRateService.getGoldRate();
+  Future<void> loadGoldRate() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-    setState(() {
-      prev24 = rate24;
-      prev22 = rate22;
+      List<String> history = prefs.getStringList("gold_history") ?? [];
 
-      rate24 = rate;
-      rate22 = rate * (22 / 24);
-    });
+      if (history.isNotEmpty) {
+        var todayData = history.last.split("|");
 
-  } catch (e) {
-    debugPrint("ERROR: $e");
+        setState(() {
+          rate24 = double.parse(todayData[1]);
+          rate22 = double.parse(todayData[2]);
+        });
+      } else {
+        // fallback if no data yet
+        double rate = await GoldRateService.getGoldRate();
 
-    setState(() {
-      rate24 = 7200;
-      rate22 = 6600;
-    });
+        setState(() {
+          rate24 = rate;
+          rate22 = rate * (22 / 24);
+        });
+      }
+    } catch (e) {
+      debugPrint("ERROR: $e");
+    }
   }
-}
 
   @override
   void initState() {
@@ -68,11 +73,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
     // Start gold rate fetch
     loadGoldRate();
-
-    // Update gold rate every 1 minute
-    timer = Timer.periodic(const Duration(minutes: 1), (Timer t) {
-      loadGoldRate();
-    });
 
     // Start ads carousel
     _startAdScroll();
@@ -202,7 +202,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    timer?.cancel();
     _adController.dispose();
     super.dispose();
   }
@@ -466,37 +465,49 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
   Widget _buildLiveGoldRate() {
     return FadeInUp(
-      child: Container(
-        margin: const EdgeInsets.all(20),
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          color: surfaceDark,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: richGold.withValues(alpha: 0.4)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.show_chart, color: Colors.green),
-            const SizedBox(width: 10),
-            Text("Gold Rate Live", style: TextStyle(color: textLight)),
-            const Spacer(),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  rate24 == 0
-                      ? "Loading..."
-                      : "24K: ₹${rate24.toStringAsFixed(2)} / gm",
-                  style:
-                      TextStyle(color: richGold, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  rate22 == 0 ? "" : "22K: ₹${rate22.toStringAsFixed(2)} / gm",
-                  style: TextStyle(color: textSubdued),
-                ),
-              ],
-            )
-          ],
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LiveGoldPage(),
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: surfaceDark,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: richGold.withValues(alpha: 0.4)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.show_chart, color: Colors.green),
+              const SizedBox(width: 10),
+              Text("Gold Rate Live", style: TextStyle(color: textLight)),
+              const Spacer(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    rate24 == 0
+                        ? "Loading..."
+                        : "24K: ₹${rate24.toStringAsFixed(2)} / gm",
+                    style:
+                        TextStyle(color: richGold, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    rate22 == 0
+                        ? ""
+                        : "22K: ₹${rate22.toStringAsFixed(2)} / gm",
+                    style: TextStyle(color: textSubdued),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
