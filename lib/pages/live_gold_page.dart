@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
-import 'dart:async';
 import '../services/gold_rate_service.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LiveGoldPage extends StatefulWidget {
   const LiveGoldPage({super.key});
@@ -15,7 +15,6 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
   final Color richGold = const Color(0xFFD4AF37);
-  final Color bronze = const Color(0xFFB8962E);
   final Color textLight = Colors.white;
   final Color textSubdued = const Color(0xFFB8D1CD);
 
@@ -27,55 +26,100 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
   double prev24 = 0;
   double prev22 = 0;
 
-  Timer? timer;
+  @override
+  void initState() {
+    super.initState();
+    loadGoldRate();
+  }
 
-  void loadGoldRate() async {
+  // ✅ MAIN LOGIC
+  Future<void> loadGoldRate() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+
+      String today = DateTime.now().toIso8601String().split('T')[0];
+
+      String? lastDate = prefs.getString("last_date");
+
+      List<String> history = prefs.getStringList("gold_history") ?? [];
+
+      // ✅ IF ALREADY FETCHED TODAY
+      if (lastDate == today && history.isNotEmpty) {
+        var todayData = history.last.split("|");
+
+        setState(() {
+          rate24 = double.parse(todayData[1]);
+          rate22 = double.parse(todayData[2]);
+        });
+
+        await loadYesterdayFromLocal();
+        await loadGraphData();
+        return;
+      }
+
+      // ✅ FETCH NEW DATA
       double rate = await GoldRateService.getGoldRate();
 
+      double new24 = rate;
+      double new22 = rate * (22 / 24);
+
+      history.add("$today|$new24|$new22");
+
+      // keep last 30 days
+      if (history.length > 30) {
+        history.removeAt(0);
+      }
+
+      await prefs.setStringList("gold_history", history);
+      await prefs.setString("last_date", today);
+
+      await loadYesterdayFromLocal();
+      await loadGraphData();
+
       setState(() {
-        prev24 = rate24;
-        prev22 = rate22;
-
-        rate24 = rate;
-        rate22 = rate * (22 / 24);
-
-        priceHistory.add(rate24);
-
-        if (priceHistory.length > 12) {
-          priceHistory.removeAt(0);
-        }
+        rate24 = new24;
+        rate22 = new22;
       });
     } catch (e) {
       debugPrint("ERROR: $e");
+    }
+  }
+
+  // ✅ LOAD PREVIOUS DAY
+  Future<void> loadYesterdayFromLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> history = prefs.getStringList("gold_history") ?? [];
+
+    if (history.length >= 2) {
+      var yesterday = history[history.length - 2].split("|");
 
       setState(() {
-        rate24 = 7200;
-        rate22 = 6600;
+        prev24 = double.parse(yesterday[1]);
+        prev22 = double.parse(yesterday[2]);
       });
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
+  // ✅ LOAD GRAPH DATA
+  Future<void> loadGraphData() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> history = prefs.getStringList("gold_history") ?? [];
 
-    loadGoldRate();
+    List<double> temp = [];
 
-    timer = Timer.periodic(const Duration(minutes: 1), (Timer t) {
-      loadGoldRate();
+    for (var item in history) {
+      var data = item.split("|");
+      temp.add(double.parse(data[1]));
+    }
+
+    setState(() {
+      priceHistory = temp;
     });
   }
 
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
-  }
-
+  // ✅ UI CARD
   Widget rateCard(String title, double rate, double prevRate) {
     bool up = prevRate != 0 && rate > prevRate;
-    bool showArrow = prevRate != 0;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -85,53 +129,38 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
           colors: [surfaceDark, darkBg],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: richGold.withValues(alpha: 0.4)),
+        border: Border.all(color: richGold.withOpacity(0.4)),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: richGold.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.monetization_on, color: richGold),
-          ),
+          Icon(Icons.monetization_on, color: richGold),
           const SizedBox(width: 15),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: textSubdued,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 5),
+              Text(title, style: TextStyle(color: textSubdued)),
               Text(
                 rate == 0 ? "Loading..." : "₹${rate.toStringAsFixed(2)} / gm",
                 style: TextStyle(
                   color: richGold,
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
           const Spacer(),
-          showArrow
-              ? Icon(
-                  up ? Icons.trending_up : Icons.trending_down,
-                  color: up ? Colors.green : Colors.red,
-                  size: 30,
-                )
-              : const SizedBox(),
+          if (prevRate != 0)
+            Icon(
+              up ? Icons.trending_up : Icons.trending_down,
+              color: up ? Colors.green : Colors.red,
+            ),
         ],
       ),
     );
   }
 
+  // ✅ GRAPH
   Widget buildChart() {
     if (priceHistory.isEmpty) {
       return Center(
@@ -141,7 +170,6 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
 
     return Container(
       height: 200,
-      margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: surfaceDark,
@@ -154,9 +182,11 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
           borderData: FlBorderData(show: false),
           lineBarsData: [
             LineChartBarData(
-              spots: priceHistory.asMap().entries.map((e) {
-                return FlSpot(e.key.toDouble(), e.value);
-              }).toList(),
+              spots: priceHistory
+                  .asMap()
+                  .entries
+                  .map((e) => FlSpot(e.key.toDouble(), e.value))
+                  .toList(),
               isCurved: true,
               color: priceHistory.last >= priceHistory.first
                   ? Colors.green
@@ -177,77 +207,38 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
     );
   }
 
+  // ✅ UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: darkBg,
       appBar: AppBar(
         backgroundColor: surfaceDark,
-        elevation: 0,
-        title: Text(
-          "Live Gold Rate",
-          style: TextStyle(
-            color: richGold,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text("Live Gold Rate", style: TextStyle(color: richGold)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FadeInDown(
-              child: Text(
-                "Today's Gold Price",
+            Text("Today's Gold Price",
                 style: TextStyle(
-                  color: textLight,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
+                    color: textLight,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
-
-            // 🔥 CHART ADDED HERE
             buildChart(),
-
-            FadeInUp(
-              delay: const Duration(milliseconds: 200),
-              child: rateCard("24K Gold", rate24, prev24),
+            const SizedBox(height: 10),
+            Text(
+              "Last ${priceHistory.length} days trend",
+              style: TextStyle(color: textSubdued),
             ),
-
-            FadeInUp(
-              delay: const Duration(milliseconds: 300),
-              child: rateCard("22K Gold", rate22, prev22),
-            ),
-
-            const SizedBox(height: 25),
-
-            FadeInUp(
-              delay: const Duration(milliseconds: 400),
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: surfaceDark,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.update, color: richGold),
-                    const SizedBox(width: 10),
-                    Text(
-                      "Rates update every 1 minute",
-                      style: TextStyle(
-                        color: textSubdued,
-                        fontSize: 14,
-                      ),
-                    )
-                  ],
-                ),
-              ),
+            rateCard("24K Gold", rate24, prev24),
+            rateCard("22K Gold", rate22, prev22),
+            const SizedBox(height: 20),
+            Text(
+              "Rates update daily",
+              style: TextStyle(color: textSubdued),
             ),
           ],
         ),
