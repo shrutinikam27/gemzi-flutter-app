@@ -1,5 +1,15 @@
+>>>>>>> Stashed changes
+import '../services/gold_rate_service.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+=======
 import 'package:flutter/material.dart';
+import '../services/gold_rate_service.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+=======
+>>>>>>> Stashed changes
 import '../services/gold_rate_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';

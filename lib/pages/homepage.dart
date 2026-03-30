@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../main.dart';
 
 import '../screens/products/rings_page.dart' as rings_page;
 import '../screens/products/product_detail_page.dart';
@@ -13,6 +14,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/gold_rate_service.dart';
 import 'live_gold_page.dart';
+import '../utils/app_strings.dart';
 import 'dart:async';
 
 class GemziHome extends StatefulWidget {
@@ -242,7 +244,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTopHeader(),
+                  _buildTopHeader(context),
                   _buildSearchBar(),
                   const SizedBox(height: 15),
                   _buildSavingAdsCarousel(),
@@ -426,23 +428,27 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       ),
     );
   }
+<<<<<<< Updated upstream
 
   // ✅ HEADER UPDATED
-  Widget _buildTopHeader() {
+  // ✅ HEADER WITH DRAWER + LANG + CART
+  Widget _buildTopHeader(BuildContext context) {
     return FadeInDown(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Row(
           children: [
+            // 🔶 DRAWER BUTTON
             Builder(
               builder: (context) => GestureDetector(
                 onTap: () {
                   Scaffold.of(context).openDrawer();
                 },
-                child: Icon(Icons.menu, color: richGold),
+                child: Icon(Icons.menu, color: richGold, size: 28),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
+            // 🔶 APP NAME
             Text(
               "Gemzi",
               style: TextStyle(
@@ -451,19 +457,81 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const Spacer(),
+            const SizedBox(width: 12),
+            // 🔶 GREETING TEXT (TRANSLATED)
+            Expanded(
+              child: Text(
+                "${AppStrings.get("hello")}, $userName",
+                style: TextStyle(color: textSubdued),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // 🛒 CART BUTTON
             Icon(Icons.shopping_cart_outlined, color: textLight),
             const SizedBox(width: 15),
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: surfaceDark,
-              child: Icon(Icons.person_outline, color: richGold),
+            // 🌐 LANGUAGE BUTTON (LAST)
+            GestureDetector(
+              onTap: () => _showLanguageDialog(context),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: surfaceDark,
+                child: Icon(Icons.language, color: richGold),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+=======
+
+>>>>>>> Stashed changes
+              radius: 16,
+              backgroundColor: surfaceDark,
+              child: Icon(Icons.language, color: richGold),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showLanguageDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("Select Language"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text("English"),
+              onTap: () => _changeLanguage(context, "en"),
+            ),
+            ListTile(
+              title: Text("हिंदी"),
+              onTap: () => _changeLanguage(context, "hi"),
+            ),
+            ListTile(
+              title: Text("मराठी"),
+              onTap: () => _changeLanguage(context, "mr"),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void _changeLanguage(BuildContext context, String langCode) {
+  AppStrings.currentLang = langCode;
+
+  MyApp.setLocale(context, Locale(langCode));
+
+  Navigator.pop(context);
+}
 
   Widget _buildSearchBar() {
     return FadeInDown(
@@ -845,7 +913,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         borderGradient: LinearGradient(colors: [richGold, bronze]),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
+          children: [ 
             _navItem(Icons.home, "Home", true),
             _navItem(Icons.account_balance_wallet, "Wallet", false),
             _buildTryOnButton(),
