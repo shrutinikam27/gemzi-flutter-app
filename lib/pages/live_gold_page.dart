@@ -168,7 +168,7 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
                 color: (priceHistory.last >= priceHistory.first
                         ? Colors.green
                         : Colors.red)
-                    .withOpacity(0.2),
+                    .withValues(alpha: 0.2),
               ),
             ),
           ],

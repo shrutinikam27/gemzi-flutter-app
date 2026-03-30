@@ -1,21 +1,16 @@
-# ✅ GIT CONFLICT RESOLVED - Full Sync Achieved!
+# Firebase Fix TODO for jewellery_admin_app
 
-## Merge Status:
-- [x] pubspec.yaml: Merged (kept Firebase deps + remote http: ^0.13.6 + extra assets)
-- [x] TODO.md: Resolved to combined success summary
-- [x] New features from remote: live_gold_page.dart, gold_rate_service.dart, UI fixes
-- [x] pubspec.lock updated automatically
+## Status: In Progress
 
-## Key Remote Features Integrated:
-🎯 **Live Gold Rates** API (homepage.dart, new service)
-🎯 **Enhanced Product Pages** (shadows/UI)
-🎯 **http dep** for API calls
-🎯 **More product assets** (e.g., crystaldrops.jpeg, templejhumka.jpeg)
+### Steps:
+1. ✅ Created TODO.md
+2. ✅ Fixed `jewellery_admin_app/android/build.gradle.kts` (syntax corrected)
 
-## Next Steps (Step 3+):
-- [x] `flutter pub get` (run below)
-- [ ] `git add TODO.md && git commit` (merge resolution)
-- [ ] `git status` verify clean
-- [ ] `flutter analyze`
-- [ ] `flutter run` test app
-- [ ] `git push origin master` (sync to GitHub)
+3. ✅ Updated `jewellery_admin_app/lib/main.dart` 
+4. ✅ Updated `jewellery_admin_app/pubspec.yaml`
+5. Execute `flutter clean && flutter pub get`
+6. Test `cd jewellery_admin_app && flutter run`
+7. Complete
+
+**Next step: 5/7**
+

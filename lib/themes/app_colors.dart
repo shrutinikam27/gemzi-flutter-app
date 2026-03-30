@@ -19,6 +19,8 @@ class AppColors {
   static const Color white = Colors.white;
 
   // Shadows
-  static Color softShadow = const Color(0xFFD7A77A).withValues(alpha: 0.3);
-  static Color floatingShadow = const Color(0xFFC4906B).withValues(alpha: 0.25);
+  // ignore: deprecated_member_use
+  static Color softShadow = Color(0xFFD7A77A).withOpacity(0.3);
+  // ignore: deprecated_member_use
+  static Color floatingShadow = Color(0xFFC4906B).withOpacity(0.25);
 }

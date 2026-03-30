@@ -41,23 +41,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   Timer? timer;
 
   void loadGoldRate() async {
-    setState(() {
-      prev24 = rate24;
-      prev22 = rate22;
-
-      rate24 = rate;
-      rate22 = rate * (22 / 24);
-    });
-
-  } catch (e) {
-    debugPrint("ERROR: $e");
-
-    setState(() {
-      rate24 = 7200;
-      rate22 = 6600;
-    });
->>>>>>> a5c38644219ad01094fd41e2be8d01825099f2b1
-=======
     try {
       double rate = await GoldRateService.getGoldRate();
 
@@ -68,7 +51,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         rate24 = rate;
         rate22 = rate * (22 / 24);
       });
-
     } catch (e) {
       debugPrint("ERROR: $e");
 
@@ -77,25 +59,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         rate22 = 6600;
       });
     }
-=======
-    setState(() {
-      prev24 = rate24;
-      prev22 = rate22;
-
-      rate24 = rate;
-      rate22 = rate * (22 / 24);
-    });
-
-  } catch (e) {
-    debugPrint("ERROR: $e");
-
-    setState(() {
-      rate24 = 7200;
-      rate22 = 6600;
-    });
->>>>>>> a5c38644219ad01094fd41e2be8d01825099f2b1
   }
-}
 
   @override
   void initState() {
@@ -245,6 +209,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: buildSideDrawer(),
       backgroundColor: darkBg,
       body: Stack(
         children: [
@@ -274,6 +239,160 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     );
   }
 
+  Widget buildSideDrawer() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: Column(
+        children: [
+          // 🔴 CLOSE BUTTON
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+
+          // 🔥 TOP CARD (LOGIN / PROFILE)
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3EDED),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: user == null ? _buildLoginCard() : _buildProfileCard(user),
+            ),
+          ),
+
+          const Divider(),
+
+          // 📂 MENU LIST
+          Expanded(
+            child: ListView(
+              children: [
+                _menuItem(Icons.all_inbox, "All Jewellery"),
+                _menuItem(Icons.circle, "Gold"),
+                _menuItem(Icons.diamond, "Diamond"),
+                _menuItem(Icons.earbuds, "Earrings"),
+                _menuItem(Icons.circle_outlined, "Rings"),
+                _menuItem(Icons.watch, "Daily Wear"),
+                _menuItem(Icons.collections, "Collections"),
+                _menuItem(Icons.favorite, "Wedding"),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoginCard() {
+    return Row(
+      children: [
+        Image.asset("assets/auth/bag.png", width: 60),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Flat Rs. 500 off",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const Text("on your first order"),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, "/login");
+                    },
+                    child: const Text("LOGIN",
+                        style: TextStyle(color: Colors.red)),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text("|"),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, "/signup");
+                    },
+                    child: const Text("SIGN UP",
+                        style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              )
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildProfileCard(User user) {
+    return FutureBuilder<DocumentSnapshot>(
+      future:
+          FirebaseFirestore.instance.collection("users").doc(user.uid).get(),
+      builder: (context, snapshot) {
+        String name = "User";
+        String email = user.email ?? "";
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          name = data['name'] ?? "User";
+        }
+
+        return Row(
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: Colors.grey.shade300,
+              child: const Icon(Icons.person, size: 30),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(email, style: const TextStyle(fontSize: 12)),
+                  const SizedBox(height: 5),
+                  GestureDetector(
+                    onTap: () async {
+                      await FirebaseAuth.instance.signOut();
+                      setState(() {});
+                    },
+                    child: const Text(
+                      "Logout",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _menuItem(IconData icon, String title) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: () {},
+    );
+  }
+
   Widget _buildBackgroundGradient() {
     return Container(
       decoration: BoxDecoration(
@@ -293,19 +412,23 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         padding: const EdgeInsets.all(20),
         child: Row(
           children: [
+            Builder(
+              builder: (context) => GestureDetector(
+                onTap: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                child: Icon(Icons.menu, color: richGold),
+              ),
+            ),
+            const SizedBox(width: 10),
             Text(
               "Gemzi",
               style: TextStyle(
-                  color: richGold, fontSize: 22, fontWeight: FontWeight.bold),
+                color: richGold,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(width: 12),
-
-            // 🔥 USER NAME HERE
-            Text(
-              "Hello, $userName",
-              style: TextStyle(color: textSubdued),
-            ),
-
             const Spacer(),
             Icon(Icons.shopping_cart_outlined, color: textLight),
             const SizedBox(width: 15),

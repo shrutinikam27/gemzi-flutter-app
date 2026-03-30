@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'signup_screen.dart';
@@ -197,6 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // ✅ EMAIL LOGIN WITH FIRESTORE FIX
   Future<void> _loginUser() async {
+    log("LOGIN BUTTON TAPPED - email: \${emailCtrl.text.trim()}");
     final email = emailCtrl.text.trim();
     final password = passCtrl.text.trim();
 
@@ -243,6 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // ✅ GOOGLE LOGIN WITH FIRESTORE SAVE
   Future<void> _loginWithGoogle() async {
+    log("GOOGLE LOGIN BUTTON TAPPED");
     try {
       setState(() => _isLoading = true);
 
