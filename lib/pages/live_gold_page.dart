@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:animate_do/animate_do.dart';
+
 import '../services/gold_rate_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -129,6 +129,7 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
           colors: [surfaceDark, darkBg],
         ),
         borderRadius: BorderRadius.circular(20),
+        // ignore: deprecated_member_use
         border: Border.all(color: richGold.withOpacity(0.4)),
       ),
       child: Row(

@@ -41,34 +41,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   double prev22 = 0;
 
   Future<void> loadGoldRate() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      List<String> history = prefs.getStringList("gold_history") ?? [];
-
-      if (history.isNotEmpty) {
-        var todayData = history.last.split("|");
-
-        setState(() {
-          rate24 = double.parse(todayData[1]);
-          rate22 = double.parse(todayData[2]);
-        });
-      } else {
-        // fallback if no data yet
-        double rate = await GoldRateService.getGoldRate();
-
-        setState(() {
-          rate24 = rate;
-          rate22 = rate * (22 / 24);
-        });
-      }
-    } catch (e) {
-      debugPrint("ERROR: $e");
->>>>>>> 86ffeac0b104d7b114aef97b9a275a77154f2d7b
-    }
-  }
-=======
-  Future<void> loadGoldRate() async {
     if (!mounted) return;
     try {
       double old24 = rate24;
@@ -116,34 +88,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       }
     }
   }
-=======
-  Future<void> loadGoldRate() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      List<String> history = prefs.getStringList("gold_history") ?? [];
-
-      if (history.isNotEmpty) {
-        var todayData = history.last.split("|");
-
-        setState(() {
-          rate24 = double.parse(todayData[1]);
-          rate22 = double.parse(todayData[2]);
-        });
-      } else {
-        // fallback if no data yet
-        double rate = await GoldRateService.getGoldRate();
-
-        setState(() {
-          rate24 = rate;
-          rate22 = rate * (22 / 24);
-        });
-      }
-    } catch (e) {
-      debugPrint("ERROR: $e");
->>>>>>> 86ffeac0b104d7b114aef97b9a275a77154f2d7b
-    }
-  }
 
   @override
   void initState() {
@@ -174,7 +118,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       if (doc.exists) {
         final data = doc.data();
 
-        if (data != null && data.containsKey('name')) {
+        if (data != null && data['name'] != null) {
           setState(() {
             userName = data['name'];
           });
@@ -672,7 +616,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: richGold.withValues(alpha: 0.4),
+                              color: richGold.withAlpha(102), // 0.4 * 255
                               blurRadius: 15,
                             )
                           ],
@@ -717,7 +661,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           decoration: BoxDecoration(
             color: surfaceDark,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: richGold.withValues(alpha: 0.4)),
+            border: Border.all(color: richGold.withAlpha(102)), // 0.4
           ),
           child: Row(
             children: [
@@ -838,7 +782,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [surfaceDark, darkBg]),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: richGold.withValues(alpha: 0.3)),
+          border: Border.all(color: richGold.withAlpha(77)), // 0.3 * 255
         ),
         child: Row(
           children: [
@@ -873,7 +817,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             Icon(
               Icons.camera_alt_outlined,
               size: 60,
-              color: richGold.withValues(alpha: 0.5),
+              color: richGold.withAlpha(128), // 0.5 * 255
             ),
           ],
         ),
@@ -894,8 +838,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         border: 2,
         linearGradient: LinearGradient(
           colors: [
-            surfaceDark.withValues(alpha: 0.9),
-            darkBg.withValues(alpha: 0.6)
+            surfaceDark.withAlpha(229), // 0.9 * 255
+            darkBg.withAlpha(153), // 0.6 * 255
           ],
         ),
         borderGradient: LinearGradient(colors: [richGold, bronze]),

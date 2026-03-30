@@ -1,16 +1,9 @@
-# Firebase Fix TODO for jewellery_admin_app
+# Resolve Git Merge Conflicts
 
-## Status: In Progress
-
-### Steps:
-1. ✅ Created TODO.md
-2. ✅ Fixed `jewellery_admin_app/android/build.gradle.kts` (syntax corrected)
-
-3. ✅ Updated `jewellery_admin_app/lib/main.dart` 
-4. ✅ Updated `jewellery_admin_app/pubspec.yaml`
-5. Execute `flutter clean && flutter pub get`
-6. Test `cd jewellery_admin_app && flutter run`
-7. Complete
-
-**Next step: 5/7**
-
+## Steps:
+- [x] 1. Edit `lib/pages/homepage.dart` - resolve conflict with combined gold rate logic (SharedPrefs + API + prev rates)
+- [x] 2. Run `flutter pub get` to regenerate `.flutter-plugins-dependencies`
+- [x] 3. `git add lib/pages/homepage.dart .flutter-plugins-dependencies`
+- [x] 4. `git commit -m "Resolve merge conflicts: homepage.dart and plugins"`
+- [x] 5. `git push origin master`
+- [x] 6. Verify: `git status` clean, `flutter pub get`, test app
