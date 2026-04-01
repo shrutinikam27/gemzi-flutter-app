@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter_project/pages/cart_page.dart';
+import '../services/cart_service.dart';
 import 'package:glassmorphism/glassmorphism.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../screens/products/rings_page.dart' as rings_page;
@@ -12,6 +15,7 @@ import '../screens/products/earrings_page.dart' as earrings_page;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/gold_rate_service.dart';
+
 import 'live_gold_page.dart';
 import 'dart:async';
 
@@ -23,6 +27,8 @@ class GemziHome extends StatefulWidget {
 }
 
 class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
+  TextEditingController searchController = TextEditingController();
+  List<Map<String, String?>> filteredItems = [];
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
   final Color richGold = const Color(0xFFD4AF37);
@@ -98,8 +104,43 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
     // Start ads carousel
     _startAdScroll();
-
+    filteredItems = trendingItems;
     Future.microtask(() => _loadUserName()); // 🔥 FIX
+  }
+
+  void searchProducts(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredItems = trendingItems;
+      });
+      return;
+    }
+    final results = trendingItems.where((item) {
+      final name = item["name"]!.toLowerCase();
+      return name.contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      filteredItems = results;
+    });
+  }
+
+  void addToCart(Map<String, String?> item) {
+    final cartService = Provider.of<CartService>(context, listen: false);
+    final priceNum = double.tryParse(
+            item["price"]!.replaceAll('₹', '').replaceAll(',', '')) ??
+        0.0;
+    cartService.addItem(CartItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: item["name"] ?? "",
+      price: priceNum.toString(),
+      image: item["image"] ?? "",
+      quantity: 1,
+    ));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("${item["name"]} added to cart")),
+    );
   }
 
   // ✅ FETCH USER NAME FROM FIREBASE
@@ -225,6 +266,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   @override
   void dispose() {
     _adController.dispose();
+    searchController.dispose();
     super.dispose();
   }
 
@@ -427,7 +469,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     );
   }
 
-  // ✅ HEADER UPDATED
+// ✅ HEADER UPDATED
   Widget _buildTopHeader() {
     return FadeInDown(
       child: Padding(
@@ -442,7 +484,9 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 child: Icon(Icons.menu, color: richGold),
               ),
             ),
+
             const SizedBox(width: 10),
+
             Text(
               "Gemzi",
               style: TextStyle(
@@ -451,9 +495,61 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             const Spacer(),
-            Icon(Icons.shopping_cart_outlined, color: textLight),
+
+            // 🔥 ✅ PROVIDER CART STARTS HERE
+            Consumer<CartService>(
+              builder: (context, cartService, child) {
+                return GestureDetector(
+                  onTap: () {
+                    final cartItems = cartService.items
+                        .map((item) => {
+                              "name": item.name,
+                              "price": item.price,
+                              "image": item.image,
+                            })
+                        .toList();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CartPage(cartItems: cartItems),
+                      ),
+                    );
+                  },
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(Icons.shopping_cart_outlined, color: textLight),
+                      if (cartService.totalQuantity > 0)
+                        Positioned(
+                          right: -6,
+                          top: -6,
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              cartService.totalQuantity.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            // 🔥 ✅ PROVIDER CART ENDS HERE
+
             const SizedBox(width: 15),
+
             CircleAvatar(
               radius: 16,
               backgroundColor: surfaceDark,
@@ -476,11 +572,21 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(15),
           ),
           child: TextField(
+            controller: searchController,
             style: const TextStyle(color: Colors.white),
+            onChanged: (value) {
+              searchProducts(value); // 🔥 MAIN LOGIC
+            },
             decoration: InputDecoration(
-              hintText: "Search categories...",
+              hintText: "Search jewellery...",
               hintStyle: TextStyle(color: textSubdued),
               prefixIcon: Icon(Icons.search, color: textSubdued),
+              suffixIcon: IconButton(
+                icon: Icon(Icons.search, color: textSubdued),
+                onPressed: () {
+                  searchProducts(searchController.text);
+                },
+              ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 15),
             ),
@@ -706,20 +812,32 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   }
 
   Widget _buildTrendingItems() {
+    if (filteredItems.isEmpty && searchController.text.isNotEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(
+            "No products found",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: trendingItems.length,
+        itemCount: filteredItems.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
-          childAspectRatio: 0.9,
+          childAspectRatio: 0.75,
         ),
         itemBuilder: (context, index) {
-          final item = trendingItems[index];
+          final item = filteredItems[index];
 
           return GestureDetector(
             onTap: () {
@@ -756,15 +874,31 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                     padding: const EdgeInsets.all(10),
                     child: Column(
                       children: [
-                        Text(item["name"] ?? "",
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        Text(item["price"] ?? "",
-                            style: TextStyle(
-                                color: richGold, fontWeight: FontWeight.bold)),
+                        Text(
+                          item["name"] ?? "",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          item["price"] ?? "",
+                          style: TextStyle(
+                            color: richGold,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            addToCart(item);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: richGold,
+                            minimumSize: const Size(double.infinity, 30),
+                          ),
+                          child: const Text("Add to Cart"),
+                        ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../services/cart_service.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String name;
@@ -171,11 +173,28 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     onPressed: () {
                                       HapticFeedback.mediumImpact();
 
+                                      final priceNum = double.tryParse(widget
+                                              .price
+                                              .replaceAll('₹', '')
+                                              .replaceAll(',', '')) ??
+                                          0.0;
+                                      final cartService =
+                                          Provider.of<CartService>(context,
+                                              listen: false);
+                                      cartService.addItem(CartItem(
+                                        id: DateTime.now()
+                                            .millisecondsSinceEpoch
+                                            .toString(),
+                                        name: widget.name,
+                                        price: priceNum.toString(),
+                                        image: widget.image,
+                                        quantity: 1,
+                                      ));
+
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         const SnackBar(
-                                          content: Text("Added to cart"),
-                                        ),
+                                            content: Text("Added to cart!")),
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(

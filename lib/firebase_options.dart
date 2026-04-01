@@ -64,6 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '945540945656',
     projectId: 'jewellary-marketing-app',
     storageBucket: 'jewellary-marketing-app.firebasestorage.app',
+    androidClientId: '945540945656-r8qoib7hvbilc9n8nar13u2tf04hivav.apps.googleusercontent.com',
     iosClientId: '945540945656-rh6rtu34b5fr439c10dki72cs26mafll.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterProject',
   );
@@ -74,6 +75,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '945540945656',
     projectId: 'jewellary-marketing-app',
     storageBucket: 'jewellary-marketing-app.firebasestorage.app',
+    androidClientId: '945540945656-r8qoib7hvbilc9n8nar13u2tf04hivav.apps.googleusercontent.com',
     iosClientId: '945540945656-rh6rtu34b5fr439c10dki72cs26mafll.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterProject',
   );
