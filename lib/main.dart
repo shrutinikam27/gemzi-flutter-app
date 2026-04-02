@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_project/services/notification_service.dart';
-import 'package:flutter_project/utils/translator_service.dart';
 import 'package:provider/provider.dart';
 
 import 'services/cart_service.dart';
@@ -12,9 +10,10 @@ import 'services/google_auth.dart'; // 🔥 IMPORTANT
 import 'firebase_options.dart';
 import 'pages/splash_screen.dart';
 import 'pages/get_started.dart';
-import 'pages/admin_login_screen.dart';
-import 'screens/admin/admin_navigation_screen.dart';
-import 'screens/admin/jewellery_management_screen.dart';
+import 'pages/login_screen.dart';
+import 'pages/signup_screen.dart';
+import 'pages/explore_screen.dart';
+import 'pages/homepage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,20 +21,14 @@ void main() async {
   // Disable Provider debug check
   Provider.debugCheckInvalidValueType = null;
 
-  // 🔥 Load saved language (VERY IMPORTANT)
-  //very good
-  await TranslatorService.loadLanguage();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-  await NotificationService.init(); // 🔥 Initialize notifications
-
-  // 🔥 Initialize Firebase (only once)
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    debugPrint('Firebase init error (may already be initialized): $e');
-  }
+  // 🔥🔥🔥 TEMP FIX (VERY IMPORTANT)
+  // Prevent auto-login → fixes splash + success screen issue
+  await GoogleAuthService.signOut();
+  await FirebaseAuth.instance.signOut();
 
   final cartService = CartService()..init();
 
@@ -87,12 +80,15 @@ class _MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
 
-      // 🔥 START WITH ADMIN LOGIN FOR GEMZI ADMIN
-      home: const AdminLoginScreen(),
+      // 🔥 START WITH SPLASH
+      home: const SplashScreen(),
 
       routes: {
-        "/login": (_) => const AdminLoginScreen(),
-        "/admin-home": (_) => const AdminNavigationScreen(),
+        "/get-started": (_) => const GetStartedPage(),
+        "/home": (_) => const GemziHome(),
+        "/login": (_) => const LoginScreen(),
+        "/signup": (_) => const SignupScreen(),
+        "/explore": (_) => const ExploreScreen(),
       },
     );
   }
