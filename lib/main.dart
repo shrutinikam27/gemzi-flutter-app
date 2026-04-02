@@ -12,10 +12,9 @@ import 'services/google_auth.dart'; // 🔥 IMPORTANT
 import 'firebase_options.dart';
 import 'pages/splash_screen.dart';
 import 'pages/get_started.dart';
-import 'pages/login_screen.dart';
-import 'pages/signup_screen.dart';
-import 'pages/explore_screen.dart';
-import 'pages/homepage.dart';
+import 'pages/admin_login_screen.dart';
+import 'screens/admin/admin_navigation_screen.dart';
+import 'screens/admin/jewellery_management_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,23 +28,14 @@ void main() async {
 
   await NotificationService.init(); // 🔥 Initialize notifications
 
-  // 🔥 Initialize Firebase
+  // 🔥 Initialize Firebase (only once)
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
   } catch (e) {
-    debugPrint('Firebase init error: $e');
+    debugPrint('Firebase init error (may already be initialized): $e');
   }
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // 🔥🔥🔥 TEMP FIX (VERY IMPORTANT)
-  // Prevent auto-login → fixes splash + success screen issue
-  await GoogleAuthService.signOut();
-  await FirebaseAuth.instance.signOut();
 
   final cartService = CartService()..init();
 
@@ -97,15 +87,12 @@ class _MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
 
-      // 🔥 START WITH SPLASH
-      home: const SplashScreen(),
+      // 🔥 START WITH ADMIN LOGIN FOR GEMZI ADMIN
+      home: const AdminLoginScreen(),
 
       routes: {
-        "/get-started": (_) => const GetStartedPage(),
-        "/home": (_) => const GemziHome(),
-        "/login": (_) => const LoginScreen(),
-        "/signup": (_) => const SignupScreen(),
-        "/explore": (_) => const ExploreScreen(),
+        "/login": (_) => const AdminLoginScreen(),
+        "/admin-home": (_) => const AdminNavigationScreen(),
       },
     );
   }
