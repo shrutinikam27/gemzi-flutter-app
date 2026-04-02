@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
 import '../services/cart_service.dart';
@@ -314,7 +315,14 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                       _buildCategoryList(),
                       _buildLiveGoldRate(),
                       _buildCollectionTitle(),
-                      _buildTrendingItems(),
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance.collection('products').limit(10).snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                          final items = snapshot.data!.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+                          return _buildTrendingItemsDynamic(items);
+                        },
+                      ),
                       _buildARSection(),
                     ],
                   ),
@@ -1132,6 +1140,114 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTrendingItemsDynamic(List<Map<String, dynamic>> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 250,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return FadeInRight(
+                delay: Duration(milliseconds: index * 100),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProductDetailPage(
+                          name: item["name"] ?? "Item",
+                          price: "₹${item["price"]}",
+                          image: item["imageUrl"] ?? "",
+                          rating: "4.5",
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 170,
+                    margin: const EdgeInsets.only(right: 18),
+                    decoration: BoxDecoration(
+                      color: surfaceDark,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+                                child: item["imageUrl"] != null && item["imageUrl"].toString().isNotEmpty
+                                    ? Image.network(
+                                        item["imageUrl"],
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.image_not_supported, color: Colors.white24)),
+                                      )
+                                    : const Center(child: Icon(Icons.image, color: Colors.white24)),
+                              ),
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Icon(Icons.favorite_border, color: richGold, size: 20),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item["name"] ?? "Item",
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "₹${item["price"]}",
+                                    style: TextStyle(color: richGold, fontWeight: FontWeight.bold),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      final addToCartItem = {
+                                        "name": item["name"]?.toString(),
+                                        "price": "₹${item["price"]}",
+                                        "image": item["imageUrl"]?.toString(),
+                                      };
+                                      addToCart(addToCartItem);
+                                    },
+                                    child: const Icon(Icons.add_circle, color: Colors.white, size: 24),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
