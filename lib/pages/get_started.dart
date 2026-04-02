@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/pages/homepage.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
-import 'homepage.dart';
 
 class GetStartedPage extends StatelessWidget {
   const GetStartedPage({super.key});
@@ -17,7 +17,7 @@ class GetStartedPage extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // IMAGE WITH CLIPPED CORNERS
+          // IMAGE
           Align(
             alignment: Alignment.topCenter,
             child: ClipRRect(
@@ -37,7 +37,7 @@ class GetStartedPage extends StatelessWidget {
             ),
           ),
 
-          // IMAGE OVERLAY
+          // OVERLAY
           Align(
             alignment: Alignment.topCenter,
             child: Container(
@@ -56,7 +56,7 @@ class GetStartedPage extends StatelessWidget {
             ),
           ),
 
-          // SKIP BUTTON
+          // 🔥 FIXED SKIP BUTTON
           SafeArea(
             child: Align(
               alignment: Alignment.topRight,
@@ -66,13 +66,15 @@ class GetStartedPage extends StatelessWidget {
                   onTap: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => const GemziHome()),
+                      MaterialPageRoute(
+                        builder: (_) => const GemziHome(),
+                      ),
                     );
                   },
                   child: Text(
                     "Skip",
                     style: TextStyle(
-                      color: textLight,
+                      color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -82,7 +84,7 @@ class GetStartedPage extends StatelessWidget {
             ),
           ),
 
-          // MAIN CONTENT
+          // CONTENT
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -118,14 +120,13 @@ class GetStartedPage extends StatelessWidget {
 
                   const SizedBox(height: 30),
 
-                  // LOGIN BUTTON
+                  // LOGIN
                   SizedBox(
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
@@ -150,7 +151,7 @@ class GetStartedPage extends StatelessWidget {
 
                   const SizedBox(height: 15),
 
-                  // REGISTER BUTTON
+                  // REGISTER
                   SizedBox(
                     width: double.infinity,
                     height: 55,

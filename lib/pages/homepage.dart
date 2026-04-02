@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
+import '../services/cart_service.dart';
 import 'package:glassmorphism/glassmorphism.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../screens/products/rings_page.dart' as rings_page;
 import '../screens/products/product_detail_page.dart';
 import '../screens/products/necklaces_page.dart' as necklaces_page;
@@ -11,13 +14,13 @@ import '../screens/products/earrings_page.dart' as earrings_page;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/gold_rate_service.dart';
+
+<<<<<<< HEAD
+
+=======
 import 'live_gold_page.dart';
-import '../widgets/translated_text.dart';
-import '../utils/translator_service.dart';
-import 'saving_scheme_screen.dart';
-import 'settings_page.dart';
-
-
+import 'cart_page.dart';
+>>>>>>> 51b8de80cb16bb81c5e345c33b62131fcea8c427
 import 'dart:async';
 
 class GemziHome extends StatefulWidget {
@@ -28,42 +31,8 @@ class GemziHome extends StatefulWidget {
 }
 
 class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
-  @override
-  Widget build(BuildContext context) {
-    return KeyedSubtree(
-      key: ValueKey(TranslatorService.currentLang), // 🔥 important
-      child: Scaffold(
-        drawer: buildSideDrawer(context),
-        backgroundColor: darkBg,
-        body: Stack(
-          children: [
-            Positioned.fill(child: _buildBackgroundGradient()),
-            SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildTopHeader(context),
-                    _buildSearchBar(),
-                    const SizedBox(height: 15),
-                    _buildSavingAdsCarousel(),
-                    _buildCategoryList(),
-                    _buildLiveGoldRate(),
-                    _buildCollectionTitle(),
-                    _buildTrendingItems(),
-                    _buildARSection(),
-                  ],
-                ),
-              ),
-            ),
-            _buildFloatingNavBar(),
-          ],
-        ),
-      ),
-    );
-  }
-
+  TextEditingController searchController = TextEditingController();
+  List<Map<String, String?>> filteredItems = [];
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
   final Color richGold = const Color(0xFFD4AF37);
@@ -134,13 +103,73 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
+    // Start gold rate fetch
     loadGoldRate();
+
+    // Start ads carousel
     _startAdScroll();
-    Future.microtask(() => _loadUserName());
+    filteredItems = trendingItems;
+    Future.microtask(() => _loadUserName()); // 🔥 FIX
   }
 
+  void searchProducts(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredItems = trendingItems;
+      });
+      return;
+    }
+    final results = trendingItems.where((item) {
+      final name = item["name"]!.toLowerCase();
+      return name.contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      filteredItems = results;
+    });
+  }
+
+  void addToCart(Map<String, String?> item) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    // ❌ NOT LOGGED IN
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please login to add items to cart"),
+        ),
+      );
+
+      // 🔥 REDIRECT TO LOGIN
+      Navigator.pushNamed(context, "/login");
+      return;
+    }
+
+    // ✅ LOGGED IN → ADD TO CART
+    final cartService = Provider.of<CartService>(context, listen: false);
+
+    final priceNum = double.tryParse(
+            item["price"]!.replaceAll('₹', '').replaceAll(',', '')) ??
+        0.0;
+
+    cartService.addItem(CartItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: item["name"] ?? "",
+      price: priceNum.toString(),
+      image: item["image"] ?? "",
+      quantity: 1,
+    ));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("${item["name"]} added to cart")),
+    );
+  }
+
+  // ✅ FETCH USER NAME FROM FIREBASE
+  // ✅ SAFE USER FETCH (NO CRASH)
   Future<void> _loadUserName() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) return;
 
     try {
@@ -151,6 +180,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
       if (doc.exists) {
         final data = doc.data();
+
         if (data != null && data['name'] != null) {
           setState(() {
             userName = data['name'];
@@ -166,7 +196,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         });
       }
     } catch (e) {
-      // User data load error handled silently
+      // Removed print for production - error handled silently
     }
   }
 
@@ -238,15 +268,19 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   void _startAdScroll() {
     Future.delayed(const Duration(seconds: 4), () {
       if (!mounted) return;
+
       int nextPage = (_currentAdPage + 1) % 3;
+
       _adController.animateToPage(
         nextPage,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
+
       setState(() {
         _currentAdPage = nextPage;
       });
+
       _startAdScroll();
     });
   }
@@ -254,204 +288,51 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   @override
   void dispose() {
     _adController.dispose();
+    searchController.dispose();
     super.dispose();
   }
 
-  Widget _buildBackgroundGradient() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [darkBg, surfaceDark, darkBg],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopHeader(BuildContext context) {
-    return FadeInDown(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            Builder(
-              builder: (context) => GestureDetector(
-                onTap: () => Scaffold.of(context).openDrawer(),
-                child: Icon(Icons.menu, color: richGold, size: 28),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      drawer: buildSideDrawer(),
+      backgroundColor: darkBg,
+      body: Stack(
+        children: [
+          _buildBackgroundGradient(),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTopHeader(context),
+                  _buildSearchBar(),
+                  const SizedBox(height: 15),
+                  _buildSavingAdsCarousel(),
+                  _buildCategoryList(),
+                  _buildLiveGoldRate(),
+                  _buildCollectionTitle(),
+                  _buildTrendingItems(),
+                  _buildARSection(),
+                ],
               ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              "Gemzi",
-              style: TextStyle(
-                color: richGold,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: TranslatedText(
-                  "Hello, $userName",
-                  style: TextStyle(color: textSubdued),
-                ),
-              ),
-            ),
-            Icon(Icons.shopping_cart_outlined, color: textLight),
-            const SizedBox(width: 15),
-            // 🌐 TRANSLATE ICON (LIKE YOUR IMAGE)
-            GestureDetector(
-              onTap: () => _showLanguageDialog(context),
-              child: CircleAvatar(
-                radius: 16,
-                backgroundColor: surfaceDark,
-                child: Icon(Icons.translate, color: richGold),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showLanguageDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: TranslatedText("Select Language"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-                title: TranslatedText("English"),
-                onTap: () => _changeLanguage(context, "en")),
-            ListTile(
-                title: TranslatedText("हिंदी"),
-                onTap: () => _changeLanguage(context, "hi")),
-            ListTile(
-                title: TranslatedText("मराठी"),
-                onTap: () => _changeLanguage(context, "mr")),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _changeLanguage(BuildContext context, String langCode) async {
-    await TranslatorService.saveLanguage(langCode);
-
-    setState(() {
-      TranslatorService.currentLang = langCode;
-    });
-
-    Navigator.pop(context);
-  }
-
-  Widget _buildSearchBar() {
-    return FadeInDown(
-      delay: const Duration(milliseconds: 200),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: surfaceDark,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: TextField(
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: "Search categories...",
-              hintStyle: TextStyle(color: textSubdued),
-              prefixIcon: Icon(Icons.search, color: textSubdued),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 15),
             ),
           ),
-        ),
+          _buildFloatingNavBar(),
+        ],
       ),
     );
   }
 
-  Widget _buildSavingAdsCarousel() {
-    List<Map<String, String>> ads = [
-      {"title": "Saving Schemes", "subtitle": "Get 10% Extra Gold"},
-      {"title": "Refer Friend", "subtitle": "Earn Cashback"},
-      {"title": "Festive Offer", "subtitle": "Free Making Charge"},
-    ];
-
-    return Column(
-      children: [
-        SizedBox(
-          height: 140,
-          child: PageView.builder(
-            controller: _adController,
-            itemCount: ads.length,
-            itemBuilder: (context, index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(colors: [richGold, bronze]),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TranslatedText(
-                        ads[index]["title"] ?? "",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 5),
-                      TranslatedText(
-                        ads[index]["subtitle"] ?? "",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(3, (index) {
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _currentAdPage == index ? richGold : textSubdued,
-              ),
-            );
-          }),
-        )
-      ],
-    );
-  }
-
-  Widget buildSideDrawer(BuildContext context) {
+  Widget buildSideDrawer() {
     final user = FirebaseAuth.instance.currentUser;
 
     return Drawer(
       backgroundColor: Colors.white,
       child: Column(
         children: [
+          // 🔴 CLOSE BUTTON
           SafeArea(
             child: Align(
               alignment: Alignment.topRight,
@@ -461,6 +342,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               ),
             ),
           ),
+
+          // 🔥 TOP CARD (LOGIN / PROFILE)
           Padding(
             padding: const EdgeInsets.all(12),
             child: Container(
@@ -472,18 +355,21 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               child: user == null ? _buildLoginCard() : _buildProfileCard(user),
             ),
           ),
+
           const Divider(),
+
+          // 📂 MENU LIST
           Expanded(
             child: ListView(
               children: [
-                _menuItem(context, Icons.circle_outlined, "Rings",
-                    rings_page.RingsPage()),
-                _menuItem(context, Icons.earbuds, "Earrings",
-                    earrings_page.EarringsPage()),
-                _menuItem(context, Icons.diamond, "Necklace",
-                    necklaces_page.NecklacesPage()),
-                _menuItem(context, Icons.watch, "Bangles",
-                    bangles_page.BanglesPage()),
+                _menuItem(Icons.all_inbox, "All Jewellery"),
+                _menuItem(Icons.circle, "Gold"),
+                _menuItem(Icons.diamond, "Diamond"),
+                _menuItem(Icons.earbuds, "Earrings"),
+                _menuItem(Icons.circle_outlined, "Rings"),
+                _menuItem(Icons.watch, "Daily Wear"),
+                _menuItem(Icons.collections, "Collections"),
+                _menuItem(Icons.favorite, "Wedding"),
               ],
             ),
           ),
@@ -501,43 +387,30 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔥 TRANSLATED
-              TranslatedText(
+              const Text(
                 "Flat Rs. 500 off",
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-
-              // 🔥 TRANSLATED
-              TranslatedText("on your first order"),
-
+              const Text("on your first order"),
               const SizedBox(height: 8),
-
               Row(
                 children: [
                   GestureDetector(
                     onTap: () {
-                      if (mounted) Navigator.pushNamed(context, "/login");
+                      Navigator.pushNamed(context, "/login");
                     },
-
-                    // 🔥 TRANSLATED
-                    child: const TranslatedText(
-                      "LOGIN",
-                      style: TextStyle(color: Colors.red),
-                    ),
+                    child: const Text("LOGIN",
+                        style: TextStyle(color: Colors.red)),
                   ),
                   const SizedBox(width: 10),
                   const Text("|"),
                   const SizedBox(width: 10),
                   GestureDetector(
                     onTap: () {
-                      if (mounted) Navigator.pushNamed(context, "/signup");
+                      Navigator.pushNamed(context, "/signup");
                     },
-
-                    // 🔥 TRANSLATED
-                    child: const TranslatedText(
-                      "SIGN UP",
-                      style: TextStyle(color: Colors.red),
-                    ),
+                    child: const Text("SIGN UP",
+                        style: TextStyle(color: Colors.red)),
                   ),
                 ],
               )
@@ -573,29 +446,17 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ❌ DO NOT TRANSLATE (dynamic user name)
-                  Text(
-                    name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-
-                  // ❌ DO NOT TRANSLATE (email)
-                  Text(
-                    email,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-
+                  Text(name,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(email, style: const TextStyle(fontSize: 12)),
                   const SizedBox(height: 5),
-
                   GestureDetector(
                     onTap: () async {
                       await FirebaseAuth.instance.signOut();
                       setState(() {});
                     },
-
-                    // 🔥 TRANSLATED
-                    child: const TranslatedText(
+                    child: const Text(
                       "Logout",
                       style: TextStyle(color: Colors.red),
                     ),
@@ -609,28 +470,192 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     );
   }
 
-  Widget _menuItem(
-    BuildContext context,
-    IconData icon,
-    String title,
-    Widget page,
-  ) {
+  Widget _menuItem(IconData icon, String title) {
     return ListTile(
       leading: Icon(icon),
-
-      // 🔥 TRANSLATED
-      title: TranslatedText(title),
-
+      title: Text(title),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: () {},
+    );
+  }
 
-      onTap: () {
-        Navigator.pop(context); // close drawer first
+  Widget _buildBackgroundGradient() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [darkBg, surfaceDark, darkBg],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+    );
+  }
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => page),
-        );
-      },
+  // ✅ HEADER WITH CART BADGE + DRAWER + GREETING + LANGUAGE
+  Widget _buildTopHeader(BuildContext context) {
+    return FadeInDown(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            // 🔶 DRAWER BUTTON
+            Builder(
+              builder: (context) => GestureDetector(
+                onTap: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                child: Icon(Icons.menu, color: richGold, size: 28),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              "Gemzi",
+              style: TextStyle(
+                color: richGold,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Spacer(),
+            // 🛒 CART BADGE (LIVE)
+            Consumer<CartService>(
+              builder: (context, cartService, child) {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CartPage()),
+                    );
+                  },
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(Icons.shopping_cart_outlined,
+                          color: textLight, size: 28),
+                      if (cartService.totalQuantity > 0)
+                        Positioned(
+                          right: -6,
+                          top: -6,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '${cartService.totalQuantity}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 15),
+            // 👤 PROFILE ICON
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: surfaceDark,
+              child: Icon(Icons.person_outline, color: richGold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return FadeInDown(
+      delay: const Duration(milliseconds: 200),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: surfaceDark,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: TextField(
+            controller: searchController,
+            style: const TextStyle(color: Colors.white),
+            onChanged: (value) {
+              searchProducts(value); // 🔥 MAIN LOGIC
+            },
+            decoration: InputDecoration(
+              hintText: "Search jewellery...",
+              hintStyle: TextStyle(color: textSubdued),
+              prefixIcon: Icon(Icons.search, color: textSubdued),
+              suffixIcon: IconButton(
+                icon: Icon(Icons.search, color: textSubdued),
+                onPressed: () {
+                  searchProducts(searchController.text);
+                },
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 15),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSavingAdsCarousel() {
+    List<Map<String, String>> ads = [
+      {"title": "Saving Schemes", "subtitle": "Get 10% Extra Gold"},
+      {"title": "Refer Friend", "subtitle": "Earn Cashback"},
+      {"title": "Festive Offer", "subtitle": "Free Making Charge"},
+    ];
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 140,
+          child: PageView.builder(
+            controller: _adController,
+            itemCount: ads.length,
+            itemBuilder: (context, index) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(colors: [richGold, bronze]),
+                ),
+                child: Center(
+                  child: Text(
+                    "${ads[index]["title"]}\n${ads[index]["subtitle"]}",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(3, (index) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _currentAdPage == index ? richGold : textSubdued,
+              ),
+            );
+          }),
+        )
+      ],
     );
   }
 
@@ -641,13 +666,10 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.only(left: 20),
-          child: TranslatedText(
+          child: Text(
             "Categories",
             style: TextStyle(
-              color: textLight,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+                color: textLight, fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
         const SizedBox(height: 10),
@@ -667,7 +689,9 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                         builder: (context) => const rings_page.RingsPage(),
                       ),
                     );
-                  } else if (categoryLabels[index] == "Necklaces") {
+                  }
+
+                  if (categoryLabels[index] == "Necklaces") {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -675,14 +699,18 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                             const necklaces_page.NecklacesPage(),
                       ),
                     );
-                  } else if (categoryLabels[index] == "Bangles") {
+                  }
+
+                  if (categoryLabels[index] == "Bangles") {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => const bangles_page.BanglesPage(),
                       ),
                     );
-                  } else if (categoryLabels[index] == "Earrings") {
+                  }
+
+                  if (categoryLabels[index] == "Earrings") {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -703,7 +731,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: richGold.withAlpha(102),
+                              color: richGold.withAlpha(102), // 0.4 * 255
                               blurRadius: 15,
                             )
                           ],
@@ -715,14 +743,11 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 8),
-
-                      // 🔥 TRANSLATED LABEL
-                      TranslatedText(
+                      Text(
                         categoryLabels[index],
                         style: TextStyle(color: textLight),
-                      ),
+                      )
                     ],
                   ),
                 ),
@@ -740,7 +765,9 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const LiveGoldPage()),
+            MaterialPageRoute(
+              builder: (_) => const LiveGoldPage(),
+            ),
           );
         },
         child: Container(
@@ -749,45 +776,30 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           decoration: BoxDecoration(
             color: surfaceDark,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: richGold.withAlpha(102)),
+            border: Border.all(color: richGold.withAlpha(102)), // 0.4
           ),
           child: Row(
             children: [
               const Icon(Icons.show_chart, color: Colors.green),
               const SizedBox(width: 10),
-
-              // 🔥 TRANSLATED
-              TranslatedText(
-                "Gold Rate Live",
-                style: TextStyle(color: textLight),
-              ),
-
+              Text("Gold Rate Live", style: TextStyle(color: textLight)),
               const Spacer(),
-
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🔥 LOADING TEXT TRANSLATED
-                  rate24 == 0
-                      ? TranslatedText(
-                          "Loading...",
-                          style: TextStyle(color: richGold),
-                        )
-                      : Text(
-                          "24K: ₹${rate24.toStringAsFixed(2)} / gm",
-                          style: TextStyle(
-                            color: richGold,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                  // 🔥 KEEP THIS NORMAL (dynamic numbers)
-                  rate22 == 0
-                      ? const SizedBox()
-                      : Text(
-                          "22K: ₹${rate22.toStringAsFixed(2)} / gm",
-                          style: TextStyle(color: textSubdued),
-                        ),
+                  Text(
+                    rate24 == 0
+                        ? "Loading..."
+                        : "24K: ₹${rate24.toStringAsFixed(2)} / gm",
+                    style:
+                        TextStyle(color: richGold, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    rate22 == 0
+                        ? ""
+                        : "22K: ₹${rate22.toStringAsFixed(2)} / gm",
+                    style: TextStyle(color: textSubdued),
+                  ),
                 ],
               )
             ],
@@ -800,32 +812,41 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   Widget _buildCollectionTitle() {
     return Padding(
       padding: const EdgeInsets.only(left: 20, top: 15, bottom: 10),
-      child: TranslatedText(
+      child: Text(
         "Our Collection",
         style: TextStyle(
-          color: textLight,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-        ),
+            color: textLight, fontWeight: FontWeight.bold, fontSize: 16),
       ),
     );
   }
 
   Widget _buildTrendingItems() {
+    if (filteredItems.isEmpty && searchController.text.isNotEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(
+            "No products found",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: trendingItems.length,
+        itemCount: filteredItems.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
-          childAspectRatio: 0.9,
+          childAspectRatio: 0.75,
         ),
         itemBuilder: (context, index) {
-          final item = trendingItems[index];
+          final item = filteredItems[index];
 
           return GestureDetector(
             onTap: () {
@@ -862,17 +883,10 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                     padding: const EdgeInsets.all(10),
                     child: Column(
                       children: [
-                        // 🔥 PRODUCT NAME TRANSLATED
-                        TranslatedText(
+                        Text(
                           item["name"] ?? "",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-
-                        // ❌ DO NOT TRANSLATE PRICE
                         Text(
                           item["price"] ?? "",
                           style: TextStyle(
@@ -880,9 +894,20 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            addToCart(item);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: richGold,
+                            minimumSize: const Size(double.infinity, 30),
+                          ),
+                          child: const Text("Add to Cart"),
+                        ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -900,7 +925,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [surfaceDark, darkBg]),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: richGold.withAlpha(77)),
+          border: Border.all(color: richGold.withAlpha(77)), // 0.3 * 255
         ),
         child: Row(
           children: [
@@ -908,18 +933,14 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🔥 TRANSLATED TITLE
-                  TranslatedText(
+                  Text(
                     "Try Jewellery in AR",
                     style: TextStyle(
-                      color: richGold,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        color: richGold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
-
                   const SizedBox(height: 10),
-
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -927,14 +948,10 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                       gradient: LinearGradient(colors: [richGold, bronze]),
                       borderRadius: BorderRadius.circular(25),
                     ),
-
-                    // 🔥 TRANSLATED BUTTON TEXT
-                    child: const TranslatedText(
+                    child: const Text(
                       "Try Now",
                       style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -943,7 +960,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             Icon(
               Icons.camera_alt_outlined,
               size: 60,
-              color: richGold.withAlpha(128),
+              color: richGold.withAlpha(128), // 0.5 * 255
             ),
           ],
         ),
@@ -964,8 +981,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         border: 2,
         linearGradient: LinearGradient(
           colors: [
-            surfaceDark.withAlpha(229),
-            darkBg.withAlpha(153),
+            surfaceDark.withAlpha(229), // 0.9 * 255
+            darkBg.withAlpha(153), // 0.6 * 255
           ],
         ),
         borderGradient: LinearGradient(colors: [richGold, bronze]),
@@ -973,36 +990,20 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _navItem(Icons.home, "Home", true),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SavingSchemeScreen(),
-                  ),
-                );
-              },
-              child: _navItem(Icons.account_balance_wallet, "Wallet", false),
-            ),
+            _navItem(Icons.account_balance_wallet, "Wallet", false),
             _buildTryOnButton(),
             GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const LiveGoldPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const LiveGoldPage(),
+                  ),
                 );
               },
               child: _navItem(Icons.trending_up, "Live", false),
             ),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SettingsPage()),
-                );
-              },
-              child: _navItem(Icons.settings, "Setting", false),
-            ),
+            _navItem(Icons.settings, "Setting", false),
           ],
         ),
       ),
@@ -1014,17 +1015,9 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(icon, color: active ? richGold : textSubdued),
-
-        // 🔥 TRANSLATED LABEL
-        TranslatedText(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: active ? richGold : textSubdued,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        Text(label,
+            style: TextStyle(
+                fontSize: 10, color: active ? richGold : textSubdued)),
       ],
     );
   }
@@ -1041,18 +1034,15 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.add, color: Colors.white, size: 18),
+            Icon(Icons.add, color: Colors.white),
             SizedBox(width: 5),
-
-            // 🔥 TRANSLATED BUTTON TEXT
-            TranslatedText(
+            Text(
               "Try-On",
               style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12),
+            )
           ],
         ),
       ),

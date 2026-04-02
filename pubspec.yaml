@@ -28,6 +28,7 @@ dependencies:
   firebase_auth: ^4.17.4
   cloud_firestore: ^4.15.4
   google_sign_in: ^6.2.1
+  provider: ^6.1.5+1
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +84,9 @@ flutter:
     - assets/auth/kundankada.jpeg
     - assets/auth/classicgoldbangles.jpeg
     - assets/auth/bag.png 
+<<<<<<< HEAD
+    
+=======
     - assets/auth/gold.jpeg
     - assets/auth/gold2.png
     - assets/auth/coinsbag.png
@@ -94,3 +98,4 @@ flutter:
 
 
   
+>>>>>>> f47d79d6dc6a919bd74ec40532cfcd3fccfe219b

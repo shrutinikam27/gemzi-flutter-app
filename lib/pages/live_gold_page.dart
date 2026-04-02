@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import '../services/gold_rate_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+<<<<<<< HEAD
+=======
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
+>>>>>>> f47d79d6dc6a919bd74ec40532cfcd3fccfe219b
 
 class LiveGoldPage extends StatefulWidget {
   const LiveGoldPage({super.key});
@@ -188,8 +191,8 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
       ),
       child: LineChart(
         LineChartData(
-          gridData: FlGridData(show: false),
-          titlesData: FlTitlesData(show: false),
+          gridData: const FlGridData(show: false),
+          titlesData: const FlTitlesData(show: false),
           borderData: FlBorderData(show: false),
           lineBarsData: [
             LineChartBarData(
@@ -203,7 +206,7 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
                   ? Colors.green
                   : Colors.red,
               barWidth: 3,
-              dotData: FlDotData(show: false),
+              dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(
                 show: true,
                 color: (priceHistory.last >= priceHistory.first

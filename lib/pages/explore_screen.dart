@@ -11,7 +11,7 @@ class ExploreScreen extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: AppColors.backgroundBeige,
-        title: Text(
+        title: const Text(
           "Explore Collections",
           style: TextStyle(
             fontWeight: FontWeight.w700,
@@ -38,7 +38,7 @@ class ExploreScreen extends StatelessWidget {
   Widget _categoryHeader(String title) {
     return Text(
       title,
-      style: TextStyle(
+      style: const TextStyle(
         color: AppColors.titleBrown,
         fontSize: 20,
         fontWeight: FontWeight.bold,
@@ -78,7 +78,7 @@ class ExploreScreen extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: AppColors.titleBrown,

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+<<<<<<< HEAD
+import 'package:provider/provider.dart';
+import '../../services/cart_service.dart';
+=======
 import '../../utils/translator_service.dart';
 import '../../widgets/translated_text.dart';
+>>>>>>> f47d79d6dc6a919bd74ec40532cfcd3fccfe219b
 
 class ProductDetailPage extends StatefulWidget {
   final String name;
@@ -176,6 +181,38 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                       onPressed: () {
                                         HapticFeedback.mediumImpact();
 
+<<<<<<< HEAD
+                                      final priceNum = double.tryParse(widget
+                                              .price
+                                              .replaceAll('₹', '')
+                                              .replaceAll(',', '')) ??
+                                          0.0;
+                                      final cartService =
+                                          Provider.of<CartService>(context,
+                                              listen: false);
+                                      cartService.addItem(CartItem(
+                                        id: DateTime.now()
+                                            .millisecondsSinceEpoch
+                                            .toString(),
+                                        name: widget.name,
+                                        price: priceNum.toString(),
+                                        image: widget.image,
+                                        quantity: 1,
+                                      ));
+
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text("Added to cart!")),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      backgroundColor: richGold,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+=======
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           SnackBar(
@@ -193,6 +230,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           borderRadius:
                                               BorderRadius.circular(12),
                                         ),
+>>>>>>> f47d79d6dc6a919bd74ec40532cfcd3fccfe219b
                                       ),
                                       child: const TranslatedText(
                                         "Add to Cart",
