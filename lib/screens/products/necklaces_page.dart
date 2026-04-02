@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'product_detail_page.dart';
 import '../../utils/translator_service.dart';
@@ -156,7 +157,8 @@ class _NecklacesPageState extends State<NecklacesPage> {
                                   errorBuilder: (_, __, ___) => Container(
                                     height: 120,
                                     color: Colors.grey.shade200,
-                                    child: const Icon(Icons.image_not_supported),
+                                    child:
+                                        const Icon(Icons.image_not_supported),
                                   ),
                                 )
                               : Container(
@@ -184,7 +186,8 @@ class _NecklacesPageState extends State<NecklacesPage> {
                                   const Icon(Icons.star,
                                       size: 14, color: Colors.orange),
                                   const SizedBox(width: 3),
-                                  Text(rating, style: const TextStyle(fontSize: 12)),
+                                  Text(rating,
+                                      style: const TextStyle(fontSize: 12)),
                                 ],
                               ),
                               const SizedBox(height: 4),
