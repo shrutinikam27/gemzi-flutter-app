@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../main.dart';
-
 import '../screens/products/rings_page.dart' as rings_page;
 import '../screens/products/product_detail_page.dart';
 import '../screens/products/necklaces_page.dart' as necklaces_page;
@@ -14,7 +12,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/gold_rate_service.dart';
 import 'live_gold_page.dart';
-import '../utils/app_strings.dart';
+import '../widgets/translated_text.dart';
+import '../utils/translator_service.dart';
+import 'saving_scheme_screen.dart';
+import 'settings_page.dart';
+
 import 'dart:async';
 
 class GemziHome extends StatefulWidget {
@@ -25,6 +27,42 @@ class GemziHome extends StatefulWidget {
 }
 
 class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
+  @override
+  Widget build(BuildContext context) {
+    return KeyedSubtree(
+      key: ValueKey(TranslatorService.currentLang), // 🔥 important
+      child: Scaffold(
+        drawer: buildSideDrawer(context),
+        backgroundColor: darkBg,
+        body: Stack(
+          children: [
+            Positioned.fill(child: _buildBackgroundGradient()),
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTopHeader(context),
+                    _buildSearchBar(),
+                    const SizedBox(height: 15),
+                    _buildSavingAdsCarousel(),
+                    _buildCategoryList(),
+                    _buildLiveGoldRate(),
+                    _buildCollectionTitle(),
+                    _buildTrendingItems(),
+                    _buildARSection(),
+                  ],
+                ),
+              ),
+            ),
+            _buildFloatingNavBar(),
+          ],
+        ),
+      ),
+    );
+  }
+
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
   final Color richGold = const Color(0xFFD4AF37);
@@ -95,20 +133,13 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    // Start gold rate fetch
     loadGoldRate();
-
-    // Start ads carousel
     _startAdScroll();
-
-    Future.microtask(() => _loadUserName()); // 🔥 FIX
+    Future.microtask(() => _loadUserName());
   }
 
-  // ✅ FETCH USER NAME FROM FIREBASE
-  // ✅ SAFE USER FETCH (NO CRASH)
   Future<void> _loadUserName() async {
     final user = FirebaseAuth.instance.currentUser;
-
     if (user == null) return;
 
     try {
@@ -119,7 +150,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
       if (doc.exists) {
         final data = doc.data();
-
         if (data != null && data['name'] != null) {
           setState(() {
             userName = data['name'];
@@ -135,7 +165,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         });
       }
     } catch (e) {
-      // Removed print for production - error handled silently
+      // User data load error handled silently
     }
   }
 
@@ -207,19 +237,15 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   void _startAdScroll() {
     Future.delayed(const Duration(seconds: 4), () {
       if (!mounted) return;
-
       int nextPage = (_currentAdPage + 1) % 3;
-
       _adController.animateToPage(
         nextPage,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
-
       setState(() {
         _currentAdPage = nextPage;
       });
-
       _startAdScroll();
     });
   }
@@ -228,193 +254,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   void dispose() {
     _adController.dispose();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: buildSideDrawer(),
-      backgroundColor: darkBg,
-      body: Stack(
-        children: [
-          _buildBackgroundGradient(),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildTopHeader(context),
-                  _buildSearchBar(),
-                  const SizedBox(height: 15),
-                  _buildSavingAdsCarousel(),
-                  _buildCategoryList(),
-                  _buildLiveGoldRate(),
-                  _buildCollectionTitle(),
-                  _buildTrendingItems(),
-                  _buildARSection(),
-                ],
-              ),
-            ),
-          ),
-          _buildFloatingNavBar(),
-        ],
-      ),
-    );
-  }
-
-  Widget buildSideDrawer() {
-    final user = FirebaseAuth.instance.currentUser;
-
-    return Drawer(
-      backgroundColor: Colors.white,
-      child: Column(
-        children: [
-          // 🔴 CLOSE BUTTON
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-          ),
-
-          // 🔥 TOP CARD (LOGIN / PROFILE)
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3EDED),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: user == null ? _buildLoginCard() : _buildProfileCard(user),
-            ),
-          ),
-
-          const Divider(),
-
-          // 📂 MENU LIST
-          Expanded(
-            child: ListView(
-              children: [
-                _menuItem(Icons.all_inbox, "All Jewellery"),
-                _menuItem(Icons.circle, "Gold"),
-                _menuItem(Icons.diamond, "Diamond"),
-                _menuItem(Icons.earbuds, "Earrings"),
-                _menuItem(Icons.circle_outlined, "Rings"),
-                _menuItem(Icons.watch, "Daily Wear"),
-                _menuItem(Icons.collections, "Collections"),
-                _menuItem(Icons.favorite, "Wedding"),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoginCard() {
-    return Row(
-      children: [
-        Image.asset("assets/auth/bag.png", width: 60),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Flat Rs. 500 off",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const Text("on your first order"),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, "/login");
-                    },
-                    child: const Text("LOGIN",
-                        style: TextStyle(color: Colors.red)),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text("|"),
-                  const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, "/signup");
-                    },
-                    child: const Text("SIGN UP",
-                        style: TextStyle(color: Colors.red)),
-                  ),
-                ],
-              )
-            ],
-          ),
-        )
-      ],
-    );
-  }
-
-  Widget _buildProfileCard(User user) {
-    return FutureBuilder<DocumentSnapshot>(
-      future:
-          FirebaseFirestore.instance.collection("users").doc(user.uid).get(),
-      builder: (context, snapshot) {
-        String name = "User";
-        String email = user.email ?? "";
-
-        if (snapshot.hasData && snapshot.data!.exists) {
-          final data = snapshot.data!.data() as Map<String, dynamic>;
-          name = data['name'] ?? "User";
-        }
-
-        return Row(
-          children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: Colors.grey.shade300,
-              child: const Icon(Icons.person, size: 30),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(name,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text(email, style: const TextStyle(fontSize: 12)),
-                  const SizedBox(height: 5),
-                  GestureDetector(
-                    onTap: () async {
-                      await FirebaseAuth.instance.signOut();
-                      setState(() {});
-                    },
-                    child: const Text(
-                      "Logout",
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  )
-                ],
-              ),
-            )
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _menuItem(IconData icon, String title) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {},
-    );
   }
 
   Widget _buildBackgroundGradient() {
@@ -428,27 +267,20 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       ),
     );
   }
-<<<<<<< Updated upstream
 
-  // ✅ HEADER UPDATED
-  // ✅ HEADER WITH DRAWER + LANG + CART
   Widget _buildTopHeader(BuildContext context) {
     return FadeInDown(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Row(
           children: [
-            // 🔶 DRAWER BUTTON
             Builder(
               builder: (context) => GestureDetector(
-                onTap: () {
-                  Scaffold.of(context).openDrawer();
-                },
+                onTap: () => Scaffold.of(context).openDrawer(),
                 child: Icon(Icons.menu, color: richGold, size: 28),
               ),
             ),
             const SizedBox(width: 12),
-            // 🔶 APP NAME
             Text(
               "Gemzi",
               style: TextStyle(
@@ -458,24 +290,25 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               ),
             ),
             const SizedBox(width: 12),
-            // 🔶 GREETING TEXT (TRANSLATED)
             Expanded(
-              child: Text(
-                "${AppStrings.get("hello")}, $userName",
-                style: TextStyle(color: textSubdued),
-                overflow: TextOverflow.ellipsis,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: TranslatedText(
+                  "Hello, $userName",
+                  style: TextStyle(color: textSubdued),
+                ),
               ),
             ),
-            // 🛒 CART BUTTON
             Icon(Icons.shopping_cart_outlined, color: textLight),
             const SizedBox(width: 15),
-            // 🌐 LANGUAGE BUTTON (LAST)
+            // 🌐 TRANSLATE ICON (LIKE YOUR IMAGE)
             GestureDetector(
               onTap: () => _showLanguageDialog(context),
               child: CircleAvatar(
                 radius: 16,
                 backgroundColor: surfaceDark,
-                child: Icon(Icons.language, color: richGold),
+                child: Icon(Icons.translate, color: richGold),
               ),
             ),
           ],
@@ -483,55 +316,39 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       ),
     );
   }
-=======
 
->>>>>>> Stashed changes
-              radius: 16,
-              backgroundColor: surfaceDark,
-              child: Icon(Icons.language, color: richGold),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-void _showLanguageDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: Text("Select Language"),
+  void _showLanguageDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: TranslatedText("Select Language"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: Text("English"),
-              onTap: () => _changeLanguage(context, "en"),
-            ),
+                title: TranslatedText("English"),
+                onTap: () => _changeLanguage(context, "en")),
             ListTile(
-              title: Text("हिंदी"),
-              onTap: () => _changeLanguage(context, "hi"),
-            ),
+                title: TranslatedText("हिंदी"),
+                onTap: () => _changeLanguage(context, "hi")),
             ListTile(
-              title: Text("मराठी"),
-              onTap: () => _changeLanguage(context, "mr"),
-            ),
+                title: TranslatedText("मराठी"),
+                onTap: () => _changeLanguage(context, "mr")),
           ],
         ),
-      );
-    },
-  );
-}
+      ),
+    );
+  }
 
-void _changeLanguage(BuildContext context, String langCode) {
-  AppStrings.currentLang = langCode;
+  void _changeLanguage(BuildContext context, String langCode) async {
+    await TranslatorService.saveLanguage(langCode);
 
-  MyApp.setLocale(context, Locale(langCode));
+    setState(() {
+      TranslatorService.currentLang = langCode;
+    });
 
-  Navigator.pop(context);
-}
+    Navigator.pop(context);
+  }
 
   Widget _buildSearchBar() {
     return FadeInDown(
@@ -580,13 +397,28 @@ void _changeLanguage(BuildContext context, String langCode) {
                   gradient: LinearGradient(colors: [richGold, bronze]),
                 ),
                 child: Center(
-                  child: Text(
-                    "${ads[index]["title"]}\n${ads[index]["subtitle"]}",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TranslatedText(
+                        ads[index]["title"] ?? "",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 5),
+                      TranslatedText(
+                        ads[index]["subtitle"] ?? "",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -612,6 +444,195 @@ void _changeLanguage(BuildContext context, String langCode) {
     );
   }
 
+  Widget buildSideDrawer(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: Column(
+        children: [
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3EDED),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: user == null ? _buildLoginCard() : _buildProfileCard(user),
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: ListView(
+              children: [
+                _menuItem(context, Icons.circle_outlined, "Rings",
+                    rings_page.RingsPage()),
+                _menuItem(context, Icons.earbuds, "Earrings",
+                    earrings_page.EarringsPage()),
+                _menuItem(context, Icons.diamond, "Necklace",
+                    necklaces_page.NecklacesPage()),
+                _menuItem(context, Icons.watch, "Bangles",
+                    bangles_page.BanglesPage()),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoginCard() {
+    return Row(
+      children: [
+        Image.asset("assets/auth/bag.png", width: 60),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 🔥 TRANSLATED
+              TranslatedText(
+                "Flat Rs. 500 off",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+
+              // 🔥 TRANSLATED
+              TranslatedText("on your first order"),
+
+              const SizedBox(height: 8),
+
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, "/login");
+                    },
+
+                    // 🔥 TRANSLATED
+                    child: const TranslatedText(
+                      "LOGIN",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text("|"),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, "/signup");
+                    },
+
+                    // 🔥 TRANSLATED
+                    child: const TranslatedText(
+                      "SIGN UP",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildProfileCard(User user) {
+    return FutureBuilder<DocumentSnapshot>(
+      future:
+          FirebaseFirestore.instance.collection("users").doc(user.uid).get(),
+      builder: (context, snapshot) {
+        String name = "User";
+        String email = user.email ?? "";
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          name = data['name'] ?? "User";
+        }
+
+        return Row(
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: Colors.grey.shade300,
+              child: const Icon(Icons.person, size: 30),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ❌ DO NOT TRANSLATE (dynamic user name)
+                  Text(
+                    name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+
+                  // ❌ DO NOT TRANSLATE (email)
+                  Text(
+                    email,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+
+                  const SizedBox(height: 5),
+
+                  GestureDetector(
+                    onTap: () async {
+                      await FirebaseAuth.instance.signOut();
+                      setState(() {});
+                    },
+
+                    // 🔥 TRANSLATED
+                    child: const TranslatedText(
+                      "Logout",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _menuItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Widget page,
+  ) {
+    return ListTile(
+      leading: Icon(icon),
+
+      // 🔥 TRANSLATED
+      title: TranslatedText(title),
+
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+
+      onTap: () {
+        Navigator.pop(context); // close drawer first
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => page),
+        );
+      },
+    );
+  }
+
   Widget _buildCategoryList() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -619,10 +640,13 @@ void _changeLanguage(BuildContext context, String langCode) {
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.only(left: 20),
-          child: Text(
+          child: TranslatedText(
             "Categories",
             style: TextStyle(
-                color: textLight, fontWeight: FontWeight.bold, fontSize: 16),
+              color: textLight,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
         ),
         const SizedBox(height: 10),
@@ -642,9 +666,7 @@ void _changeLanguage(BuildContext context, String langCode) {
                         builder: (context) => const rings_page.RingsPage(),
                       ),
                     );
-                  }
-
-                  if (categoryLabels[index] == "Necklaces") {
+                  } else if (categoryLabels[index] == "Necklaces") {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -652,18 +674,14 @@ void _changeLanguage(BuildContext context, String langCode) {
                             const necklaces_page.NecklacesPage(),
                       ),
                     );
-                  }
-
-                  if (categoryLabels[index] == "Bangles") {
+                  } else if (categoryLabels[index] == "Bangles") {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => const bangles_page.BanglesPage(),
                       ),
                     );
-                  }
-
-                  if (categoryLabels[index] == "Earrings") {
+                  } else if (categoryLabels[index] == "Earrings") {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -684,7 +702,7 @@ void _changeLanguage(BuildContext context, String langCode) {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: richGold.withAlpha(102), // 0.4 * 255
+                              color: richGold.withAlpha(102),
                               blurRadius: 15,
                             )
                           ],
@@ -696,11 +714,14 @@ void _changeLanguage(BuildContext context, String langCode) {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 8),
-                      Text(
+
+                      // 🔥 TRANSLATED LABEL
+                      TranslatedText(
                         categoryLabels[index],
                         style: TextStyle(color: textLight),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -718,9 +739,7 @@ void _changeLanguage(BuildContext context, String langCode) {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const LiveGoldPage(),
-            ),
+            MaterialPageRoute(builder: (_) => const LiveGoldPage()),
           );
         },
         child: Container(
@@ -729,30 +748,45 @@ void _changeLanguage(BuildContext context, String langCode) {
           decoration: BoxDecoration(
             color: surfaceDark,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: richGold.withAlpha(102)), // 0.4
+            border: Border.all(color: richGold.withAlpha(102)),
           ),
           child: Row(
             children: [
               const Icon(Icons.show_chart, color: Colors.green),
               const SizedBox(width: 10),
-              Text("Gold Rate Live", style: TextStyle(color: textLight)),
+
+              // 🔥 TRANSLATED
+              TranslatedText(
+                "Gold Rate Live",
+                style: TextStyle(color: textLight),
+              ),
+
               const Spacer(),
+
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    rate24 == 0
-                        ? "Loading..."
-                        : "24K: ₹${rate24.toStringAsFixed(2)} / gm",
-                    style:
-                        TextStyle(color: richGold, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    rate22 == 0
-                        ? ""
-                        : "22K: ₹${rate22.toStringAsFixed(2)} / gm",
-                    style: TextStyle(color: textSubdued),
-                  ),
+                  // 🔥 LOADING TEXT TRANSLATED
+                  rate24 == 0
+                      ? TranslatedText(
+                          "Loading...",
+                          style: TextStyle(color: richGold),
+                        )
+                      : Text(
+                          "24K: ₹${rate24.toStringAsFixed(2)} / gm",
+                          style: TextStyle(
+                            color: richGold,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                  // 🔥 KEEP THIS NORMAL (dynamic numbers)
+                  rate22 == 0
+                      ? const SizedBox()
+                      : Text(
+                          "22K: ₹${rate22.toStringAsFixed(2)} / gm",
+                          style: TextStyle(color: textSubdued),
+                        ),
                 ],
               )
             ],
@@ -765,10 +799,13 @@ void _changeLanguage(BuildContext context, String langCode) {
   Widget _buildCollectionTitle() {
     return Padding(
       padding: const EdgeInsets.only(left: 20, top: 15, bottom: 10),
-      child: Text(
+      child: TranslatedText(
         "Our Collection",
         style: TextStyle(
-            color: textLight, fontWeight: FontWeight.bold, fontSize: 16),
+          color: textLight,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
       ),
     );
   }
@@ -824,12 +861,24 @@ void _changeLanguage(BuildContext context, String langCode) {
                     padding: const EdgeInsets.all(10),
                     child: Column(
                       children: [
-                        Text(item["name"] ?? "",
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                        Text(item["price"] ?? "",
-                            style: TextStyle(
-                                color: richGold, fontWeight: FontWeight.bold)),
+                        // 🔥 PRODUCT NAME TRANSLATED
+                        TranslatedText(
+                          item["name"] ?? "",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+
+                        // ❌ DO NOT TRANSLATE PRICE
+                        Text(
+                          item["price"] ?? "",
+                          style: TextStyle(
+                            color: richGold,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                   )
@@ -850,7 +899,7 @@ void _changeLanguage(BuildContext context, String langCode) {
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [surfaceDark, darkBg]),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: richGold.withAlpha(77)), // 0.3 * 255
+          border: Border.all(color: richGold.withAlpha(77)),
         ),
         child: Row(
           children: [
@@ -858,14 +907,18 @@ void _changeLanguage(BuildContext context, String langCode) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  // 🔥 TRANSLATED TITLE
+                  TranslatedText(
                     "Try Jewellery in AR",
                     style: TextStyle(
-                        color: richGold,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
+                      color: richGold,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+
                   const SizedBox(height: 10),
+
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -873,10 +926,14 @@ void _changeLanguage(BuildContext context, String langCode) {
                       gradient: LinearGradient(colors: [richGold, bronze]),
                       borderRadius: BorderRadius.circular(25),
                     ),
-                    child: const Text(
+
+                    // 🔥 TRANSLATED BUTTON TEXT
+                    child: const TranslatedText(
                       "Try Now",
                       style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -885,7 +942,7 @@ void _changeLanguage(BuildContext context, String langCode) {
             Icon(
               Icons.camera_alt_outlined,
               size: 60,
-              color: richGold.withAlpha(128), // 0.5 * 255
+              color: richGold.withAlpha(128),
             ),
           ],
         ),
@@ -906,29 +963,45 @@ void _changeLanguage(BuildContext context, String langCode) {
         border: 2,
         linearGradient: LinearGradient(
           colors: [
-            surfaceDark.withAlpha(229), // 0.9 * 255
-            darkBg.withAlpha(153), // 0.6 * 255
+            surfaceDark.withAlpha(229),
+            darkBg.withAlpha(153),
           ],
         ),
         borderGradient: LinearGradient(colors: [richGold, bronze]),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [ 
+          children: [
             _navItem(Icons.home, "Home", true),
-            _navItem(Icons.account_balance_wallet, "Wallet", false),
-            _buildTryOnButton(),
             GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const LiveGoldPage(),
+                    builder: (context) => const SavingSchemeScreen(),
                   ),
+                );
+              },
+              child: _navItem(Icons.account_balance_wallet, "Wallet", false),
+            ),
+            _buildTryOnButton(),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LiveGoldPage()),
                 );
               },
               child: _navItem(Icons.trending_up, "Live", false),
             ),
-            _navItem(Icons.settings, "Setting", false),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsPage()),
+                );
+              },
+              child: _navItem(Icons.settings, "Setting", false),
+            ),
           ],
         ),
       ),
@@ -940,9 +1013,17 @@ void _changeLanguage(BuildContext context, String langCode) {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(icon, color: active ? richGold : textSubdued),
-        Text(label,
-            style: TextStyle(
-                fontSize: 10, color: active ? richGold : textSubdued)),
+
+        // 🔥 TRANSLATED LABEL
+        TranslatedText(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: active ? richGold : textSubdued,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
@@ -961,13 +1042,16 @@ void _changeLanguage(BuildContext context, String langCode) {
           children: [
             Icon(Icons.add, color: Colors.white, size: 18),
             SizedBox(width: 5),
-            Text(
+
+            // 🔥 TRANSLATED BUTTON TEXT
+            TranslatedText(
               "Try-On",
               style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12),
-            )
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
           ],
         ),
       ),
