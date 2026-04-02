@@ -138,6 +138,7 @@ class _EarringsPageState extends State<EarringsPage> {
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.black.withOpacity(0.08),
                       blurRadius: 10,
                     )

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:developer'; // for debugPrint if needed
+// for debugPrint if needed
 
 class TranslatorService {
   static String currentLang = "en";

@@ -22,7 +22,7 @@ dependencies:
   fl_chart: ^0.68.0
   shared_preferences: ^2.2.2
   flutter_local_notifications: ^17.0.0
-
+ 
   # --- Firebase packages ---
   firebase_core: ^2.25.4
   firebase_auth: ^4.17.4
@@ -84,9 +84,7 @@ flutter:
     - assets/auth/kundankada.jpeg
     - assets/auth/classicgoldbangles.jpeg
     - assets/auth/bag.png 
-<<<<<<< HEAD
     
-=======
     - assets/auth/gold.jpeg
     - assets/auth/gold2.png
     - assets/auth/coinsbag.png
@@ -98,4 +96,3 @@ flutter:
 
 
   
->>>>>>> f47d79d6dc6a919bd74ec40532cfcd3fccfe219b

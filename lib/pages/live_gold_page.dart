@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/gold_rate_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-<<<<<<< HEAD
-=======
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
->>>>>>> f47d79d6dc6a919bd74ec40532cfcd3fccfe219b
 
 class LiveGoldPage extends StatefulWidget {
   const LiveGoldPage({super.key});

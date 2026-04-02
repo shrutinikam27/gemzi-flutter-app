@@ -114,6 +114,7 @@ class _NecklacesPageState extends State<NecklacesPage> {
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.black.withOpacity(0.08), // ✅ fixed
                       blurRadius: 10,
                     )
