@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_project/services/notification_service.dart';
+import 'package:flutter_project/utils/translator_service.dart';
 import 'package:provider/provider.dart';
 
 import 'services/cart_service.dart';
@@ -20,6 +22,21 @@ void main() async {
 
   // Disable Provider debug check
   Provider.debugCheckInvalidValueType = null;
+
+  // 🔥 Load saved language (VERY IMPORTANT)
+  //very good
+  await TranslatorService.loadLanguage();
+
+  await NotificationService.init(); // 🔥 Initialize notifications
+
+  // 🔥 Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
+  }
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
