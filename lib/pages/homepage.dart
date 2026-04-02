@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:flutter_project/pages/cart_page.dart';
 import '../services/cart_service.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +16,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/gold_rate_service.dart';
 
 import 'live_gold_page.dart';
+import 'cart_page.dart';
 import 'dart:async';
 
 class GemziHome extends StatefulWidget {
@@ -126,10 +126,28 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   }
 
   void addToCart(Map<String, String?> item) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    // ❌ NOT LOGGED IN
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please login to add items to cart"),
+        ),
+      );
+
+      // 🔥 REDIRECT TO LOGIN
+      Navigator.pushNamed(context, "/login");
+      return;
+    }
+
+    // ✅ LOGGED IN → ADD TO CART
     final cartService = Provider.of<CartService>(context, listen: false);
+
     final priceNum = double.tryParse(
             item["price"]!.replaceAll('₹', '').replaceAll(',', '')) ??
         0.0;
+
     cartService.addItem(CartItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: item["name"] ?? "",
@@ -284,7 +302,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTopHeader(),
+                  _buildTopHeader(context),
                   _buildSearchBar(),
                   const SizedBox(height: 15),
                   _buildSavingAdsCarousel(),
@@ -469,24 +487,23 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     );
   }
 
-// ✅ HEADER UPDATED
-  Widget _buildTopHeader() {
+  // ✅ HEADER WITH CART BADGE + DRAWER + GREETING + LANGUAGE
+  Widget _buildTopHeader(BuildContext context) {
     return FadeInDown(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Row(
           children: [
+            // 🔶 DRAWER BUTTON
             Builder(
               builder: (context) => GestureDetector(
                 onTap: () {
                   Scaffold.of(context).openDrawer();
                 },
-                child: Icon(Icons.menu, color: richGold),
+                child: Icon(Icons.menu, color: richGold, size: 28),
               ),
             ),
-
-            const SizedBox(width: 10),
-
+            const SizedBox(width: 12),
             Text(
               "Gemzi",
               style: TextStyle(
@@ -495,47 +512,37 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const Spacer(),
-
-            // 🔥 ✅ PROVIDER CART STARTS HERE
+            // 🛒 CART BADGE (LIVE)
             Consumer<CartService>(
               builder: (context, cartService, child) {
                 return GestureDetector(
                   onTap: () {
-                    final cartItems = cartService.items
-                        .map((item) => {
-                              "name": item.name,
-                              "price": item.price,
-                              "image": item.image,
-                            })
-                        .toList();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => CartPage(cartItems: cartItems),
-                      ),
+                      MaterialPageRoute(builder: (_) => const CartPage()),
                     );
                   },
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      Icon(Icons.shopping_cart_outlined, color: textLight),
+                      Icon(Icons.shopping_cart_outlined,
+                          color: textLight, size: 28),
                       if (cartService.totalQuantity > 0)
                         Positioned(
                           right: -6,
                           top: -6,
                           child: Container(
-                            padding: const EdgeInsets.all(5),
+                            padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
                               color: Colors.red,
                               shape: BoxShape.circle,
                             ),
                             child: Text(
-                              cartService.totalQuantity.toString(),
+                              '${cartService.totalQuantity}',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 10,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -546,10 +553,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 );
               },
             ),
-            // 🔥 ✅ PROVIDER CART ENDS HERE
-
             const SizedBox(width: 15),
-
+            // 👤 PROFILE ICON
             CircleAvatar(
               radius: 16,
               backgroundColor: surfaceDark,
@@ -813,7 +818,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
   Widget _buildTrendingItems() {
     if (filteredItems.isEmpty && searchController.text.isNotEmpty) {
-      return Center(
+      return const Center(
         child: Padding(
           padding: EdgeInsets.all(20),
           child: Text(
@@ -1025,7 +1030,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.add, color: Colors.white, size: 18),
+            Icon(Icons.add, color: Colors.white),
             SizedBox(width: 5),
             Text(
               "Try-On",

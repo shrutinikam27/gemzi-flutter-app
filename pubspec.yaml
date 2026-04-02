@@ -10,21 +10,23 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+    # 🔥 ADD THESE (IMPORTANT)
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
   animate_do: ^3.3.4        
   glassmorphism: ^3.0.0 
   marquee: ^2.2.3
   cupertino_icons: ^1.0.8
   http: ^0.13.6
   fl_chart: ^0.68.0
-  shared_preferences: ^2.5.5
+  shared_preferences: ^2.2.2
 
   # --- Firebase packages ---
-  firebase_core: ^2.32.0
+  firebase_core: ^2.25.4
   firebase_auth: ^4.17.4
-  cloud_firestore: ^4.17.5
+  cloud_firestore: ^4.15.4
   google_sign_in: ^6.2.1
-  firebase_storage: ^11.7.7
-  image_picker: ^1.2.1
   provider: ^6.1.5+1
 
 dev_dependencies:
@@ -82,10 +84,3 @@ flutter:
     - assets/auth/classicgoldbangles.jpeg
     - assets/auth/bag.png 
     
-
-    
-
-  
-
-
-  

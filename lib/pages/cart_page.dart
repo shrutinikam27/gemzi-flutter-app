@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/cart_service.dart';
 
 class CartPage extends StatefulWidget {
-  const CartPage({super.key, required List<Map<String, String>> cartItems});
+  const CartPage({super.key});
 
   @override
   State<CartPage> createState() => _CartPageState();
@@ -120,10 +120,9 @@ class _CartPageState extends State<CartPage> {
               ),
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: surfaceDark,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 child: Column(
                   children: [

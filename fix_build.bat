@@ -1,3 +1,19 @@
 @echo off
-powershell -Command "flutter clean; flutter pub get; Write-Host 'Step 1: Clean and pub get complete.'; flutter doctor; Write-Host 'Step 2: Doctor complete (fix issues).'; flutter build apk --debug; if ($LASTEXITCODE -ne 0) { Write-Host 'Android build failed. Check JAVA_HOME (JDK 17+).'; java -version; Read-Host 'Press Enter to continue'; exit 1 }; Write-Host 'Android OK.'; flutter build linux --debug; if ($LASTEXITCODE -ne 0) { Write-Host 'Linux build failed. Run: choco install pkgconfiglite'; Read-Host 'Press Enter to continue'; exit 1 }; Write-Host 'All builds successful! Run flutter run.'; Read-Host 'Press Enter to exit'"
+echo Setting JAVA_HOME...
+set JAVA_HOME=C:\Program Files\Android\Android Studio\jbr
+set PATH=%JAVA_HOME%\bin;%PATH%
+java -version
+echo Cleaning Flutter...
+flutter clean
+echo Cleaning Gradle...
+cd android
+gradlew.bat --stop
+gradlew.bat clean
+cd ..
+echo Pub get...
+flutter pub get
+echo Build test...
+flutter build apk --debug
+echo Done! Run 'flutter run' to test.
+pause
 

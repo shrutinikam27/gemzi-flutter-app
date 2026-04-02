@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+
 import 'services/cart_service.dart';
+import 'services/google_auth.dart'; // 🔥 IMPORTANT
 
 import 'firebase_options.dart';
 import 'pages/splash_screen.dart';
@@ -14,18 +18,20 @@ import 'pages/homepage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Disable Provider debug check for singleton
+  // Disable Provider debug check
   Provider.debugCheckInvalidValueType = null;
 
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    // Continue without Firebase or handle gracefully
-  }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // 🔥🔥🔥 TEMP FIX (VERY IMPORTANT)
+  // Prevent auto-login → fixes splash + success screen issue
+  await GoogleAuthService.signOut();
+  await FirebaseAuth.instance.signOut();
 
   final cartService = CartService()..init();
+
   runApp(
     ChangeNotifierProvider<CartService>.value(
       value: cartService,
@@ -34,15 +40,49 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  static void setLocale(BuildContext context, Locale locale) {
+    final state = context.findAncestorStateOfType<_MyAppState>();
+    state?.setLocale(locale);
+  }
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Locale _locale = const Locale('en');
+
+  void setLocale(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Gemzi",
       debugShowCheckedModeBanner: false,
+
+      // 🌐 LANGUAGE CONFIG
+      locale: _locale,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('hi'),
+        Locale('mr'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
+      // 🔥 START WITH SPLASH
       home: const SplashScreen(),
+
       routes: {
         "/get-started": (_) => const GetStartedPage(),
         "/home": (_) => const GemziHome(),

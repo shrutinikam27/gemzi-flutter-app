@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'login_screen.dart';
+import 'success_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -24,147 +24,99 @@ class _SignupScreenState extends State<SignupScreen> {
 
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
-  final Color richGold = const Color(0xFFD4AF37);
-  final Color textLight = const Color(0xFFFFFFFF);
-  final Color textSubdued = const Color(0xFFB8D1CD);
+  final Color gold = const Color(0xFFD4AF37);
 
-  bool _isPasswordStrong(String password) {
-    final regex = RegExp(r'^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[a-zA-Z]).{8,}$');
+  // 🔐 Password validation
+  bool _isStrongPassword(String password) {
+    final regex = RegExp(r'^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[a-zA-Z]).{6,}$');
     return regex.hasMatch(password);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: darkBg,
       body: Stack(
         children: [
-          // BACKGROUND GRADIENT
+          // Top Image
           Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [darkBg, surfaceDark, darkBg],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+            height: MediaQuery.of(context).size.height * 0.35,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/auth/log.png"),
+                fit: BoxFit.cover,
               ),
             ),
           ),
 
-          // TOP IMAGE
-          Align(
-            alignment: Alignment.topCenter,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(30),
-              ),
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.35,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("assets/auth/log.png"),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // IMAGE GRADIENT OVERLAY
-          Align(
-            alignment: Alignment.topCenter,
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.35,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.black.withOpacity(0.4),
-                    Colors.transparent,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-          ),
-
-          // SIGNUP CARD
+          // Bottom Card
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
+              padding: const EdgeInsets.all(24),
               height: MediaQuery.of(context).size.height * 0.70,
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
               decoration: BoxDecoration(
                 color: surfaceDark,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(40),
-                ),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(30)),
               ),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: Container(
-                        height: 5,
-                        width: 60,
-                        decoration: BoxDecoration(
-                          color: richGold,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 25),
-                    Text(
+                    const SizedBox(height: 10),
+
+                    const Text(
                       "Create Account",
                       style: TextStyle(
-                        fontSize: 30,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: textLight,
+                        color: Colors.white,
                       ),
                     ),
+
                     const SizedBox(height: 25),
+
                     _inputField("Full Name", Icons.person, nameCtrl),
-                    const SizedBox(height: 16),
-                    _inputField(
-                        "Email Address", Icons.email_outlined, emailCtrl),
-                    const SizedBox(height: 16),
-                    _inputField("Password", Icons.lock_outline, passCtrl,
+                    const SizedBox(height: 15),
+
+                    _inputField("Email", Icons.email, emailCtrl),
+                    const SizedBox(height: 15),
+
+                    _inputField("Password", Icons.lock, passCtrl,
                         obscure: true),
-                    const SizedBox(height: 5),
-                    Text(
-                      "Password must be 8+ characters with a number & special symbol.",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: textSubdued,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _inputField(
-                        "Re-type Password", Icons.lock_reset, repassCtrl,
+                    const SizedBox(height: 15),
+
+                    _inputField("Confirm Password", Icons.lock, repassCtrl,
                         obscure: true),
+
                     const SizedBox(height: 25),
+
+                    // SIGNUP BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: richGold,
+                          backgroundColor: gold,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: _isLoading ? null : _registerUser,
+                        onPressed: _isLoading ? null : _signupUser,
                         child: _isLoading
                             ? const CircularProgressIndicator(
                                 color: Colors.white)
                             : const Text(
                                 "Sign Up",
-                                style: TextStyle(
-                                    fontSize: 18, color: Colors.white),
+                                style: TextStyle(fontSize: 18),
                               ),
                       ),
                     ),
-                    const SizedBox(height: 18),
+
+                    const SizedBox(height: 15),
+
+                    // LOGIN LINK
                     Center(
                       child: GestureDetector(
                         onTap: () {
@@ -175,11 +127,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           );
                         },
                         child: Text(
-                          "Already have an account? Sign In",
-                          style: TextStyle(
-                            color: richGold,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          "Already have an account? Login",
+                          style: TextStyle(color: gold),
                         ),
                       ),
                     ),
@@ -193,37 +142,42 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Future<void> _registerUser() async {
-    log("SIGNUP BUTTON TAPPED - email: \${emailCtrl.text.trim()}");
+  // 🔥 SIGNUP FUNCTION
+  Future<void> _signupUser() async {
     final name = nameCtrl.text.trim();
     final email = emailCtrl.text.trim();
-    final pass = passCtrl.text.trim();
-    final repass = repassCtrl.text.trim();
+    final password = passCtrl.text.trim();
+    final confirmPassword = repassCtrl.text.trim();
 
-    if (name.isEmpty || email.isEmpty || pass.isEmpty || repass.isEmpty) {
-      _showError("All fields are required.");
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
+      _showError("Please fill all fields");
       return;
     }
 
-    if (pass != repass) {
-      _showError("Passwords do not match.");
+    if (password != confirmPassword) {
+      _showError("Passwords do not match");
       return;
     }
 
-    if (!_isPasswordStrong(pass)) {
-      _showError("Password must contain number & special symbol.");
+    if (!_isStrongPassword(password)) {
+      _showError("Password must be strong");
       return;
     }
 
     try {
       setState(() => _isLoading = true);
 
+      // 🔐 Firebase Auth
       final userCred = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: pass);
+          .createUserWithEmailAndPassword(email: email, password: password);
 
-      final uid = userCred.user!.uid;
+      final user = userCred.user;
 
-      await FirebaseFirestore.instance.collection("users").doc(uid).set({
+      // 📦 Firestore
+      await FirebaseFirestore.instance.collection("users").doc(user!.uid).set({
         "name": name,
         "email": email,
         "createdAt": DateTime.now(),
@@ -231,12 +185,17 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
+      // ✅ Navigate to success screen
+      Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(
+          builder: (_) => const SignupSuccessScreen(),
+        ),
       );
     } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? "Signup failed.");
+      _showError(e.message ?? "Signup failed");
+    } catch (e) {
+      _showError("Something went wrong");
     } finally {
       setState(() => _isLoading = false);
     }
@@ -264,18 +223,17 @@ class _SignupScreenState extends State<SignupScreen> {
     return Container(
       decoration: BoxDecoration(
         color: darkBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: richGold.withOpacity(0.4)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
         controller: controller,
         obscureText: obscure,
-        style: TextStyle(color: textLight),
+        style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: richGold),
+          prefixIcon: Icon(icon, color: gold),
           border: InputBorder.none,
           hintText: hint,
-          hintStyle: TextStyle(color: textSubdued),
+          hintStyle: const TextStyle(color: Colors.white70),
         ),
       ),
     );
