@@ -18,6 +18,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 🔥 Load saved language (VERY IMPORTANT)
+  //very good
   await TranslatorService.loadLanguage();
 
   await NotificationService.init(); // 🔥 Initialize notifications
