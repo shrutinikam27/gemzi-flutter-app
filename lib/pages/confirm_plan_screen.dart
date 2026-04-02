@@ -81,7 +81,7 @@ class ConfirmPlanScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(25),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
+                        color: Color.fromRGBO(0, 0, 0, 0.4),
                         blurRadius: 15,
                       )
                     ],

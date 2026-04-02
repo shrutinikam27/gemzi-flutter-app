@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:developer'; // for debugPrint if needed
 
 class TranslatorService {
   static String currentLang = "en";
@@ -43,7 +44,9 @@ class TranslatorService {
         cache[key] = translated; // cache result
         return translated;
       }
-    } catch (e) {}
+    } catch (e) {
+      print('Translation error: $e');
+    }
 
     return text;
   }

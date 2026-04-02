@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 
 import 'firebase_options.dart';
 import 'pages/splash_screen.dart';
@@ -10,6 +11,7 @@ import 'pages/explore_screen.dart';
 import 'pages/homepage.dart';
 
 // 🔥 IMPORT TRANSLATOR
+import 'services/notification_service.dart';
 import 'utils/translator_service.dart';
 
 void main() async {
@@ -18,12 +20,16 @@ void main() async {
   // 🔥 Load saved language (VERY IMPORTANT)
   await TranslatorService.loadLanguage();
 
+  await NotificationService.init(); // 🔥 Initialize notifications
+
   // 🔥 Initialize Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-  } catch (e) {}
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
+  }
 
   runApp(const MyApp());
 }

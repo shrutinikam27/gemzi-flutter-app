@@ -515,7 +515,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, "/login");
+                      if (mounted) Navigator.pushNamed(context, "/login");
                     },
 
                     // 🔥 TRANSLATED
@@ -529,7 +529,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                   const SizedBox(width: 10),
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, "/signup");
+                      if (mounted) Navigator.pushNamed(context, "/signup");
                     },
 
                     // 🔥 TRANSLATED

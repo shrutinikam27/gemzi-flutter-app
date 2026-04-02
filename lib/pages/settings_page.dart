@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/translated_text.dart';
 import '../utils/translator_service.dart';
+import 'help_support_page.dart';
+import '../services/notification_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -27,13 +29,13 @@ class _SettingsPageState extends State<SettingsPage> {
       backgroundColor: darkBg,
       appBar: AppBar(
         backgroundColor: surfaceDark,
-        title: const TranslatedText("Settings"),
+        title: const TranslatedText("Settings",
+            style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-
           /// 👤 PROFILE CARD
           Container(
             padding: const EdgeInsets.all(15),
@@ -78,34 +80,29 @@ class _SettingsPageState extends State<SettingsPage> {
           /// 🔔 NOTIFICATIONS
           SwitchListTile(
             value: notifications,
-            onChanged: (val) {
+            onChanged: (val) async {
               setState(() => notifications = val);
+
+              if (val) {
+                NotificationService.showNotification(
+                  "Notifications Enabled 🔔",
+                  "You will now receive updates from Gemzi",
+                );
+              } else {
+                NotificationService.showNotification(
+                  "Notifications Disabled ❌",
+                  "You won't receive updates",
+                );
+              }
             },
-            activeColor: richGold,
-            title: const TranslatedText("Notifications"),
+            activeThumbColor: richGold,
+            title: const TranslatedText("Notifications",
+                style: TextStyle(color: Colors.white)),
             secondary: Icon(Icons.notifications, color: richGold),
           ),
 
-          /// 🌙 DARK MODE (future use)
-          _tile(
-            icon: Icons.dark_mode,
-            title: "Dark Mode",
-            onTap: () {},
-          ),
-
-          /// 📍 ADDRESS
-          _tile(
-            icon: Icons.location_on,
-            title: "Manage Address",
-            onTap: () {},
-          ),
-
           /// 💳 PAYMENTS
-          _tile(
-            icon: Icons.payment,
-            title: "Payment Methods",
-            onTap: () {},
-          ),
+          _tile(icon: Icons.payment, title: "Payment Methods", onTap: () {}),
 
           /// 🔐 PRIVACY
           _tile(
@@ -114,11 +111,17 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () {},
           ),
 
-          /// ❓ HELP
           _tile(
             icon: Icons.help_outline,
             title: "Help & Support",
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HelpSupportPage(),
+                ),
+              );
+            },
           ),
 
           const SizedBox(height: 20),
@@ -132,7 +135,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             onTap: () async {
               await FirebaseAuth.instance.signOut();
-              Navigator.pushNamed(context, "/login");
+              if (mounted) Navigator.pushNamed(context, "/login");
             },
           ),
         ],
@@ -184,6 +187,6 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       TranslatorService.currentLang = code;
     });
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
   }
 }
