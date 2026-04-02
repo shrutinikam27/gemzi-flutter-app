@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/cart_service.dart';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
+import 'checkout_page.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -169,10 +170,11 @@ class _CartPageState extends State<CartPage> {
                           child: ElevatedButton(
                             onPressed: cartService.totalQuantity > 0
                                 ? () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: TranslatedText(
-                                              'Proceeding to checkout...')),
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const CheckoutPage(),
+                                      ),
                                     );
                                   }
                                 : null,
