@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import '../services/gold_rate_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+<<<<<<< HEAD
+=======
+import '../utils/translator_service.dart';
+import '../widgets/translated_text.dart';
+>>>>>>> f47d79d6dc6a919bd74ec40532cfcd3fccfe219b
 
 class LiveGoldPage extends StatefulWidget {
   const LiveGoldPage({super.key});
@@ -138,15 +143,24 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: textSubdued)),
-              Text(
-                rate == 0 ? "Loading..." : "₹${rate.toStringAsFixed(2)} / gm",
-                style: TextStyle(
-                  color: richGold,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              TranslatedText(title, style: TextStyle(color: textSubdued)),
+              rate == 0
+                  ? const TranslatedText(
+                      "Loading...",
+                      style: TextStyle(
+                        color: Color(0xFFD4AF37),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : Text(
+                      "₹${rate.toStringAsFixed(2)} / gm",
+                      style: TextStyle(
+                        color: richGold,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ],
           ),
           const Spacer(),
@@ -210,39 +224,42 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
   // ✅ UI
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: darkBg,
-      appBar: AppBar(
-        backgroundColor: surfaceDark,
-        title: Text("Live Gold Rate", style: TextStyle(color: richGold)),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Today's Gold Price",
-                style: TextStyle(
-                    color: textLight,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            buildChart(),
-            const SizedBox(height: 10),
-            Text(
-              "Last ${priceHistory.length} days trend",
-              style: TextStyle(color: textSubdued),
+    return KeyedSubtree(
+        key: ValueKey(TranslatorService.currentLang), // 🔥 important
+        child: Scaffold(
+          backgroundColor: darkBg,
+          appBar: AppBar(
+            backgroundColor: surfaceDark,
+            title: TranslatedText("Live Gold Rate",
+                style: TextStyle(color: richGold)),
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TranslatedText("Today's Gold Price",
+                    style: TextStyle(
+                        color: textLight,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 20),
+                buildChart(),
+                const SizedBox(height: 10),
+                TranslatedText(
+                  "Last ${priceHistory.length} days trend",
+                  style: TextStyle(color: textSubdued),
+                ),
+                rateCard("24K Gold", rate24, prev24),
+                rateCard("22K Gold", rate22, prev22),
+                const SizedBox(height: 20),
+                TranslatedText(
+                  "Rates update daily",
+                  style: TextStyle(color: textSubdued),
+                ),
+              ],
             ),
-            rateCard("24K Gold", rate24, prev24),
-            rateCard("22K Gold", rate22, prev22),
-            const SizedBox(height: 20),
-            Text(
-              "Rates update daily",
-              style: TextStyle(color: textSubdued),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 }
