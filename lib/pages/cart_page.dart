@@ -83,12 +83,23 @@ class _CartPageState extends State<CartPage> {
                           child: ListTile(
                             leading: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                item.image,
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.cover,
-                              ),
+                              child: item.image.startsWith('http')
+                                  ? Image.network(
+                                      item.image,
+                                      width: 60,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          const Icon(Icons.broken_image, color: Colors.grey),
+                                    )
+                                  : Image.asset(
+                                      item.image,
+                                      width: 60,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          const Icon(Icons.broken_image, color: Colors.grey),
+                                    ),
                             ),
                             title: Text(
                               item.name,
@@ -173,8 +184,7 @@ class _CartPageState extends State<CartPage> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            const CheckoutPage(),
+                                        builder: (context) => const CheckoutPage(),
                                       ),
                                     );
                                   }
