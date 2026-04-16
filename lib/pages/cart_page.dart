@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/cart_service.dart';
+import '../pages/login_screen.dart';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
 
@@ -164,6 +166,15 @@ class _CartPageState extends State<CartPage> {
                           child: ElevatedButton(
                             onPressed: cartService.totalQuantity > 0
                                 ? () {
+                                    final user = FirebaseAuth.instance.currentUser;
+                                    if (user == null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: TranslatedText("Please Login to proceed to checkout")),
+                                      );
+                                      Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                                      return;
+                                    }
+
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                           content: TranslatedText(

@@ -3,6 +3,7 @@ import 'product_detail_page.dart';
 import '../../utils/translator_service.dart';
 import '../../widgets/translated_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/gold_rate_service.dart';
 
 class CoinsPage extends StatefulWidget {
   const CoinsPage({super.key});
@@ -30,65 +31,123 @@ class _CoinsPageState extends State<CoinsPage> {
             style: TextStyle(color: Colors.white, fontStyle: FontStyle.italic, fontSize: 18),
           ),
         ),
-        body: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('products')
-              .where('category', isEqualTo: 'Coins')
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Center(child: Text("No coins available yet", style: TextStyle(color: Colors.white70)));
-            }
-            final docs = snapshot.data!.docs;
-
-            return GridView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: docs.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 14,
-                mainAxisSpacing: 14,
-                childAspectRatio: 0.82,
-              ),
-              itemBuilder: (context, index) {
-                final data = docs[index].data() as Map<String, dynamic>;
-                final name = data['name'] ?? 'Gold Coin';
-                final price = data['price'] ?? 0;
-                final image = data['imageUrl'] ?? data['image'] ?? '';
-                final rating = data['rating']?.toString() ?? '5.0';
-
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailPage(name: name, price: "₹$price", image: image, rating: rating)));
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                          child: _buildImage(image),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              const SizedBox(height: 4),
-                              Text("₹$price", style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 16)),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
+        body: StreamBuilder<double>(
+          stream: GoldRateService.goldRateStream(),
+          builder: (context, rateSnapshot) {
+            final rate = rateSnapshot.data ?? 7200.0;
+            
+            return Column(
+              children: [
+                // 🛰️ Live Market Rate Header
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  color: surfaceDark.withOpacity(0.5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.show_chart, color: Color(0xFFD4AF37), size: 18),
+                          SizedBox(width: 8),
+                          TranslatedText("Market Rate (24K)", style: TextStyle(color: Colors.white70, fontSize: 13)),
+                        ],
+                      ),
+                      Text(
+                        "₹${(rate / 0.9167).toStringAsFixed(2)}/g",
+                        style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                    ],
                   ),
-                );
-              },
+                ),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('products')
+                        .where('category', whereIn: ['Coins', 'coins', 'coin', 'Coin', 'COINS'])
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37)));
+                      }
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return const Center(child: Text("No coins available yet", style: TextStyle(color: Colors.white70)));
+                      }
+                      final docs = snapshot.data!.docs;
+
+                      return GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: docs.length,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 14,
+                          mainAxisSpacing: 18,
+                          childAspectRatio: 0.7,
+                        ),
+                        itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>;
+                    final name = data['name'] ?? 'Gold Coin';
+                    final image = data['imageUrl'] ?? data['image'] ?? '';
+                    
+                    // 💰 Dynamic Price Calculation
+                    double weight = 0.0;
+                    if (data['weight'] != null) {
+                      weight = double.tryParse(data['weight'].toString()) ?? 0.0;
+                    }
+                    final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailPage(name: name, price: "₹$dynamicPrice", image: image, rating: "5.0")));
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: surfaceDark,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                                    child: _buildImage(image),
+                                  ),
+                                  Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
+                                      child: Text("${weight}g", style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                  const SizedBox(height: 6),
+                                  Text("₹$dynamicPrice", style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 16)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                      );
+                    },
+                  ),
+                ),
+              ],
             );
           },
         ),

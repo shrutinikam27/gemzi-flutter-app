@@ -25,7 +25,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
   final Map<String, List<Map<String, dynamic>>> collectionData = {
     "Bridal Collection": [
       {"name": "Royal Bridal Necklace", "image": "assets/auth/nacklace6.jpeg", "weight": 45.0, "desc": "Exquisite 22K gold bridal necklace featuring intricate Kundan work and handcrafted floral motifs."},
-      {"name": "Heritage Gold Haram", "image": "assets/auth/jewellery1.jpeg", "weight": 58.5, "desc": "Traditional long South Indian temple haram with antique gold finish and divine craftsmanship."},
+      {"name": "Heritage Gold Haram", "image": "assets/auth/heritagegoldharam.png", "weight": 58.5, "desc": "Traditional long South Indian temple haram with antique gold finish and divine craftsmanship."},
       {"name": "Wedding Bangle Set", "image": "assets/auth/bangles.jpeg", "weight": 34.0, "desc": "Set of handcrafted traditional gold bangles with intricate filigree patterns and ruby accents."},
       {"name": "Temple Bridal Set", "image": "assets/auth/templejhumka.jpeg", "weight": 72.0, "desc": "Complete bridal set featuring goddess Lakshmi earrings and matching temple style pendant."},
     ],

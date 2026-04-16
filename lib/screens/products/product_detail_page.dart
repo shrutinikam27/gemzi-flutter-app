@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../pages/login_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../services/cart_service.dart';
@@ -119,25 +121,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                               const SizedBox(height: 8),
 
-                              /// Rating
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    color: Colors.orange,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    widget.rating,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
                               const SizedBox(height: 12),
 
                               /// Price (dynamic → no translation)
@@ -170,8 +153,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   Expanded(
                                     child: ElevatedButton(
                                       onPressed: () {
-                                        HapticFeedback.mediumImpact();
+                                        final user = FirebaseAuth.instance.currentUser;
+                                        if (user == null) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: TranslatedText("Please Login to add items to cart")),
+                                          );
+                                          Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                                          return;
+                                        }
 
+                                        HapticFeedback.mediumImpact();
+                                        // ... existing cart logic
                                         final priceNum = double.tryParse(widget
                                                 .price
                                                 .replaceAll('₹', '')
@@ -224,6 +216,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   Expanded(
                                     child: ElevatedButton(
                                       onPressed: () {
+                                        final user = FirebaseAuth.instance.currentUser;
+                                        if (user == null) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: TranslatedText("Please Login to buy jewellery")),
+                                          );
+                                          Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                                          return;
+                                        }
+
                                         HapticFeedback.mediumImpact();
 
                                         ScaffoldMessenger.of(context)
