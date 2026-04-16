@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class GoogleAuthService {
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email'],
+    clientId: '945540945656-r8qoib7hvbilc9n8nar13u2tf04hivav.apps.googleusercontent.com', // Android Client ID specifically mapped
     serverClientId: '945540945656-b7nqk1pn5od32vshfn73kb00jt0dct99.apps.googleusercontent.com',
   );
 
