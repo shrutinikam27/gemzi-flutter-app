@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/translated_text.dart';
 import '../utils/translator_service.dart';
 import 'help_support_page.dart';
@@ -22,6 +23,31 @@ class _SettingsPageState extends State<SettingsPage> {
   final Color textSubdued = const Color(0xFFB8D1CD);
 
   bool notifications = true;
+  String userName = "Loading...";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      final doc = await FirebaseFirestore.instance.collection("users").doc(user.uid).get();
+      if (doc.exists) {
+        setState(() {
+          userName = doc.data()?['name'] ?? "User";
+        });
+      } else {
+        setState(() => userName = "User");
+      }
+    } catch (e) {
+      if (mounted) setState(() => userName = "User");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,19 +75,19 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: Colors.grey.shade300,
-                  child: const Icon(Icons.person),
+                  backgroundColor: richGold.withOpacity(0.2),
+                  child: Icon(Icons.person, color: richGold),
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user?.email ?? "User",
-                      style: TextStyle(color: textLight),
+                      userName,
+                      style: TextStyle(color: textLight, fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     Text(
-                      "Premium Member",
+                      user?.email ?? "",
                       style: TextStyle(color: textSubdued, fontSize: 12),
                     )
                   ],

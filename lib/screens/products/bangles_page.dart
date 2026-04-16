@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'product_detail_page.dart';
 import '../../utils/translator_service.dart';
 import '../../widgets/translated_text.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BanglesPage extends StatefulWidget {
   const BanglesPage({super.key});
@@ -100,146 +101,145 @@ class _BanglesPageState extends State<BanglesPage> {
             ),
           ),
         ),
-        body: GridView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: necklace.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 14,
-            mainAxisSpacing: 14,
-            childAspectRatio: 0.82,
-          ),
-          itemBuilder: (context, index) {
-            final ring = necklace[index];
+        body: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('products')
+              .where('category', isEqualTo: 'Bangles')
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(
+                  child: Text("No bangles found",
+                      style: TextStyle(color: Colors.white70)));
+            }
+            final docs = snapshot.data!.docs;
 
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProductDetailPage(
-                      name: ring["name"]!,
-                      price: ring["price"]!,
-                      image: ring["image"]!,
-                      rating: ring["rating"]!,
+            return GridView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: docs.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
+                childAspectRatio: 0.82,
+              ),
+              itemBuilder: (context, index) {
+                final data = docs[index].data() as Map<String, dynamic>;
+                final name = data['name'] ?? 'Unnamed';
+                final price = data['price'] ?? 0;
+                final image = data['imageUrl'] ?? data['image'] ?? '';
+                final rating = data['rating']?.toString() ?? '4.5';
+
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProductDetailPage(
+                          name: name,
+                          price: "₹$price",
+                          image: image,
+                          rating: rating,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 10,
+                        )
+                      ],
                     ),
-                  ),
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      // ignore: deprecated_member_use
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 10,
-                    )
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// Image + Like Button
-                    Stack(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(18),
-                          ),
-                          child: Image.asset(
-                            ring["image"]!,
-                            height: 120,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                          child: _buildImage(image),
                         ),
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isLiked[index] = !isLiked[index];
-                              });
-                            },
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: Icon(
-                                  isLiked[index]
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  size: 18,
-                                  color: isLiked[index]
-                                      ? Colors.red
-                                      : Colors.black,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TranslatedText(
+                                name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
                                 ),
                               ),
-                            ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.star,
+                                      size: 14, color: Colors.orange),
+                                  const SizedBox(width: 3),
+                                  Text(rating, style: const TextStyle(fontSize: 12)),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "₹$price",
+                                style: TextStyle(
+                                  color: richGold,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
                           ),
                         )
                       ],
                     ),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          /// ✅ Product Name translated
-                          TranslatedText(
-                            ring["name"]!,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          /// Rating (dynamic)
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.star,
-                                size: 14,
-                                color: Colors.orange,
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                ring["rating"]!,
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          /// Price (dynamic)
-                          Text(
-                            ring["price"]!,
-                            style: TextStyle(
-                              color: richGold,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildImage(String path) {
+    final cleanPath = path.trim();
+    if (cleanPath.isEmpty) return _buildPlaceholder();
+    
+    if (cleanPath.toLowerCase().startsWith('http')) {
+      return Image.network(
+        cleanPath,
+        height: 120,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+      );
+    }
+    return Image.asset(
+      cleanPath.startsWith('assets/') ? cleanPath : "assets/auth/ring.png",
+      height: 120,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _buildPlaceholder(),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      height: 120,
+      width: double.infinity,
+      color: const Color(0xFF17453F),
+      child: const Center(
+        child: Icon(Icons.diamond_outlined, color: Color(0xFFD4AF37), size: 40),
       ),
     );
   }

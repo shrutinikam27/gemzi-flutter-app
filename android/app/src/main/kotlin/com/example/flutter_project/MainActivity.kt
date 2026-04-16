@@ -1,5 +1,1 @@
-package com.example.flutter_project
-
-import io.flutter.embedding.android.FlutterActivity
-
-class MainActivity : FlutterActivity()
+// MOVED to d:\gemzi-flutter-app\android\app\src\main\kotlin\com\gemzi\user\MainActivity.kt

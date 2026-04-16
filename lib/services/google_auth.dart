@@ -6,12 +6,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class GoogleAuthService {
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email'],
+    serverClientId: '945540945656-b7nqk1pn5od32vshfn73kb00jt0dct99.apps.googleusercontent.com',
   );
 
   // 🔵 GOOGLE SIGN-IN
   static Future<User?> signInWithGoogle() async {
     try {
       log("🔥 Google Sign-In Started");
+
+      // STEP 0: Force Sign-Out to reset account picker (VERY IMPORTANT)
+      try {
+        await _googleSignIn.signOut();
+      } catch(e) {
+        log("⚠️ Google signOut before signIn failed: $e");
+      }
 
       // STEP 1: Pick account
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -46,20 +54,26 @@ class GoogleAuthService {
       log("✅ Firebase Login Success: ${user.uid}");
 
       // STEP 5: Save to Firestore
-      await FirebaseFirestore.instance.collection("users").doc(user.uid).set({
-        "name": user.displayName,
-        "email": user.email,
-        "photo": user.photoURL,
-        "provider": "google",
-        "createdAt": DateTime.now(),
-      }, SetOptions(merge: true));
-
-      log("✅ Firestore user saved");
+      final userDoc = await FirebaseFirestore.instance.collection("users").doc(user.uid).get();
+      
+      if (!userDoc.exists) {
+        await FirebaseFirestore.instance.collection("users").doc(user.uid).set({
+          "name": user.displayName ?? "Gemzi User",
+          "email": user.email,
+          "photo": user.photoURL,
+          "provider": "google",
+          "createdAt": FieldValue.serverTimestamp(),
+          "weight": "0", // Default for weight-based engine
+        }, SetOptions(merge: true));
+        log("✅ New Firestore user created");
+      } else {
+        log("✅ Existing user logged in");
+      }
 
       return user;
     } catch (e) {
       log("❌ Google Sign-In Error: $e");
-      rethrow; // 🔥 IMPORTANT (don’t hide error)
+      rethrow;
     }
   }
 

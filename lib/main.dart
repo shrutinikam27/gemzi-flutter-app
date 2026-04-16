@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_project/services/notification_service.dart';
-import 'package:flutter_project/utils/translator_service.dart';
+import 'package:gemzi_user_app/services/notification_service.dart';
+import 'package:gemzi_user_app/utils/translator_service.dart';
 import 'package:provider/provider.dart';
 
 import 'services/cart_service.dart';
@@ -16,6 +16,7 @@ import 'pages/login_screen.dart';
 import 'pages/signup_screen.dart';
 import 'pages/explore_screen.dart';
 import 'pages/homepage.dart';
+import 'pages/exclusive_collections_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,23 +30,14 @@ void main() async {
 
   await NotificationService.init(); // 🔥 Initialize notifications
 
-  // 🔥 Initialize Firebase
+  // 🔥 Initialize Firebase (only once)
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
   } catch (e) {
-    debugPrint('Firebase init error: $e');
+    debugPrint('Firebase init error (may already be initialized): $e');
   }
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // 🔥🔥🔥 TEMP FIX (VERY IMPORTANT)
-  // Prevent auto-login → fixes splash + success screen issue
-  await GoogleAuthService.signOut();
-  await FirebaseAuth.instance.signOut();
 
   final cartService = CartService()..init();
 
@@ -105,7 +97,8 @@ class _MyAppState extends State<MyApp> {
         "/home": (_) => const GemziHome(),
         "/login": (_) => const LoginScreen(),
         "/signup": (_) => const SignupScreen(),
-        "/explore": (_) => const ExploreScreen(),
+        "/explore": (_) => ExploreScreen(),
+        "/exclusive-collections": (_) => ExclusiveCollectionsPage(),
       },
     );
   }

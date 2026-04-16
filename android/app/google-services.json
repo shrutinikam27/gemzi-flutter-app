@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:945540945656:android:397364cb818767f090cd0d",
         "android_client_info": {
-          "package_name": "com.example.flutter_project"
+          "package_name": "com.gemzi.user"
         }
       },
       "oauth_client": [
@@ -17,46 +17,10 @@
           "client_id": "945540945656-r8qoib7hvbilc9n8nar13u2tf04hivav.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.flutter_project",
+            "package_name": "com.gemzi.user",
             "certificate_hash": "d4284736b112249276b9126de08ade1cc1a047f2"
           }
         },
-        {
-          "client_id": "945540945656-b7nqk1pn5od32vshfn73kb00jt0dct99.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDTo8Ka-80Ck_dTapBjNn7F7MZWQbmMgUg"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "945540945656-b7nqk1pn5od32vshfn73kb00jt0dct99.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "945540945656-k3995flcorf7ifuicg6ldsmivks3cobr.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.jewelleryAdminApp"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:945540945656:android:d01d124f616b0e8090cd0d",
-        "android_client_info": {
-          "package_name": "com.example.jewellery_admin_app"
-        }
-      },
-      "oauth_client": [
         {
           "client_id": "945540945656-b7nqk1pn5od32vshfn73kb00jt0dct99.apps.googleusercontent.com",
           "client_type": 3

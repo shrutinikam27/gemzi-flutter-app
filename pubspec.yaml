@@ -1,4 +1,4 @@
-name: flutter_project
+name: gemzi_user_app
 description: "A new Flutter project."
 publish_to: 'none'
 
@@ -14,80 +14,31 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: ^0.20.2
-  animate_do: ^3.3.4        
+  animate_do: ^4.2.0        
   glassmorphism: ^3.0.0 
   marquee: ^2.2.3
   cupertino_icons: ^1.0.8
-  http: ^0.13.6
-  fl_chart: ^0.68.0
+  http: ^1.6.0
+  fl_chart: ^1.2.0
   shared_preferences: ^2.2.2
-  flutter_local_notifications: ^17.0.0
+  flutter_local_notifications: ^17.2.4
  
   # --- Firebase packages ---
-  firebase_core: ^2.25.4
-  firebase_auth: ^4.17.4
-  cloud_firestore: ^4.15.4
+  firebase_core: ^2.32.0
+  firebase_auth: ^4.17.9
+  cloud_firestore: ^4.17.5
   google_sign_in: ^6.2.1
-  provider: ^6.1.5+1
+  provider: ^6.1.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true 
   assets:
-    - assets/auth/1.png
-    - assets/auth/2.png
-    - assets/auth/google.png
-    - assets/auth/gs.png
-    - assets/auth/bangles.jpeg
-    - assets/auth/earring.png
-    - assets/auth/necklace.png
-    - assets/auth/log.png
-    - assets/auth/ring.png
-    - assets/auth/coin.jpeg
-    - assets/auth/emeraldearrings.jpeg
-    - assets/auth/luxuryring.jpeg
-    - assets/auth/pearlnecklace.jpeg
-    - assets/auth/diamondbangles.jpeg
-    - assets/auth/ring1.jpeg
-    - assets/auth/ring2.jpeg   
-    - assets/auth/ring3.jpeg
-    - assets/auth/ring4.jpeg
-    - assets/auth/ring5.jpeg
-    - assets/auth/ring6.jpeg
-    - assets/auth/nacklace1.jpeg
-    - assets/auth/nacklace2.jpeg
-    - assets/auth/nacklace3.jpeg
-    - assets/auth/nacklace4.jpeg
-    - assets/auth/nacklace5.jpeg
-    - assets/auth/nacklace6.jpeg
-    - assets/auth/crystaldrops.jpeg
-    - assets/auth/halodrops.jpeg
-    - assets/auth/pearlbowerrings.jpeg
-    - assets/auth/pearlroseearrings.jpeg
-    - assets/auth/crystalstuds.jpeg
-    - assets/auth/goldenloopdrops.jpeg
-    - assets/auth/sapphirejhumka.jpeg
-    - assets/auth/lotusjhumka.jpeg
-    - assets/auth/templejhumka.jpeg
-    - assets/auth/royalleafchandbali.jpeg
-    - assets/auth/starlightbangles.jpeg
-    - assets/auth/royalpearlset.jpeg
-    - assets/auth/pearlblossombangles.jpeg
-    - assets/auth/templecarvedbangles.jpeg
-    - assets/auth/leafgoldbangles.jpeg
-    - assets/auth/slimpatternbangles.jpeg
-    - assets/auth/crystalbridalbangles.jpeg
-    - assets/auth/kundankada.jpeg
-    - assets/auth/classicgoldbangles.jpeg
-    - assets/auth/bag.png 
-    
-    - assets/auth/gold.jpeg
-    - assets/auth/gold2.png
-    - assets/auth/coinsbag.png
+    - assets/auth/
     
 
     

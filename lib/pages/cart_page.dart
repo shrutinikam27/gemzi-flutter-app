@@ -82,12 +82,7 @@ class _CartPageState extends State<CartPage> {
                           child: ListTile(
                             leading: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                item.image,
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.cover,
-                              ),
+                              child: _buildCartImage(item.image),
                             ),
                             title: Text(
                               item.name,
@@ -201,5 +196,35 @@ class _CartPageState extends State<CartPage> {
             },
           ),
         ));
+  }
+
+  Widget _buildCartImage(String path) {
+    if (path.trim().isEmpty) return _errorPlaceholder();
+    
+    if (path.trim().startsWith('http')) {
+      return Image.network(
+        path.trim(),
+        width: 60,
+        height: 60,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _errorPlaceholder(),
+      );
+    }
+    return Image.asset(
+      path,
+      width: 60,
+      height: 60,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _errorPlaceholder(),
+    );
+  }
+
+  Widget _errorPlaceholder() {
+    return Container(
+      width: 60,
+      height: 60,
+      color: Colors.grey.shade900,
+      child: const Icon(Icons.image_not_supported, color: Colors.white24),
+    );
   }
 }
