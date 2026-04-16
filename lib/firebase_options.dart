@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDTo8Ka-80Ck_dTapBjNn7F7MZWQbmMgUg',
+    apiKey: 'AIzaSyD_Co5bdT9VZ6vrwKQuTb7KTDnsHSXiWLY', // Using Web API Key for better compatibility
     appId: '1:945540945656:android:397364cb818767f090cd0d',
     messagingSenderId: '945540945656',
     projectId: 'jewellary-marketing-app',

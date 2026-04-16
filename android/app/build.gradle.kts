@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.gemzi.user"
+    namespace = "com.example.flutter_project"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,16 +16,16 @@ android {
         // ✅ FIXED LINE (IMPORTANT)
         isCoreLibraryDesugaringEnabled = true
 
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 
     defaultConfig {
-        applicationId = "com.gemzi.user"
+        applicationId = "com.example.flutter_project"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

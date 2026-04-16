@@ -71,47 +71,30 @@ class _SignupScreenState extends State<SignupScreen> {
                       child: Column(
                         children: [
                           Container(
-                            height: 100,
-                            width: 100,
-                            padding: const EdgeInsets.all(18),
+                            height: 220,
+                            width: 220,
+                            padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: richGold.withOpacity(0.5), width: 2),
+                              color: Colors.white.withOpacity(0.05),
+                              border: Border.all(color: richGold.withOpacity(0.3), width: 1.5),
                               boxShadow: [
                                 BoxShadow(
-                                  color: richGold.withOpacity(0.15),
-                                  blurRadius: 25,
+                                  color: richGold.withOpacity(0.1),
+                                  blurRadius: 40,
                                   spreadRadius: 5,
                                 ),
                               ],
                             ),
-                            child: Image.asset(
-                              "assets/auth/log.png",
-                              color: Colors.white,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            "GEMZI",
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 8,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            "PURE GOLD INVESTMENTS",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 4,
-                              color: richGold.withOpacity(0.8),
+                            child: ClipOval(
+                              child: Image.asset(
+                                "assets/auth/gemzi_logo.png",
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                         ],
-                      ),
+                       ),
                     ),
                   ),
 

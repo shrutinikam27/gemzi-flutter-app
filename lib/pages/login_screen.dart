@@ -70,43 +70,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         children: [
                           Container(
-                            height: 100,
-                            width: 100,
-                            padding: const EdgeInsets.all(18),
+                            height: 220,
+                            width: 220,
+                            padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: richGold.withOpacity(0.5), width: 2),
+                              color: Colors.white.withOpacity(0.05),
+                              border: Border.all(color: richGold.withOpacity(0.3), width: 1.5),
                               boxShadow: [
                                 BoxShadow(
-                                  color: richGold.withOpacity(0.15),
-                                  blurRadius: 25,
+                                  color: richGold.withOpacity(0.1),
+                                  blurRadius: 40,
                                   spreadRadius: 5,
                                 ),
                               ],
                             ),
-                            child: Image.asset(
-                              "assets/auth/log.png",
-                              color: Colors.white,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            "GEMZI",
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 8,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            "PURE GOLD INVESTMENTS",
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 4,
-                              color: richGold.withOpacity(0.8),
+                            child: ClipOval(
+                              child: Image.asset(
+                                "assets/auth/gemzi_logo.png",
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                         ],
@@ -164,9 +147,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 10),
                             Align(
                               alignment: Alignment.centerRight,
-                              child: Text(
-                                "Forgot Password?",
-                                style: TextStyle(color: richGold, fontSize: 12, fontWeight: FontWeight.w600),
+                              child: GestureDetector(
+                                onTap: _resetPassword,
+                                child: Text(
+                                  "Forgot Password?",
+                                  style: TextStyle(color: richGold, fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
                               ),
                             ),
 
@@ -263,21 +249,51 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
       if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const GemziHome()));
     } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? "Login failed");
+      debugPrint("Login error: ${e.code} - ${e.message}");
+      _showError("[${e.code}] ${e.message ?? 'Login failed'}");
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _loginWithGoogle() async {
+  Future<void> _resetPassword() async {
+    final email = emailCtrl.text.trim();
+    if (email.isEmpty) {
+      _showError("Please enter your email address to reset your password");
+      return;
+    }
+
     try {
       setState(() => _isLoading = true);
-      
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Password reset email sent! Please check your inbox."),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      _showError(e.message ?? "Failed to send reset email");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
       final user = await GoogleAuthService.signInWithGoogle();
 
       if (user != null && mounted) {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const GemziHome()));
       }
+    } on FirebaseAuthException catch (e) {
+      debugPrint("Google login Firebase error: ${e.code} - ${e.message}");
+      _showError("[${e.code}] Google login failed: ${e.message}");
     } catch (e) {
       debugPrint("Google login error: $e");
       _showError("Google login failed: ${e.toString()}");
