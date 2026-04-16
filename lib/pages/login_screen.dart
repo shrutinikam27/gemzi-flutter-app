@@ -280,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       debugPrint("Google login error: $e");
-      _showError("Google login failed: ${e.toString()}");
+      _showError("ANTIGRAVITY_ERROR: ${e.toString()}");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
