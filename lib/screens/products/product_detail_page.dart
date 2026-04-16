@@ -66,12 +66,23 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             padding: const EdgeInsets.all(20),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(20),
-                              child: Image.asset(
-                                widget.image,
-                                width: double.infinity,
-                                height: 320,
-                                fit: BoxFit.cover,
-                              ),
+                              child: widget.image.startsWith('http')
+                                  ? Image.network(
+                                      widget.image,
+                                      width: double.infinity,
+                                      height: 320,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          const Icon(Icons.broken_image, size: 60, color: Colors.grey),
+                                    )
+                                  : Image.asset(
+                                      widget.image,
+                                      width: double.infinity,
+                                      height: 320,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          const Icon(Icons.broken_image, size: 60, color: Colors.grey),
+                                    ),
                             ),
                           ),
                           Positioned(

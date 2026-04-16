@@ -20,6 +20,7 @@ import '../widgets/translated_text.dart';
 import 'saving_scheme_screen.dart';
 import 'settings_page.dart';
 import 'live_gold_page.dart';
+import '../screens/try_on_screen.dart';
 import 'cart_page.dart';
 import 'dart:async';
 
@@ -316,10 +317,17 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                       _buildLiveGoldRate(),
                       _buildCollectionTitle(),
                       StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseFirestore.instance.collection('products').limit(10).snapshots(),
+                        stream: FirebaseFirestore.instance
+                            .collection('products')
+                            .limit(10)
+                            .snapshots(),
                         builder: (context, snapshot) {
-                          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                          final items = snapshot.data!.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+                          if (!snapshot.hasData)
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          final items = snapshot.data!.docs
+                              .map((doc) => doc.data() as Map<String, dynamic>)
+                              .toList();
                           return _buildTrendingItemsDynamic(items);
                         },
                       ),
@@ -992,51 +1000,59 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   }
 
   Widget _buildARSection() {
-    return FadeInUp(
-      child: Container(
-        margin: const EdgeInsets.all(20),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [surfaceDark, darkBg]),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: richGold.withAlpha(77)), // 0.3 * 255
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TranslatedText(
-                    "Try Jewellery in AR",
-                    style: TextStyle(
-                        color: richGold,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [richGold, bronze]),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: const TranslatedText(
-                      "Try Now",
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => TryOnScreen()),
+        );
+      },
+      child: FadeInUp(
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [surfaceDark, darkBg]),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: richGold.withAlpha(77)), // 0.3 * 255
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TranslatedText(
+                      "Try Jewellery in AR",
                       style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
+                          color: richGold,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(colors: [richGold, bronze]),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: const TranslatedText(
+                        "Try Now",
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Icon(
-              Icons.camera_alt_outlined,
-              size: 60,
-              color: richGold.withAlpha(128), // 0.5 * 255
-            ),
-          ],
+              Icon(
+                Icons.camera_alt_outlined,
+                size: 60,
+                color: richGold.withAlpha(128), // 0.5 * 255
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1118,7 +1134,13 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
   Widget _buildTryOnButton() {
     return GestureDetector(
-      onTap: () => HapticFeedback.mediumImpact(),
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => TryOnScreen()),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
@@ -1186,20 +1208,29 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                           child: Stack(
                             children: [
                               ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-                                child: item["imageUrl"] != null && item["imageUrl"].toString().isNotEmpty
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(22)),
+                                child: item["imageUrl"] != null &&
+                                        item["imageUrl"].toString().isNotEmpty
                                     ? Image.network(
                                         item["imageUrl"],
                                         width: double.infinity,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.image_not_supported, color: Colors.white24)),
+                                        errorBuilder: (_, __, ___) =>
+                                            const Center(
+                                                child: Icon(
+                                                    Icons.image_not_supported,
+                                                    color: Colors.white24)),
                                       )
-                                    : const Center(child: Icon(Icons.image, color: Colors.white24)),
+                                    : const Center(
+                                        child: Icon(Icons.image,
+                                            color: Colors.white24)),
                               ),
                               Positioned(
                                 top: 12,
                                 right: 12,
-                                child: Icon(Icons.favorite_border, color: richGold, size: 20),
+                                child: Icon(Icons.favorite_border,
+                                    color: richGold, size: 20),
                               ),
                             ],
                           ),
@@ -1211,17 +1242,22 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                             children: [
                               Text(
                                 item["name"] ?? "Item",
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 6),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     "₹${item["price"]}",
-                                    style: TextStyle(color: richGold, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                        color: richGold,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   GestureDetector(
                                     onTap: () {
@@ -1232,7 +1268,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                                       };
                                       addToCart(addToCartItem);
                                     },
-                                    child: const Icon(Icons.add_circle, color: Colors.white, size: 24),
+                                    child: const Icon(Icons.add_circle,
+                                        color: Colors.white, size: 24),
                                   ),
                                 ],
                               ),

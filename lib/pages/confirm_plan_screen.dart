@@ -1,10 +1,13 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'dart:math';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
+import 'order_success_page.dart';
 
-class ConfirmPlanScreen extends StatelessWidget {
+class ConfirmPlanScreen extends StatefulWidget {
   final int amount;
   final String planType;
   final String duration;
@@ -17,8 +20,59 @@ class ConfirmPlanScreen extends StatelessWidget {
   });
 
   @override
+  State<ConfirmPlanScreen> createState() => _ConfirmPlanScreenState();
+}
+
+class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
+  late Razorpay _razorpay;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    final String orderId = 'PLAN${Random().nextInt(900000) + 100000}';
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderSuccessPage(orderId: orderId),
+      ),
+    );
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment Failed: ${response.message}')),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('External Wallet Selected: ${response.walletName}')),
+    );
+  }
+
+  @override
+  void dispose() {
+    _razorpay.clear();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    int total = amount * int.parse(duration.split(" ")[0]);
+    int total = widget.amount * int.parse(widget.duration.split(" ")[0]);
 
     return KeyedSubtree(
       key: ValueKey(TranslatorService.currentLang),
@@ -102,9 +156,9 @@ class ConfirmPlanScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _rowItem("Plan", planType),
-                                _rowItem("Amount", "₹$amount"),
-                                _rowItem("Duration", duration),
+                                _rowItem("Plan", widget.planType),
+                                _rowItem("Amount", "₹${widget.amount}"),
+                                _rowItem("Duration", widget.duration),
                               ],
                             ),
                           ),
@@ -161,17 +215,38 @@ class ConfirmPlanScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 120,
+                      horizontal: 100, // Reduced slightly to avoid overflow with loading
                       vertical: 16,
                     ),
                   ),
-                  onPressed: () {
-                    // 👉 Razorpay integration here
+                  onPressed: _isLoading ? null : () {
+                    setState(() => _isLoading = true);
+                    var options = {
+                      'key': 'rzp_test_SYjFmzSZEJ2L1r',
+                      'amount': total * 100, // in paise
+                      'name': 'Gemzi Plans',
+                      'description': '${widget.planType} Subscription',
+                      'prefill': {
+                        'contact': '9999999999',
+                        'email': 'test@gemzi.com'
+                      }
+                    };
+                    try {
+                      _razorpay.open(options);
+                    } catch (e) {
+                      setState(() => _isLoading = false);
+                    }
                   },
-                  child: const TranslatedText(
-                    "Proceed to Pay",
-                    style: TextStyle(color: Colors.black, fontSize: 16),
-                  ),
+                  child: _isLoading 
+                    ? const SizedBox(
+                        width: 20, 
+                        height: 20, 
+                        child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2)
+                      )
+                    : const TranslatedText(
+                        "Proceed to Pay",
+                        style: TextStyle(color: Colors.black, fontSize: 16),
+                      ),
                 ),
 
                 const SizedBox(height: 10),
