@@ -1,10 +1,14 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:animate_do/animate_do.dart';
 import 'confirm_plan_screen.dart';
+import 'login_screen.dart';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
+import '../services/gold_rate_service.dart';
 
 class SavingSchemeScreen extends StatefulWidget {
   const SavingSchemeScreen({super.key});
@@ -14,255 +18,268 @@ class SavingSchemeScreen extends StatefulWidget {
 }
 
 class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
-  final PageController _controller = PageController();
-
-  int selectedAmount = 100;
-  String planType = "Monthly";
-  String duration = "3 Months";
-
-  Map<String, List<String>> durationOptions = {
-    "Daily": ["7 Days", "15 Days", "30 Days"],
-    "Weekly": ["1 Week", "2 Weeks", "4 Weeks"],
-    "Monthly": ["3 Months", "6 Months", "12 Months"],
-  };
+  int selectedAmount = 500;
+  String planType = "Monthly SIP";
+  double currentRate = 7200.0;
 
   @override
   Widget build(BuildContext context) {
     return KeyedSubtree(
-      key: ValueKey(TranslatorService.currentLang), // 🔥 important
-      child: Scaffold(
-        backgroundColor: const Color(0xFF0F3D36),
-        body: PageView(
-          controller: _controller,
-          children: [
-            _buildIntroPage(),
-            _buildPlanPage(),
-          ],
-        ),
+      key: ValueKey(TranslatorService.currentLang),
+      child: StreamBuilder<double>(
+        stream: GoldRateService.goldRateStream(),
+        builder: (context, rateSnapshot) {
+          if (rateSnapshot.hasData) {
+            currentRate = rateSnapshot.data!;
+          }
+          return Scaffold(
+            backgroundColor: const Color(0xFF0F3D36),
+            body: _buildSinglePageProcess(),
+          );
+        }
       ),
     );
   }
 
-  // 🔹 PAGE 1 (Intro)
-  Widget _buildIntroPage() {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Align(
-              alignment: Alignment.topLeft,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: const Icon(Icons.close, color: Colors.white),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 🔥 IMAGE ON TOP
-            Image.asset(
-              "assets/auth/gold2.png",
-              height: 400,
-              width: 500,
-            ),
-
-            const SizedBox(height: 30),
-
-            const TranslatedText(
-              "Secure Your Future with",
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-
-            const SizedBox(height: 10),
-
-            const TranslatedText(
-              "Digital Gold Savings",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFFE6C76A),
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            Column(
-              children: const [
-                TranslatedText(
-                  "Daily, Weekly & Monthly plans",
-                  style: TextStyle(color: Colors.white60, height: 1.5),
-                  textAlign: TextAlign.center,
-                ),
-                TranslatedText(
-                  "24K pure gold investment",
-                  style: TextStyle(color: Colors.white60, height: 1.5),
-                  textAlign: TextAlign.center,
-                ),
-                TranslatedText(
-                  "Safe & Easy withdrawal",
-                  style: TextStyle(color: Colors.white60, height: 1.5),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-
-            const Spacer(),
-
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE6C76A),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 100, vertical: 16),
-              ),
-              onPressed: () {
-                _controller.nextPage(
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                );
-              },
-              child: const TranslatedText(
-                "NEXT",
-                style: TextStyle(color: Colors.black, fontSize: 16),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _seedSchemes() async {
-    final schemes = FirebaseFirestore.instance.collection('schemes');
-    await schemes.add({'name': 'Daily Gold', 'type': 'Daily', 'active': true});
-    await schemes.add({'name': 'Weekly Savings', 'type': 'Weekly', 'active': true});
-    await schemes.add({'name': 'Monthly SIP', 'type': 'Monthly', 'active': true});
-  }
-
-  // 🔹 PAGE 2 (Plan Setup)
-  Widget _buildPlanPage() {
+  // 🔹 ONE-PAGE GOLD PURCHASE PROCESS
+  Widget _buildSinglePageProcess() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('schemes').snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}", style: const TextStyle(color: Colors.white)));
-        }
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator(color: Color(0xFFE6C76A)));
         }
         
-        final schemes = snapshot.data!.docs;
-        if (schemes.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const TranslatedText("No schemes available yet.", style: TextStyle(color: Colors.white70)),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _seedSchemes,
-                  child: const Text("Initialize Sample Schemes"),
-                )
-              ],
-            ),
-          );
-        }
+        final schemes = snapshot.data?.docs ?? [];
 
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: GestureDetector(
-                    onTap: () {
-                      _controller.previousPage(
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    child: const Icon(Icons.arrow_back, color: Colors.white),
-                  ),
+          child: Column(
+            children: [
+              // 🔝 TOP NAV & SECURITY BADGE
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.green.withOpacity(0.3)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.verified_user, color: Colors.green, size: 14),
+                          SizedBox(width: 5),
+                          Text("INSURED VAULTS", style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                Image.asset("assets/auth/coinsbag.png", height: 200),
-                const SizedBox(height: 10),
-                const TranslatedText("Digital Gold SIP", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 20),
-                
-                // AMOUNT SELECTION
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: const Color(0xFF1A4A41), borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 10)]),
+              ),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const TranslatedText("Select Amount", style: TextStyle(color: Colors.white70)),
-                      const SizedBox(height: 10),
-                      Text("₹$selectedAmount", style: const TextStyle(color: Color(0xFFE6C76A), fontSize: 30, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 15),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [50, 100, 150].map((e) {
-                          bool isSelected = selectedAmount == e;
-                          return GestureDetector(
-                            onTap: () => setState(() => selectedAmount = e),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                              decoration: BoxDecoration(color: isSelected ? const Color(0xFFE6C76A) : Colors.white, borderRadius: BorderRadius.circular(12)),
-                              child: Text("₹$e", style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                      // 🔥 LIVE PRICE CARD
+                      FadeInDown(
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(25),
+                            border: Border.all(color: const Color(0xFFE6C76A).withOpacity(0.2)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const TranslatedText("Live 24K Price", style: TextStyle(color: Colors.white70)),
+                              Text("₹${currentRate.toStringAsFixed(2)} / gm", style: const TextStyle(color: Color(0xFFE6C76A), fontSize: 18, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      const TranslatedText(
+                        "Digital Gold Boutique",
+                        style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      const TranslatedText(
+                        "Instant conversion to 24K Gold Grams",
+                        style: TextStyle(color: Colors.white54, fontSize: 13),
+                      ),
+
+                      const SizedBox(height: 25),
+
+                      // AMOUNT SELECTOR
+                      Container(
+                        padding: const EdgeInsets.all(25),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A4A41),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20)],
+                        ),
+                        child: Column(
+                          children: [
+                            const TranslatedText("Buying Amount (₹)", style: TextStyle(color: Colors.white60, fontSize: 14)),
+                            const SizedBox(height: 15),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _amountBtn(Icons.remove, () { if (selectedAmount > 100) setState(() => selectedAmount -= 100); }),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Text("₹$selectedAmount", style: const TextStyle(color: Color(0xFFE6C76A), fontSize: 36, fontWeight: FontWeight.bold)),
+                                ),
+                                _amountBtn(Icons.add, () { setState(() => selectedAmount += 100); }),
+                              ],
                             ),
-                          );
-                        }).toList(),
-                      )
+                            const SizedBox(height: 15),
+                            const Divider(color: Colors.white10),
+                            const SizedBox(height: 15),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.auto_fix_high, color: Color(0xFFE6C76A), size: 14),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Accumulate ${(selectedAmount / currentRate).toStringAsFixed(4)} grams of Gold",
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      // STRATEGY SELECTOR
+                      const TranslatedText("Choose Strategy", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 15),
+                      SizedBox(
+                        height: 100,
+                        child: schemes.isEmpty 
+                          ? const Center(child: Text("No schemes found", style: TextStyle(color: Colors.white30)))
+                          : ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: schemes.length,
+                            itemBuilder: (context, index) {
+                              final sData = schemes[index].data() as Map<String, dynamic>;
+                              bool isSelected = planType == sData['name'];
+                              return GestureDetector(
+                                onTap: () => setState(() => planType = sData['name']),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  padding: const EdgeInsets.all(18),
+                                  margin: const EdgeInsets.only(right: 15),
+                                  width: 150,
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? const Color(0xFFE6C76A) : Colors.white.withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: isSelected ? Colors.white : Colors.white12),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      sData['name'],
+                                      style: TextStyle(color: isSelected ? Colors.black : Colors.white70, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      // SECURITY NOTES
+                      _benefitRow(Icons.security, "Money converted to Gold Grams instantly"),
+                      _benefitRow(Icons.lock_clock, "No price change impacts once bought"),
+                      _benefitRow(Icons.workspace_premium, "Pure 24K 99.9% Hallmark Gold Coins"),
+
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+              ),
 
-                // DYNAMIC SCHEMES DROPDOWN
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  decoration: BoxDecoration(color: const Color(0xFF1A4A41), borderRadius: BorderRadius.circular(15)),
-                  child: DropdownButton<String>(
-                    value: schemes.any((s) => s['name'] == planType) ? planType : schemes.first['name'],
-                    dropdownColor: const Color(0xFF1A4A41),
-                    style: const TextStyle(color: Colors.white),
-                    isExpanded: true,
-                    underline: const SizedBox(),
-                    iconEnabledColor: const Color(0xFFE6C76A),
-                    items: schemes.map((s) {
-                      final sData = s.data() as Map<String, dynamic>;
-                      return DropdownMenuItem<String>(
-                        value: sData['name'] as String,
-                        child: Text("${sData['name']} (${sData['type']})"),
+              // 💳 ACTION BUTTON
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A4A41),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10)],
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE6C76A),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    ),
+                    onPressed: () {
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please login to proceed with investment")),
+                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                        return;
+                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ConfirmPlanScreen(amount: selectedAmount, planType: planType, duration: "12 Months"),
+                        ),
                       );
-                    }).toList(),
-                    onChanged: (val) => setState(() => planType = val!),
+                    },
+                    child: const TranslatedText("PROCEED TO SECURE BUY", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
                 ),
-                
-                const Spacer(),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE6C76A), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 16)),
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => ConfirmPlanScreen(amount: selectedAmount, planType: planType, duration: "Selected Plan")));
-                  },
-                  child: const TranslatedText("SAVE", style: TextStyle(color: Colors.black, fontSize: 16)),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+
+  Widget _amountBtn(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 45,
+        width: 45,
+        decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(15)),
+        child: Icon(icon, color: Colors.white, size: 20),
+      ),
+    );
+  }
+
+  Widget _benefitRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xFFE6C76A), size: 16),
+          const SizedBox(width: 12),
+          Expanded(child: TranslatedText(text, style: const TextStyle(color: Colors.white60, fontSize: 13))),
+        ],
+      ),
     );
   }
 }
