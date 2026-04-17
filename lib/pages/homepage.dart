@@ -57,8 +57,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   int _seconds = 18;
   Timer? _countdownTimer;
 
-  late Stream<double> _goldRateStream;
-  late Stream<QuerySnapshot> _productsStream;
+  late final Stream<double> _goldRateStream = GoldRateService.goldRateStream();
+  late final Stream<QuerySnapshot> _productsStream = FirebaseFirestore.instance.collection('products').snapshots();
 
   Future<void> loadGoldRate() async {
     if (!mounted) return;
@@ -112,9 +112,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
-    _goldRateStream = GoldRateService.goldRateStream();
-    _productsStream = FirebaseFirestore.instance.collection('products').snapshots();
 
     // Start gold rate fetch
     loadGoldRate();
@@ -1534,12 +1531,11 @@ class _GemziCarouselState extends State<GemziCarousel> {
   int _currentAdPage = 0;
   final Color richGold = const Color(0xFFD4AF37);
   final Color bronze = const Color(0xFFB8962E);
-  late Stream<QuerySnapshot> _bannersStream;
+  late final Stream<QuerySnapshot> _bannersStream = FirebaseFirestore.instance.collection('banners').snapshots();
 
   @override
   void initState() {
     super.initState();
-    _bannersStream = FirebaseFirestore.instance.collection('banners').snapshots();
     _startAdScroll();
   }
 
