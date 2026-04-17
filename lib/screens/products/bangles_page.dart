@@ -168,9 +168,15 @@ class _BanglesPageState extends State<BanglesPage> {
                     
                     if (weight == 0) {
                       final itemName = name.toLowerCase();
-                      if (itemName.contains("bangle")) weight = 32.5;
+                      if (itemName.contains("necklace")) weight = 24.5;
+                      else if (itemName.contains("bangle")) weight = 32.5;
+                      else if (itemName.contains("earring")) weight = 12.0;
+                      else if (itemName.contains("ring")) weight = 6.5;
+                      else if (itemName.contains("coin")) weight = 10.0;
+                      else if (itemName.contains("bracelet")) weight = 12.5;
                       else weight = 8.0;
                     }
+
                     
                     final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
 

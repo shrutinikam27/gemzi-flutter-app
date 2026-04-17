@@ -5,15 +5,12 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'dart:math';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
-<<<<<<< HEAD
+import '../services/gold_rate_service.dart';
+import 'order_success_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/razorpay_service.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../services/email_service.dart';
-=======
-import 'order_success_page.dart';
->>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
 
 class ConfirmPlanScreen extends StatefulWidget {
   final int amount;
@@ -42,6 +39,8 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
       onError: _handlePaymentError,
     );
   }
+    );
+  }
 
   @override
   void dispose() {
@@ -59,7 +58,7 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
       paymentId: response.paymentId ?? 'TXN_SUCCESS',
       items: [
         {
-          'name': "\${widget.planType} - \${widget.duration}",
+          'name': "${widget.planType} - ${widget.duration}",
           'quantity': 1,
           'price': total.toDouble(),
         }
@@ -90,7 +89,6 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
       SnackBar(content: Text('Payment Failed: ${response.message}'), backgroundColor: Colors.red),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     int total = widget.amount * int.parse(widget.duration.split(" ")[0]);
@@ -198,7 +196,7 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
 
                       _rowItem(
                         "Estimated Gold",
-                        "${(amount / GoldRateService.currentRate).toStringAsFixed(4)} grams",
+                        "${(widget.amount / GoldRateService.currentRate).toStringAsFixed(4)} grams",
                         isHighlight: true,
                       ),
                     ],
@@ -240,18 +238,23 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
                       vertical: 16,
                     ),
                   ),
-                  onPressed: () {
+                  onPressed: _isLoading ? null : () async {
+                    setState(() => _isLoading = true);
                     final user = FirebaseAuth.instance.currentUser;
                     String mobile = "9999999999";
                     String email = user?.email ?? "test@example.com";
                     
-                    _razorpayService.openCheckout(
-                      amount: total.toDouble(),
-                      name: widget.planType,
-                      description: "Investment for ${widget.planType} - ${widget.duration}",
-                      contact: mobile,
-                      email: email,
-                    );
+                    try {
+                      await _razorpayService.openCheckout(
+                        amount: total.toDouble(),
+                        name: widget.planType,
+                        description: "Investment for ${widget.planType} - ${widget.duration}",
+                        contact: mobile,
+                        email: email,
+                      );
+                    } finally {
+                      if (mounted) setState(() => _isLoading = false);
+                    }
                   },
                   child: _isLoading 
                     ? const SizedBox(
