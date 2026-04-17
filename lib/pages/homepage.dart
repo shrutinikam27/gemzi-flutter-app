@@ -628,10 +628,11 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   }
 
   void _changeLanguage(BuildContext context, String langCode) async {
+    final navigator = Navigator.of(context);
     await TranslatorService.saveLanguage(langCode);
     setState(() => TranslatorService.currentLang = langCode);
     if (mounted) {
-      Navigator.of(context).pop();
+      navigator.pop();
     }
   }
 
