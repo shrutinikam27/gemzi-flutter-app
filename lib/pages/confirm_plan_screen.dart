@@ -99,7 +99,7 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                   ),
                   child: const Icon(
                     Icons.verified,
@@ -190,7 +190,7 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
                 Container(
                   padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Row(

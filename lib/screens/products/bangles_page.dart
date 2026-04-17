@@ -112,7 +112,7 @@ class _BanglesPageState extends State<BanglesPage> {
                 // 🛰️ Live Market Rate Header
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  color: surfaceDark.withOpacity(0.5),
+                  color: surfaceDark.withValues(alpha: 0.5),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

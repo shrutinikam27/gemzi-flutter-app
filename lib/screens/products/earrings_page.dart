@@ -112,7 +112,7 @@ class _EarringsPageState extends State<EarringsPage> {
                 // 🛰️ Live Market Rate Header
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  color: surfaceDark.withOpacity(0.5),
+                  color: surfaceDark.withValues(alpha: 0.5),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -155,75 +155,76 @@ class _EarringsPageState extends State<EarringsPage> {
                           childAspectRatio: 0.7,
                         ),
                         itemBuilder: (context, index) {
-                    final data = docs[index].data() as Map<String, dynamic>;
-                    final name = data['name'] ?? 'Earring Piece';
-                    final image = data['imageUrl'] ?? data['image'] ?? '';
-                    
-                    double weight = 0.0;
-                    if (data['weight'] != null) {
-                      weight = double.tryParse(data['weight'].toString()) ?? 0.0;
-                    }
-                    final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
+                          final data = docs[index].data() as Map<String, dynamic>;
+                          final name = data['name'] ?? 'Earring Piece';
+                          final image = data['imageUrl'] ?? data['image'] ?? '';
+                          
+                          double weight = 0.0;
+                          if (data['weight'] != null) {
+                            weight = double.tryParse(data['weight'].toString()) ?? 0.0;
+                          }
+                          final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
 
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProductDetailPage(
-                              name: name,
-                              price: "₹$dynamicPrice",
-                              image: image,
-                              rating: "4.8",
-                            ),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: surfaceDark,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: Colors.white10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                                    child: _buildImage(image),
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ProductDetailPage(
+                                    name: name,
+                                    price: "₹$dynamicPrice",
+                                    image: image,
+                                    rating: "4.8",
                                   ),
-                                  Positioned(
-                                    top: 10,
-                                    right: 10,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
-                                      child: Text("${weight}g", style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: surfaceDark,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: Colors.white10),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                                          child: _buildImage(image),
+                                        ),
+                                        Positioned(
+                                          top: 10,
+                                          right: 10,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
+                                            child: Text("${weight}g", style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                        const SizedBox(height: 6),
+                                        Text("₹$dynamicPrice", style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 16)),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                                  const SizedBox(height: 6),
-                                  Text("₹$dynamicPrice", style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 16)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
               ],
@@ -233,7 +234,6 @@ class _EarringsPageState extends State<EarringsPage> {
       ),
     );
   }
-
 
   Widget _buildImage(String path) {
     final cleanPath = path.trim();
@@ -249,7 +249,7 @@ class _EarringsPageState extends State<EarringsPage> {
       );
     }
     return Image.asset(
-      cleanPath.startsWith('assets/') ? cleanPath : "assets/auth/earring.png",
+      cleanPath.startsWith('assets/') ? cleanPath : "assets/auth/earringnew.png",
       height: 120,
       width: double.infinity,
       fit: BoxFit.cover,

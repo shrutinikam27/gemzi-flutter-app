@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
@@ -52,7 +51,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
   double prev24 = 0;
   double prev22 = 0;
-
+  
   // ⏳ LIVE TIMER STATE
   int _hours = 05;
   int _minutes = 42;
@@ -117,6 +116,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
     // Start ads carousel
     filteredItems = trendingItems;
+    _startLiveTimer();
     Future.microtask(() => _loadUserName());
   }
 
@@ -306,6 +306,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       }
     });
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -630,7 +632,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     await TranslatorService.saveLanguage(langCode);
     setState(() => TranslatorService.currentLang = langCode);
     if (!mounted) return;
-    Navigator.pop(context);
+    Navigator.of(context).pop();
   }
 
   Widget _buildSearchBar() {
@@ -676,7 +678,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               blurRadius: 15,
               offset: const Offset(0, 8),
             )
@@ -703,7 +705,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(25),
                 gradient: LinearGradient(
-                  colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                  colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                 ),
@@ -757,7 +759,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: Colors.white30),
                 ),
@@ -794,7 +796,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(5),
         border: Border.all(color: Colors.white12),
       ),
@@ -998,7 +1000,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: richGold.withOpacity(0.05), shape: BoxShape.circle, border: Border.all(color: richGold.withOpacity(0.1))),
+            decoration: BoxDecoration(color: richGold.withValues(alpha: 0.05), shape: BoxShape.circle, border: Border.all(color: richGold.withValues(alpha: 0.1))),
             child: Icon(icon, color: richGold, size: 18),
           ),
           const SizedBox(height: 8),
@@ -1017,12 +1019,12 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           color: surfaceDark,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          border: Border.all(color: richGold.withOpacity(0.2)),
+          border: Border.all(color: richGold.withValues(alpha: 0.2)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: richGold.withOpacity(0.1), borderRadius: BorderRadius.circular(2))),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: richGold.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 25),
             Text(title, style: TextStyle(color: richGold, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1)),
             const SizedBox(height: 15),
@@ -1043,106 +1045,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   }
 
   // 🏛️ HAND-PICKED FEATURED COLLECTIONS (2-3 ITEMS)
-  Widget _buildFeaturedCollections() {
-    final List<Map<String, dynamic>> collections = [
-      {
-        "title": "ROYAL WEDDING",
-        "subtitle": "Bridal Masterpieces",
-        "image": "https://images.unsplash.com/photo-1549439602-43ebca2327af?q=80&w=1000",
-        "page": const WeddingCollectionPage(),
-        "color": const Color(0xFFD4AF37)
-      },
-      {
-        "title": "EXCLUSIVE SERIES",
-        "subtitle": "Limited Edition Gold",
-        "image": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1000",
-        "page": ExclusiveCollectionsPage(), // Assuming this exists based on dir list
-        "color": const Color(0xFFB8962E)
-      },
-    ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const TranslatedText("Featured Collections", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-              Icon(Icons.auto_awesome, color: richGold, size: 20),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 220,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: collections.length,
-            itemBuilder: (context, index) {
-              final col = collections[index];
-              return FadeInRight(
-                delay: Duration(milliseconds: 100 * index),
-                child: GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => col['page'])),
-                  child: Container(
-                    width: 280,
-                    margin: const EdgeInsets.only(right: 15),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))],
-                    ),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.network(
-                            col['image'],
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: surfaceDark),
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            gradient: LinearGradient(
-                              colors: [Colors.black.withOpacity(0.8), Colors.transparent],
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(col['title'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: 1)),
-                              Text(col['subtitle'], style: TextStyle(color: col['color'], fontSize: 12)),
-                              const SizedBox(height: 10),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(8)),
-                                child: const TranslatedText("VIEW ALL", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 10),
-      ],
-    );
-  }
 
 
 
@@ -1426,7 +1329,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           decoration: BoxDecoration(
             color: surfaceDark,
             borderRadius: BorderRadius.circular(15),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 3)],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 3)],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

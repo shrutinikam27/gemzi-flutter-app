@@ -36,7 +36,7 @@ class HandDetectionService {
         image,
         controller.description.sensorOrientation,
       );
-      if (result != null && result.isNotEmpty) {
+      if (result.isNotEmpty) {
         debugPrint("Hand detected! Count: ${result.length}");
       }
       _isProcessing = false;

@@ -168,7 +168,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white10),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 5)),
           ],
         ),
         child: Column(

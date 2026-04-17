@@ -68,9 +68,9 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.green.withOpacity(0.3)),
+                        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
                       ),
                       child: const Row(
                         children: [
@@ -95,9 +95,9 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(25),
-                            border: Border.all(color: const Color(0xFFE6C76A).withOpacity(0.2)),
+                            border: Border.all(color: const Color(0xFFE6C76A).withValues(alpha: 0.2)),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -128,7 +128,7 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFF1A4A41),
                           borderRadius: BorderRadius.circular(30),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20)],
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20)],
                         ),
                         child: Column(
                           children: [
@@ -186,7 +186,7 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                                   margin: const EdgeInsets.only(right: 15),
                                   width: 150,
                                   decoration: BoxDecoration(
-                                    color: isSelected ? const Color(0xFFE6C76A) : Colors.white.withOpacity(0.05),
+                                    color: isSelected ? const Color(0xFFE6C76A) : Colors.white.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(color: isSelected ? Colors.white : Colors.white12),
                                   ),
@@ -221,7 +221,7 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A4A41),
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10)],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10)],
                 ),
                 child: SizedBox(
                   width: double.infinity,
