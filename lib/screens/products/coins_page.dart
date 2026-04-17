@@ -34,7 +34,7 @@ class _CoinsPageState extends State<CoinsPage> {
         body: StreamBuilder<double>(
           stream: GoldRateService.goldRateStream(),
           builder: (context, rateSnapshot) {
-            final rate = rateSnapshot.data ?? 7200.0;
+            final rate = rateSnapshot.data ?? GoldRateService.currentRate;
             
             return Column(
               children: [
@@ -88,11 +88,19 @@ class _CoinsPageState extends State<CoinsPage> {
                     final name = data['name'] ?? 'Gold Coin';
                     final image = data['imageUrl'] ?? data['image'] ?? '';
                     
-                    // 💰 Dynamic Price Calculation
+                    // 💰 Robust Weight Parsing & Fallbacks
                     double weight = 0.0;
-                    if (data['weight'] != null) {
-                      weight = double.tryParse(data['weight'].toString()) ?? 0.0;
+                    String weightStr = data['weight']?.toString() ?? "";
+                    String cleanWeight = weightStr.toLowerCase()
+                        .replaceAll("g", "").replaceAll("m", "").replaceAll("s", "").replaceAll("ra", "").trim();
+                    weight = double.tryParse(cleanWeight) ?? 0.0;
+                    
+                    if (weight == 0) {
+                      final itemName = name.toLowerCase();
+                      if (itemName.contains("coin")) weight = 10.0;
+                      else weight = 8.0;
                     }
+                    
                     final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
 
                     return GestureDetector(

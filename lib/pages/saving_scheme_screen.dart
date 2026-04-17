@@ -20,7 +20,7 @@ class SavingSchemeScreen extends StatefulWidget {
 class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
   int selectedAmount = 500;
   String planType = "Monthly SIP";
-  double currentRate = 7200.0;
+  double currentRate = GoldRateService.currentRate;
 
   @override
   Widget build(BuildContext context) {

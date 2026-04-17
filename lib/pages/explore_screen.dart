@@ -40,7 +40,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             child: StreamBuilder<double>(
               stream: GoldRateService.goldRateStream(),
               builder: (context, rateSnapshot) {
-                final rate = rateSnapshot.data ?? 7200.0;
+                final rate = rateSnapshot.data ?? GoldRateService.currentRate;
                 
                 return StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance.collection('products').snapshots(),
@@ -78,11 +78,25 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       itemBuilder: (context, index) {
                         final data = filteredDocs[index].data() as Map<String, dynamic>;
                         
-                        // Dynamic Price Calculation
+                        // 💰 Robust Weight Parsing & Fallbacks
                         double weight = 0.0;
-                        if (data['weight'] != null) {
-                          weight = double.tryParse(data['weight'].toString()) ?? 0.0;
+                        String weightStr = data['weight']?.toString() ?? "";
+                        String cleanWeight = weightStr.toLowerCase()
+                            .replaceAll("g", "").replaceAll("m", "").replaceAll("s", "").replaceAll("ra", "").trim();
+                        weight = double.tryParse(cleanWeight) ?? 0.0;
+                        
+                        // 💎 Unified Intelligent Fallbacks
+                        if (weight == 0) {
+                          final name = (data['name'] ?? "").toString().toLowerCase();
+                          if (name.contains("necklace")) weight = 24.5;
+                          else if (name.contains("bangle")) weight = 32.5;
+                          else if (name.contains("earring")) weight = 12.0;
+                          else if (name.contains("ring")) weight = 6.5;
+                          else if (name.contains("coin")) weight = 10.0;
+                          else if (name.contains("bracelet")) weight = 12.5;
+                          else weight = 8.0;
                         }
+                        
                         final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
 
                         return FadeInUp(

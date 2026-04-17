@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
+import '../services/gold_rate_service.dart';
 
 class ConfirmPlanScreen extends StatelessWidget {
   final int amount;
@@ -123,7 +124,7 @@ class ConfirmPlanScreen extends StatelessWidget {
 
                       _rowItem(
                         "Estimated Gold",
-                        "~0.15 grams",
+                        "${(amount / GoldRateService.currentRate).toStringAsFixed(4)} grams",
                         isHighlight: true,
                       ),
                     ],

@@ -2,36 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import '../screens/products/product_detail_page.dart';
 import '../widgets/translated_text.dart';
+import '../services/gold_rate_service.dart';
 
 class WeddingCollectionPage extends StatelessWidget {
   const WeddingCollectionPage({super.key});
 
-  final List<Map<String, String>> bridalItems = const [
+  final List<Map<String, dynamic>> bridalItems = const [
     {
       "name": "Royal Polki Set",
-      "price": "₹1,45,000",
+      "weight": 17.5,
       "image": "https://images.unsplash.com/photo-1549439602-43ebca2327af?q=80&w=1000",
       "rating": "5.0"
     },
     {
       "name": "Diamond Bloom Necklace",
-      "price": "₹3,20,000",
+      "weight": 38.0,
       "image": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1000",
       "rating": "4.9"
     },
     {
       "name": "Temple Gold Haram",
-      "price": "₹2,10,000",
+      "weight": 25.0,
       "image": "https://images.unsplash.com/photo-1610992015732-2449b0c26670?q=80&w=1000",
       "rating": "5.0"
     },
     {
       "name": "Bridal Emerald Choker",
-      "price": "₹1,85,000",
+      "weight": 22.0,
       "image": "https://images.unsplash.com/photo-1589128777073-263566ae5e4d?q=80&w=1000",
       "rating": "4.8"
     }
   ];
+
+  String _calculatePrice(double weight) {
+    double rate = GoldRateService.currentRate;
+    return "₹${(weight * rate * 1.15).toStringAsFixed(0)}";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,9 +117,10 @@ class WeddingCollectionPage extends StatelessWidget {
                     delay: Duration(milliseconds: 100 * index),
                     child: GestureDetector(
                       onTap: () {
+                        final calculatedPrice = _calculatePrice(item['weight'] ?? 0.0);
                         Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailPage(
                           name: item['name']!,
-                          price: item['price']!,
+                          price: calculatedPrice,
                           image: item['image']!,
                           rating: item['rating']!,
                         )));
@@ -141,7 +148,7 @@ class WeddingCollectionPage extends StatelessWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(item['name']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                                      Text(item['price']!, style: const TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 16)),
+                                      Text(_calculatePrice(item['weight'] ?? 0.0), style: const TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 16)),
                                     ],
                                   ),
                                   Container(

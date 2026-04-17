@@ -33,56 +33,45 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
     loadGoldRate();
   }
 
-  // ✅ MAIN LOGIC
+  // ✅ MAIN LOGIC (Synchronized with GoldRateService)
   Future<void> loadGoldRate() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-
       String today = DateTime.now().toIso8601String().split('T')[0];
+      
+      // 1. Get the latest rate from the Daily-Cached Service
+      double rate = await GoldRateService.getGoldRate();
+      double current24 = rate;
+      double current22 = rate * (22 / 24);
 
+      // 2. Fetch History
+      List<String> history = prefs.getStringList("gold_history") ?? [];
       String? lastDate = prefs.getString("last_date");
 
-      List<String> history = prefs.getStringList("gold_history") ?? [];
+      // 3. Update History if today is new
+      if (lastDate != today) {
+        // Only add if not already present for today
+        bool alreadyExists = history.any((entry) => entry.startsWith(today));
+        if (!alreadyExists) {
+          history.add("$today|$current24|$current22");
+          if (history.length > 30) history.removeAt(0); // Keep last 30 days
+          
+          await prefs.setStringList("gold_history", history);
+          await prefs.setString("last_date", today);
+        }
+      }
 
-      // ✅ IF ALREADY FETCHED TODAY
-      if (lastDate == today && history.isNotEmpty) {
-        var todayData = history.last.split("|");
-
+      // 4. Update UI State
+      if (mounted) {
         setState(() {
-          rate24 = double.parse(todayData[1]);
-          rate22 = double.parse(todayData[2]);
+          rate24 = current24;
+          rate22 = current22;
         });
-
         await loadYesterdayFromLocal();
         await loadGraphData();
-        return;
       }
-
-      // ✅ FETCH NEW DATA
-      double rate = await GoldRateService.getGoldRate();
-
-      double new24 = rate;
-      double new22 = rate * (22 / 24);
-
-      history.add("$today|$new24|$new22");
-
-      // keep last 30 days
-      if (history.length > 30) {
-        history.removeAt(0);
-      }
-
-      await prefs.setStringList("gold_history", history);
-      await prefs.setString("last_date", today);
-
-      await loadYesterdayFromLocal();
-      await loadGraphData();
-
-      setState(() {
-        rate24 = new24;
-        rate22 = new22;
-      });
     } catch (e) {
-      debugPrint("ERROR: $e");
+      debugPrint("ERROR IN LIVE GOLD PAGE: $e");
     }
   }
 

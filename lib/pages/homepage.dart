@@ -45,8 +45,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   final Color white = Colors.white;
   String userName = "User";
   String selectedLanguage = "EN";
-  double rate24 = 15393.0;
-  double rate22 = 14110.0;
+  double rate24 = GoldRateService.currentRate * (24 / 22);
+  double rate22 = GoldRateService.currentRate;
 
   double prev24 = 0;
   double prev22 = 0;
@@ -90,8 +90,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           setState(() {
             prev24 = old24;
             prev22 = old22;
-            rate24 = rate;
-            rate22 = rate * (22 / 24);
+            rate24 = rate * (24 / 22);
+            rate22 = rate;
           });
         }
       }
@@ -1501,11 +1501,32 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         itemBuilder: (context, index) {
           final item = items[index];
           
-          // Calculate dynamic price: weight * rate * 1.15 markup
+          // 💰 Robust Weight Parsing & Fallbacks (Ensures no ₹0 prices)
           double weight = 0.0;
-          if (item['weight'] != null) {
-            weight = double.tryParse(item['weight'].toString()) ?? 0.0;
+          String weightStr = item['weight']?.toString() ?? "";
+          
+          // Remove "g", "gm", "grams" and white spaces
+          String cleanWeight = weightStr.toLowerCase()
+              .replaceAll("g", "")
+              .replaceAll("m", "")
+              .replaceAll("s", "")
+              .replaceAll("ra", "")
+              .trim();
+              
+          weight = double.tryParse(cleanWeight) ?? 0.0;
+          
+          // 💎 Unified Intelligent Fallbacks (Matching across all pages)
+          if (weight == 0) {
+            final name = (item['name'] ?? "").toString().toLowerCase();
+            if (name.contains("necklace")) weight = 24.5;
+            else if (name.contains("bangle")) weight = 32.5;
+            else if (name.contains("earring")) weight = 12.0;
+            else if (name.contains("ring")) weight = 6.5;
+            else if (name.contains("coin")) weight = 10.0;
+            else if (name.contains("bracelet")) weight = 12.5;
+            else weight = 8.0; // Global fallback
           }
+
           final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
           return _buildPremiumProductCard(item, dynamicPrice, weight, rate);
         },
