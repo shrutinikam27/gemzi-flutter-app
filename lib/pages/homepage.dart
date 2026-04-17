@@ -20,7 +20,6 @@ import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
 import 'saving_scheme_screen.dart';
 import 'wedding_collection_page.dart';
-import 'exclusive_collections_page.dart';
 import 'settings_page.dart';
 import 'live_gold_page.dart';
 import '../screens/try_on_screen.dart';
@@ -631,8 +630,9 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   void _changeLanguage(BuildContext context, String langCode) async {
     await TranslatorService.saveLanguage(langCode);
     setState(() => TranslatorService.currentLang = langCode);
-    if (!mounted) return;
-    Navigator.of(context).pop();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   Widget _buildSearchBar() {
