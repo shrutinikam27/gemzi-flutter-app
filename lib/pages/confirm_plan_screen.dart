@@ -244,7 +244,7 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
                     String email = user?.email ?? "test@example.com";
                     
                     try {
-                      await _razorpayService.openCheckout(
+                      _razorpayService.openCheckout(
                         amount: total.toDouble(),
                         name: widget.planType,
                         description: "Investment for ${widget.planType} - ${widget.duration}",
