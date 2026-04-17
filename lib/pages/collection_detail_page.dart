@@ -126,7 +126,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                       decoration: BoxDecoration(
                         color: surfaceDark,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: richGold.withOpacity(0.3)),
+                        border: Border.all(color: richGold.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:glassmorphism/glassmorphism.dart';
-import '../services/auth_service.dart';
+
 import '../services/google_auth.dart';
 import 'signup_screen.dart';
 import 'homepage.dart';
@@ -42,13 +42,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             child: Container(
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.4),
-                    deepTeal.withOpacity(0.8),
+                    Colors.black.withValues(alpha: 0.4),
+                    deepTeal.withValues(alpha: 0.8),
                     deepTeal,
                   ],
                 ),
@@ -75,11 +76,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(0.05),
-                              border: Border.all(color: richGold.withOpacity(0.3), width: 1.5),
+                              color: Colors.white.withValues(alpha: 0.05),
+                              border: Border.all(color: richGold.withValues(alpha: 0.3), width: 1.5),
                               boxShadow: [
                                 BoxShadow(
-                                  color: richGold.withOpacity(0.1),
+                                  color: richGold.withValues(alpha: 0.1),
                                   blurRadius: 40,
                                   spreadRadius: 5,
                                 ),
@@ -113,15 +114,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Colors.white.withOpacity(0.05),
-                          Colors.white.withOpacity(0.02),
+                          Colors.white.withValues(alpha: 0.05),
+                          Colors.white.withValues(alpha: 0.02),
                         ],
                       ),
                       borderGradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          richGold.withOpacity(0.5),
+                          richGold.withValues(alpha: 0.5),
                           Colors.transparent,
                         ],
                       ),
@@ -168,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   borderRadius: BorderRadius.circular(15),
                                   gradient: LinearGradient(colors: [richGold, const Color(0xFFB8860B)]),
                                   boxShadow: [
-                                    BoxShadow(color: richGold.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8)),
+                                    BoxShadow(color: richGold.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8)),
                                   ],
                                 ),
                                 child: Center(
@@ -190,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(15),
                                   border: Border.all(color: Colors.white10),
-                                  color: Colors.white.withOpacity(0.05),
+                                  color: Colors.white.withValues(alpha: 0.05),
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -309,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _inputField(String hint, IconData icon, TextEditingController controller, {bool obscure = false}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.white10),
       ),

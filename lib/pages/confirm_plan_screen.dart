@@ -1,8 +1,11 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'dart:math';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
+<<<<<<< HEAD
 <<<<<<< HEAD
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,6 +15,9 @@ import '../services/email_service.dart';
 =======
 import '../services/gold_rate_service.dart';
 >>>>>>> 85fe88fc83a076b6dc4698557eddefd5188d0519
+=======
+import 'order_success_page.dart';
+>>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
 
 class ConfirmPlanScreen extends StatefulWidget {
   final int amount;
@@ -30,19 +36,59 @@ class ConfirmPlanScreen extends StatefulWidget {
 }
 
 class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
+<<<<<<< HEAD
   late RazorpayService _razorpayService;
+=======
+  late Razorpay _razorpay;
+  bool _isLoading = false;
+>>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
 
   @override
   void initState() {
     super.initState();
+<<<<<<< HEAD
     _razorpayService = RazorpayService(
       onSuccess: _handlePaymentSuccess,
       onError: _handlePaymentError,
+=======
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    final String orderId = 'PLAN${Random().nextInt(900000) + 100000}';
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderSuccessPage(orderId: orderId),
+      ),
+    );
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment Failed: ${response.message}')),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('External Wallet Selected: ${response.walletName}')),
+>>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
     );
   }
 
   @override
   void dispose() {
+<<<<<<< HEAD
     _razorpayService.dispose();
     super.dispose();
   }
@@ -89,6 +135,12 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
     );
   }
 
+=======
+    _razorpay.clear();
+    super.dispose();
+  }
+
+>>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
   @override
   Widget build(BuildContext context) {
     int total = widget.amount * int.parse(widget.duration.split(" ")[0]);
@@ -118,7 +170,7 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                   ),
                   child: const Icon(
                     Icons.verified,
@@ -209,7 +261,7 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
                 Container(
                   padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Row(
@@ -234,10 +286,11 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 120,
+                      horizontal: 100, // Reduced slightly to avoid overflow with loading
                       vertical: 16,
                     ),
                   ),
+<<<<<<< HEAD
                   onPressed: () {
                     final user = FirebaseAuth.instance.currentUser;
                     String mobile = "9999999999";
@@ -250,11 +303,36 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
                       contact: mobile,
                       email: email,
                     );
+=======
+                  onPressed: _isLoading ? null : () {
+                    setState(() => _isLoading = true);
+                    var options = {
+                      'key': 'rzp_test_SYjFmzSZEJ2L1r',
+                      'amount': total * 100, // in paise
+                      'name': 'Gemzi Plans',
+                      'description': '${widget.planType} Subscription',
+                      'prefill': {
+                        'contact': '9999999999',
+                        'email': 'test@gemzi.com'
+                      }
+                    };
+                    try {
+                      _razorpay.open(options);
+                    } catch (e) {
+                      setState(() => _isLoading = false);
+                    }
+>>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
                   },
-                  child: const TranslatedText(
-                    "Proceed to Pay",
-                    style: TextStyle(color: Colors.black, fontSize: 16),
-                  ),
+                  child: _isLoading 
+                    ? const SizedBox(
+                        width: 20, 
+                        height: 20, 
+                        child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2)
+                      )
+                    : const TranslatedText(
+                        "Proceed to Pay",
+                        style: TextStyle(color: Colors.black, fontSize: 16),
+                      ),
                 ),
 
                 const SizedBox(height: 10),

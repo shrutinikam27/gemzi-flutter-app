@@ -17,75 +17,17 @@ class _EarringsPageState extends State<EarringsPage> {
   final Color surfaceDark = const Color(0xFF17453F);
   final Color richGold = const Color(0xFFD4AF37);
 
-  List<Map<String, String>> earrings = [
-    {
-      "name": "Crystal Drops",
-      "price": "₹50,000",
-      "image": "assets/auth/crystaldrops.jpeg",
-      "rating": "4.8"
-    },
-    {
-      "name": "Halo Drops",
-      "price": "₹70,500",
-      "image": "assets/auth/halodrops.jpeg",
-      "rating": "4.8"
-    },
-    {
-      "name": "Pearl Bow Earrings",
-      "price": "₹65,200",
-      "image": "assets/auth/pearlbowerrings.jpeg",
-      "rating": "4.7"
-    },
-    {
-      "name": "Pearl Rose Earrings",
-      "price": "₹60,000",
-      "image": "assets/auth/pearlroseearrings.jpeg",
-      "rating": "4.9"
-    },
-    {
-      "name": "Crystal Studs",
-      "price": "₹60,000",
-      "image": "assets/auth/crystalstuds.jpeg",
-      "rating": "4.8"
-    },
-    {
-      "name": "Golden Loop Drops",
-      "price": "₹85,000",
-      "image": "assets/auth/goldenloopdrops.jpeg",
-      "rating": "4.5"
-    },
-    {
-      "name": "Sapphire Jhumka",
-      "price": "₹70,000",
-      "image": "assets/auth/sapphirejhumka.jpeg",
-      "rating": "4.8"
-    },
-    {
-      "name": "Lotus Jhumka",
-      "price": "₹60,000",
-      "image": "assets/auth/lotusjhumka.jpeg",
-      "rating": "4.8"
-    },
-    {
-      "name": "Temple Jhumka",
-      "price": "₹75,000",
-      "image": "assets/auth/templejhumka.jpeg",
-      "rating": "4.8"
-    },
-    {
-      "name": "Royal Leaf Chandbali",
-      "price": "₹70,000",
-      "image": "assets/auth/royalleafchandbali.jpeg",
-      "rating": "4.8"
-    },
-  ];
-
-  late List<bool> isLiked;
+  late Stream<double> _goldRateStream;
+  late Stream<QuerySnapshot> _productsStream;
 
   @override
   void initState() {
     super.initState();
-    isLiked = List.generate(earrings.length, (index) => false);
+    _goldRateStream = GoldRateService.goldRateStream();
+    _productsStream = FirebaseFirestore.instance
+        .collection('products')
+        .where('category', whereIn: ['Earrings', 'earrings', 'earring', 'Earring', 'EARRINGS'])
+        .snapshots();
   }
 
   @override
@@ -96,9 +38,11 @@ class _EarringsPageState extends State<EarringsPage> {
         backgroundColor: darkBg,
         appBar: AppBar(
           backgroundColor: surfaceDark,
-          iconTheme: const IconThemeData(color: Colors.white),
-
-          // ✅ translated title
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
           title: const TranslatedText(
             "Earrings",
             style: TextStyle(
@@ -109,7 +53,7 @@ class _EarringsPageState extends State<EarringsPage> {
           ),
         ),
         body: StreamBuilder<double>(
-          stream: GoldRateService.goldRateStream(),
+          stream: _goldRateStream,
           builder: (context, rateSnapshot) {
             final rate = rateSnapshot.data ?? GoldRateService.currentRate;
             
@@ -118,7 +62,7 @@ class _EarringsPageState extends State<EarringsPage> {
                 // 🛰️ Live Market Rate Header
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  color: surfaceDark.withOpacity(0.5),
+                  color: surfaceDark.withValues(alpha: 0.5),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -138,10 +82,7 @@ class _EarringsPageState extends State<EarringsPage> {
                 ),
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('products')
-                        .where('category', whereIn: ['Earrings', 'earrings', 'earring', 'Earring', 'EARRINGS'])
-                        .snapshots(),
+                    stream: _productsStream,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37)));
@@ -149,6 +90,7 @@ class _EarringsPageState extends State<EarringsPage> {
                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                         return const Center(child: Text("No earrings found", style: TextStyle(color: Colors.white70)));
                       }
+                      
                       final docs = snapshot.data!.docs;
 
                       return GridView.builder(
@@ -161,6 +103,7 @@ class _EarringsPageState extends State<EarringsPage> {
                           childAspectRatio: 0.7,
                         ),
                         itemBuilder: (context, index) {
+<<<<<<< HEAD
                     final data = docs[index].data() as Map<String, dynamic>;
                     final name = data['name'] ?? 'Earring Piece';
                     final image = data['imageUrl'] ?? data['image'] ?? '';
@@ -179,65 +122,76 @@ class _EarringsPageState extends State<EarringsPage> {
                     }
                     
                     final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
+=======
+                          final data = docs[index].data() as Map<String, dynamic>;
+                          final name = data['name'] ?? 'Earring Piece';
+                          final image = data['imageUrl'] ?? data['image'] ?? '';
+                          
+                          double weight = 0.0;
+                          if (data['weight'] != null) {
+                            weight = double.tryParse(data['weight'].toString()) ?? 0.0;
+                          }
+                          final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
+>>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
 
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProductDetailPage(
-                              name: name,
-                              price: "₹$dynamicPrice",
-                              image: image,
-                              rating: "4.8",
-                            ),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: surfaceDark,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: Colors.white10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                                    child: _buildImage(image),
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ProductDetailPage(
+                                    name: name,
+                                    price: "₹$dynamicPrice",
+                                    image: image,
+                                    rating: "4.8",
                                   ),
-                                  Positioned(
-                                    top: 10,
-                                    right: 10,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
-                                      child: Text("${weight}g", style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: surfaceDark,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: Colors.white10),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                                          child: _buildImage(image),
+                                        ),
+                                        Positioned(
+                                          top: 10,
+                                          right: 10,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
+                                            child: Text("${weight}g", style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                        const SizedBox(height: 6),
+                                        Text("₹$dynamicPrice", style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 16)),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                                  const SizedBox(height: 6),
-                                  Text("₹$dynamicPrice", style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 16)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                          );
+                        },
                       );
                     },
                   ),
@@ -264,7 +218,7 @@ class _EarringsPageState extends State<EarringsPage> {
       );
     }
     return Image.asset(
-      cleanPath.startsWith('assets/') ? cleanPath : "assets/auth/earring.png",
+      cleanPath.startsWith('assets/') ? cleanPath : "assets/auth/earringnew.png",
       height: 120,
       width: double.infinity,
       fit: BoxFit.cover,

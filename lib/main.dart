@@ -25,12 +25,11 @@ void main() async {
   Provider.debugCheckInvalidValueType = null;
 
   // 🔥 Load saved language (VERY IMPORTANT)
-  //very good
   await TranslatorService.loadLanguage();
 
   await NotificationService.init(); // 🔥 Initialize notifications
 
-  // 🔥 Initialize Firebase (only once)
+  // 🔥 Initialize Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -38,6 +37,11 @@ void main() async {
   } catch (e) {
     debugPrint('Firebase init error (may already be initialized): $e');
   }
+
+  // 🔥🔥🔥 TEMP FIX (VERY IMPORTANT)
+  // Prevent auto-login → fixes splash + success screen issue
+  await GoogleAuthService.signOut();
+  await FirebaseAuth.instance.signOut();
 
   final cartService = CartService()..init();
 

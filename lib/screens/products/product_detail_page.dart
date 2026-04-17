@@ -6,9 +6,13 @@ import 'package:provider/provider.dart';
 import '../../services/cart_service.dart';
 import '../../utils/translator_service.dart';
 import '../../widgets/translated_text.dart';
+<<<<<<< HEAD
 import '../../services/razorpay_service.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../services/email_service.dart';
+=======
+import '../../pages/checkout_page.dart';
+>>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
 
 class ProductDetailPage extends StatefulWidget {
   final String name;
@@ -273,6 +277,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                                         HapticFeedback.mediumImpact();
 
+<<<<<<< HEAD
                                         final priceNum = double.tryParse(widget.price.replaceAll('₹', '').replaceAll(',', '')) ?? 0.0;
                                         String mobile = "9999999999";
                                         String mail = user.email ?? "test@example.com";
@@ -283,6 +288,34 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           description: "Payment for \${widget.name}",
                                           contact: mobile,
                                           email: mail,
+=======
+                                        final priceNum = double.tryParse(widget
+                                                .price
+                                                .replaceAll('₹', '')
+                                                .replaceAll(',', '')) ??
+                                            0.0;
+                                        final cartService =
+                                            Provider.of<CartService>(context,
+                                                listen: false);
+                                        
+                                        // Clear existing cart to only buy this specific item
+                                        cartService.clearCart();
+                                        cartService.addItem(CartItem(
+                                          id: DateTime.now()
+                                              .millisecondsSinceEpoch
+                                              .toString(),
+                                          name: widget.name,
+                                          price: priceNum.toString(),
+                                          image: widget.image,
+                                          quantity: 1,
+                                        ));
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const CheckoutPage(),
+                                          ),
+>>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(

@@ -120,7 +120,7 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
         ),
         borderRadius: BorderRadius.circular(20),
         // ignore: deprecated_member_use
-        border: Border.all(color: richGold.withOpacity(0.4)),
+        border: Border.all(color: richGold.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [

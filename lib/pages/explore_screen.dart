@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../themes/app_colors.dart';
+
 import '../screens/products/product_detail_page.dart';
 import 'package:animate_do/animate_do.dart';
 import '../services/gold_rate_service.dart';
@@ -160,7 +160,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final String img = data['imageUrl'] ?? data['image'] ?? "";
     final String price = data['price']?.toString() ?? "0";
     final double weight = data['weightProp'] ?? 0.0;
-    final double currentRate = data['rate'] ?? 7200.0;
+
 
     return GestureDetector(
       onTap: () {
@@ -182,7 +182,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white10),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 5)),
           ],
         ),
         child: Column(

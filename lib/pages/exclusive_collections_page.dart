@@ -79,7 +79,7 @@ class ExclusiveCollectionsPage extends StatelessWidget {
                       image: _buildDecorationImage(col['image']),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             blurRadius: 10,
                             offset: const Offset(0, 5)),
                       ],
@@ -93,7 +93,7 @@ class ExclusiveCollectionsPage extends StatelessWidget {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withOpacity(0.8)
+                            Colors.black.withValues(alpha: 0.8)
                           ],
                         ),
                       ),
@@ -143,7 +143,7 @@ class ExclusiveCollectionsPage extends StatelessWidget {
     return DecorationImage(
       image: provider,
       fit: BoxFit.cover,
-      colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.darken),
+      colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.2), BlendMode.darken),
     );
   }
 }

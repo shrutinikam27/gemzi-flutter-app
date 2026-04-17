@@ -71,7 +71,7 @@ class _IndividualItemPageState extends State<IndividualItemPage> {
   @override
   Widget build(BuildContext context) {
     const Color darkBg = Color(0xFF0F2F2B);
-    const Color surfaceDark = Color(0xFF17453F);
+
     const Color richGold = Color(0xFFD4AF37);
 
     final double weight = widget.item['weight'] ?? 0.0;
@@ -113,9 +113,9 @@ class _IndividualItemPageState extends State<IndividualItemPage> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.4),
+                        Colors.black.withValues(alpha: 0.4),
                         Colors.transparent,
-                        darkBg.withOpacity(0.8),
+                        darkBg.withValues(alpha: 0.8),
                         darkBg,
                       ],
                     ),
@@ -156,9 +156,9 @@ class _IndividualItemPageState extends State<IndividualItemPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: richGold.withOpacity(0.1),
+                            color: richGold.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: richGold.withOpacity(0.3)),
+                            border: Border.all(color: richGold.withValues(alpha: 0.3)),
                           ),
                           child: Text(
                             "$weight gm",
