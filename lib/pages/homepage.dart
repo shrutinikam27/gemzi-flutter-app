@@ -57,7 +57,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   int _seconds = 18;
   Timer? _countdownTimer;
 
-  late final Stream<double> _goldRateStream = GoldRateService.goldRateStream();
+  late final Stream<double> _goldRateStream = GoldRateService.goldRateStream().asBroadcastStream();
   late final Stream<QuerySnapshot> _productsStream = FirebaseFirestore.instance.collection('products').snapshots();
 
   Future<void> loadGoldRate() async {
@@ -313,9 +313,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return KeyedSubtree(
-        key: ValueKey(TranslatorService.currentLang),
-        child: Scaffold(
+    return Scaffold(
           drawer: buildSideDrawer(context),
           backgroundColor: darkBg,
           body: Stack(
@@ -344,7 +342,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               _buildFloatingNavBar(),
             ],
           ),
-        ));
+        );
   }
 
   Widget buildSideDrawer(BuildContext context) {
@@ -632,10 +630,14 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
   void _changeLanguage(BuildContext context, String langCode) async {
     final navigator = Navigator.of(context);
-    await TranslatorService.saveLanguage(langCode);
-    setState(() => TranslatorService.currentLang = langCode);
-    if (mounted) {
+    // Pop the dialog FIRST so its out-animation doesn't query a dismounted context
+    if (navigator.canPop()) {
       navigator.pop();
+    }
+    await Future.delayed(const Duration(milliseconds: 250)); // let dialog disappear
+    await TranslatorService.saveLanguage(langCode);
+    if (mounted) {
+      setState(() => TranslatorService.currentLang = langCode);
     }
   }
 
