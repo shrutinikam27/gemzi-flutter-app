@@ -137,7 +137,6 @@ class _RingsPageState extends State<RingsPage> {
                           childAspectRatio: 0.7,
                         ),
                         itemBuilder: (context, index) {
-<<<<<<< HEAD
                     final data = docs[index].data() as Map<String, dynamic>;
                     final name = data['name'] ?? 'Ring Piece';
                     final image = data['imageUrl'] ?? data['image'] ?? '';
@@ -156,18 +155,6 @@ class _RingsPageState extends State<RingsPage> {
                     }
                     
                     final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
-=======
-                          final data = docs[index].data() as Map<String, dynamic>;
-                          final name = data['name'] ?? 'Ring Piece';
-                          final image = data['imageUrl'] ?? data['image'] ?? '';
-                          
-                          // 💰 Dynamic Price Calculation
-                          double weight = 0.0;
-                          if (data['weight'] != null) {
-                            weight = double.tryParse(data['weight'].toString()) ?? 0.0;
-                          }
-                          final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
->>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
 
                           return GestureDetector(
                             onTap: () {
