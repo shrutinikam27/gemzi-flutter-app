@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/cart_service.dart';
 import '../widgets/translated_text.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/razorpay_service.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import '../services/email_service.dart';
 
-class IndividualItemPage extends StatelessWidget {
+class IndividualItemPage extends StatefulWidget {
   final Map<String, dynamic> item;
   final double currentGoldRate;
 
@@ -14,16 +18,67 @@ class IndividualItemPage extends StatelessWidget {
   });
 
   @override
+  State<IndividualItemPage> createState() => _IndividualItemPageState();
+}
+
+class _IndividualItemPageState extends State<IndividualItemPage> {
+  late RazorpayService _razorpayService;
+
+  @override
+  void initState() {
+    super.initState();
+    _razorpayService = RazorpayService(
+      onSuccess: _handlePaymentSuccess,
+      onError: _handlePaymentError,
+    );
+  }
+
+  @override
+  void dispose() {
+    _razorpayService.dispose();
+    super.dispose();
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment Successful: ${response.paymentId}'), backgroundColor: Colors.green),
+    );
+
+    final double weight = widget.item['weight'] ?? 0.0;
+    final double totalPrice = weight * widget.currentGoldRate * 1.15;
+    final String name = widget.item['name'] ?? 'Luxury Jewellery';
+
+    EmailService.sendPurchaseEmail(
+      paymentId: response.paymentId ?? 'TXN_SUCCESS',
+      items: [
+        {
+          'name': name,
+          'quantity': 1,
+          'price': totalPrice,
+        }
+      ],
+      totalAmount: totalPrice,
+      context: context,
+    );
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment Failed: ${response.message}'), backgroundColor: Colors.red),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     const Color darkBg = Color(0xFF0F2F2B);
     const Color surfaceDark = Color(0xFF17453F);
     const Color richGold = Color(0xFFD4AF37);
 
-    final double weight = item['weight'] ?? 0.0;
-    final double totalPrice = weight * currentGoldRate * 1.15; // 15% making/tax
-    final String imagePath = item['image'] ?? 'assets/auth/ring.png';
-    final String name = item['name'] ?? 'Luxury Jewellery';
-    final String description = item['desc'] ?? 'Exclusively handcrafted gold jewellery piece featuring premium craftsmanship and timeless design.';
+    final double weight = widget.item['weight'] ?? 0.0;
+    final double totalPrice = weight * widget.currentGoldRate * 1.15; // 15% making/tax
+    final String imagePath = widget.item['image'] ?? 'assets/auth/ring.png';
+    final String name = widget.item['name'] ?? 'Luxury Jewellery';
+    final String description = widget.item['desc'] ?? 'Exclusively handcrafted gold jewellery piece featuring premium craftsmanship and timeless design.';
 
     return Scaffold(
       backgroundColor: darkBg,
@@ -41,7 +96,7 @@ class IndividualItemPage extends StatelessWidget {
             child: Stack(
               children: [
                 Hero(
-                  tag: 'item_${item['name']}',
+                  tag: 'item_${widget.item['name']}',
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -165,9 +220,16 @@ class IndividualItemPage extends StatelessWidget {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              // Direct Buy Now logic
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: TranslatedText("Proceeding to Buy...")),
+                              final user = FirebaseAuth.instance.currentUser;
+                              String mobile = "9999999999";
+                              String email = user?.email ?? "test@example.com";
+                              
+                              _razorpayService.openCheckout(
+                                amount: totalPrice,
+                                name: name,
+                                description: "Payment for $name",
+                                contact: mobile,
+                                email: email,
                               );
                             },
                             style: ElevatedButton.styleFrom(

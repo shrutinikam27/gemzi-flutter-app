@@ -3,9 +3,17 @@
 import 'package:flutter/material.dart';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
+<<<<<<< HEAD
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/razorpay_service.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import '../services/email_service.dart';
+=======
 import '../services/gold_rate_service.dart';
+>>>>>>> 85fe88fc83a076b6dc4698557eddefd5188d0519
 
-class ConfirmPlanScreen extends StatelessWidget {
+class ConfirmPlanScreen extends StatefulWidget {
   final int amount;
   final String planType;
   final String duration;
@@ -18,8 +26,72 @@ class ConfirmPlanScreen extends StatelessWidget {
   });
 
   @override
+  State<ConfirmPlanScreen> createState() => _ConfirmPlanScreenState();
+}
+
+class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
+  late RazorpayService _razorpayService;
+
+  @override
+  void initState() {
+    super.initState();
+    _razorpayService = RazorpayService(
+      onSuccess: _handlePaymentSuccess,
+      onError: _handlePaymentError,
+    );
+  }
+
+  @override
+  void dispose() {
+    _razorpayService.dispose();
+    super.dispose();
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment Successful: ${response.paymentId}'), backgroundColor: Colors.green),
+    );
+
+    int total = widget.amount * int.parse(widget.duration.split(" ")[0]);
+    EmailService.sendPurchaseEmail(
+      paymentId: response.paymentId ?? 'TXN_SUCCESS',
+      items: [
+        {
+          'name': "\${widget.planType} - \${widget.duration}",
+          'quantity': 1,
+          'price': total.toDouble(),
+        }
+      ],
+      totalAmount: total.toDouble(),
+      context: context,
+    );
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      FirebaseFirestore.instance.collection('users').doc(user.uid).collection('investments').add({
+        'planType': widget.planType,
+        'duration': widget.duration,
+        'amountPaid': total.toDouble(),
+        'paymentId': response.paymentId ?? 'TXN_SUCCESS',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    }
+
+    // Pop the screen after successful payment
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) Navigator.pop(context);
+    });
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment Failed: ${response.message}'), backgroundColor: Colors.red),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    int total = amount * int.parse(duration.split(" ")[0]);
+    int total = widget.amount * int.parse(widget.duration.split(" ")[0]);
 
     return KeyedSubtree(
       key: ValueKey(TranslatorService.currentLang),
@@ -103,9 +175,9 @@ class ConfirmPlanScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _rowItem("Plan", planType),
-                                _rowItem("Amount", "₹$amount"),
-                                _rowItem("Duration", duration),
+                                _rowItem("Plan", widget.planType),
+                                _rowItem("Amount", "₹${widget.amount}"),
+                                _rowItem("Duration", widget.duration),
                               ],
                             ),
                           ),
@@ -167,7 +239,17 @@ class ConfirmPlanScreen extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    // 👉 Razorpay integration here
+                    final user = FirebaseAuth.instance.currentUser;
+                    String mobile = "9999999999";
+                    String email = user?.email ?? "test@example.com";
+                    
+                    _razorpayService.openCheckout(
+                      amount: total.toDouble(),
+                      name: widget.planType,
+                      description: "Investment for ${widget.planType} - ${widget.duration}",
+                      contact: mobile,
+                      email: email,
+                    );
                   },
                   child: const TranslatedText(
                     "Proceed to Pay",

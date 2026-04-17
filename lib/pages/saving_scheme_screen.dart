@@ -209,6 +209,10 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                       _benefitRow(Icons.lock_clock, "No price change impacts once bought"),
                       _benefitRow(Icons.workspace_premium, "Pure 24K 99.9% Hallmark Gold Coins"),
 
+                      const TranslatedText("Your Active Investments", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 15),
+                      _buildWalletHistory(),
+
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -280,6 +284,85 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
           Expanded(child: TranslatedText(text, style: const TextStyle(color: Colors.white60, fontSize: 13))),
         ],
       ),
+    );
+  }
+
+  Widget _buildWalletHistory() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const Center(child: TranslatedText("Please login to view history", style: TextStyle(color: Colors.white54)));
+    }
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('investments')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: Color(0xFFE6C76A)));
+        }
+
+        final investments = snapshot.data?.docs ?? [];
+        if (investments.isEmpty) {
+          return const Center(child: TranslatedText("No active investments yet", style: TextStyle(color: Colors.white54)));
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: investments.length,
+          itemBuilder: (context, index) {
+            final data = investments[index].data() as Map<String, dynamic>;
+            final plan = data['planType'] ?? 'SIP';
+            final duration = data['duration'] ?? '12 Months';
+            final amount = data['amountPaid'] ?? 0;
+            
+            return Container(
+              margin: const EdgeInsets.only(bottom: 15),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFE6C76A).withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE6C76A).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.workspace_premium, color: Color(0xFFE6C76A)),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(plan.toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 4),
+                        Text(duration.toString(), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text("₹$amount", style: const TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 4),
+                      const TranslatedText("Active", style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
