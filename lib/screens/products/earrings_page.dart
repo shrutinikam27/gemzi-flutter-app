@@ -128,7 +128,6 @@ class _EarringsPageState extends State<EarringsPage> {
                     
                     final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
 
-
                           return GestureDetector(
                             onTap: () {
                               Navigator.push(

@@ -162,7 +162,6 @@ class _RingsPageState extends State<RingsPage> {
                     
                     final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
 
-
                           return GestureDetector(
                             onTap: () {
                               Navigator.push(

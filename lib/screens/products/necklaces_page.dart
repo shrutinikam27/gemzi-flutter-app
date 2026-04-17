@@ -162,7 +162,6 @@ class _NecklacesPageState extends State<NecklacesPage> {
                     
                     final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
 
-
                           return GestureDetector(
                             onTap: () {
                               Navigator.push(

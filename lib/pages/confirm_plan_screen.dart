@@ -7,6 +7,10 @@ import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
 import '../services/gold_rate_service.dart';
 import 'order_success_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/razorpay_service.dart';
+import '../services/email_service.dart';
 
 class ConfirmPlanScreen extends StatefulWidget {
   final int amount;
@@ -25,52 +29,66 @@ class ConfirmPlanScreen extends StatefulWidget {
 }
 
 class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
-  late Razorpay _razorpay;
-  bool _isLoading = false;
+  late RazorpayService _razorpayService;
 
   @override
   void initState() {
     super.initState();
-    _razorpay = Razorpay();
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
-  }
-
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    final String orderId = 'PLAN${Random().nextInt(900000) + 100000}';
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OrderSuccessPage(orderId: orderId),
-      ),
+    _razorpayService = RazorpayService(
+      onSuccess: _handlePaymentSuccess,
+      onError: _handlePaymentError,
     );
   }
-
-  void _handlePaymentError(PaymentFailureResponse response) {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment Failed: ${response.message}')),
-    );
-  }
-
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('External Wallet Selected: ${response.walletName}')),
     );
   }
 
   @override
   void dispose() {
-    _razorpay.clear();
+    _razorpayService.dispose();
     super.dispose();
   }
 
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment Successful: ${response.paymentId}'), backgroundColor: Colors.green),
+    );
+
+    int total = widget.amount * int.parse(widget.duration.split(" ")[0]);
+    EmailService.sendPurchaseEmail(
+      paymentId: response.paymentId ?? 'TXN_SUCCESS',
+      items: [
+        {
+          'name': "${widget.planType} - ${widget.duration}",
+          'quantity': 1,
+          'price': total.toDouble(),
+        }
+      ],
+      totalAmount: total.toDouble(),
+      context: context,
+    );
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      FirebaseFirestore.instance.collection('users').doc(user.uid).collection('investments').add({
+        'planType': widget.planType,
+        'duration': widget.duration,
+        'amountPaid': total.toDouble(),
+        'paymentId': response.paymentId ?? 'TXN_SUCCESS',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    }
+
+    // Pop the screen after successful payment
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) Navigator.pop(context);
+    });
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment Failed: ${response.message}'), backgroundColor: Colors.red),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     int total = widget.amount * int.parse(widget.duration.split(" ")[0]);
@@ -220,22 +238,22 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
                       vertical: 16,
                     ),
                   ),
-                  onPressed: _isLoading ? null : () {
+                  onPressed: _isLoading ? null : () async {
                     setState(() => _isLoading = true);
-                    var options = {
-                      'key': 'rzp_test_SYjFmzSZEJ2L1r',
-                      'amount': total * 100, // in paise
-                      'name': 'Gemzi Plans',
-                      'description': '${widget.planType} Subscription',
-                      'prefill': {
-                        'contact': '9999999999',
-                        'email': 'test@gemzi.com'
-                      }
-                    };
+                    final user = FirebaseAuth.instance.currentUser;
+                    String mobile = "9999999999";
+                    String email = user?.email ?? "test@example.com";
+                    
                     try {
-                      _razorpay.open(options);
-                    } catch (e) {
-                      setState(() => _isLoading = false);
+                      await _razorpayService.openCheckout(
+                        amount: total.toDouble(),
+                        name: widget.planType,
+                        description: "Investment for ${widget.planType} - ${widget.duration}",
+                        contact: mobile,
+                        email: email,
+                      );
+                    } finally {
+                      if (mounted) setState(() => _isLoading = false);
                     }
                   },
                   child: _isLoading 
