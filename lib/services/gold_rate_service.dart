@@ -7,7 +7,7 @@ class GoldRateService {
     try {
       final response = await http.get(
         Uri.parse(
-            "https://api.metalpriceapi.com/v1/latest?api_key=b7d26fa9fc40aab40d7a29a4acafaff1&base=USD&currencies=INR,XAU"),
+            "https://api.metalpriceapi.com/v1/latest?api_key=a4225e0c2ee049bd00a554c5ac790e26&base=USD&currencies=INR,XAU"),
       );
 
       if (kDebugMode) {
@@ -22,23 +22,35 @@ class GoldRateService {
           throw Exception("Rates not found");
         }
 
-        double inrRate = data["rates"]["INR"]; // USD → INR
-        double xauRate = data["rates"]["XAU"]; // USD → Gold ounce
+        double inrRate = (data["rates"]["INR"] as num).toDouble(); // USD → INR
+        double xauRate = (data["rates"]["XAU"] as num).toDouble(); // USD → Gold ounce
 
-        // 🔥 Convert properly
-        double pricePerOunceUSD = 1 / xauRate;
-        double pricePerOunceINR = pricePerOunceUSD * inrRate;
+        // Calculate Price of 1 Troy Ounce in INR (from 1/XAU * INR)
+        double pricePerOunceINR = inrRate / xauRate;
 
-        // Convert ounce → gram
-        double pricePerGram = pricePerOunceINR / 31.1035;
+        // Convert Troy Ounce (31.1035g) → 1 Gram 24K (99.9% Purity)
+        double pricePerGram24K = pricePerOunceINR / 31.1035;
+        
+        // Gemzi mostly sells 22K (91.67% purity) or 18K (75% purity)
+        // This service returns the 22K base rate as it's the standard for jewelry
+        double pricePerGram22K = pricePerGram24K * 0.9167;
 
-        return pricePerGram;
+        return pricePerGram22K;
       } else {
         throw Exception("API ERROR: ${response.body}");
       }
     } catch (e) {
       debugPrint("ERROR FETCHING GOLD RATE: $e");
-      throw Exception("FAILED TO FETCH GOLD RATE");
+      // Return a fallback rate instead of throwing to prevent app crash
+      return 7200.0;
     }
+  }
+
+  static Stream<double> goldRateStream() async* {
+    // Initial fetch
+    yield await getGoldRate();
+    
+    yield* Stream.periodic(const Duration(minutes: 10), (_) => getGoldRate())
+        .asyncMap((event) => event);
   }
 }

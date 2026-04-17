@@ -19,7 +19,7 @@ class OverlayRenderer extends StatefulWidget {
   final double manualRotation;
 
   const OverlayRenderer({
-    Key? key,
+    super.key,
     required this.faces,
     this.hands,
     required this.expectedImageSize,
@@ -32,7 +32,7 @@ class OverlayRenderer extends StatefulWidget {
     this.manualOffset = Offset.zero,
     this.manualScale = 1.0,
     this.manualRotation = 0.0,
-  }) : super(key: key);
+  });
 
   @override
   State<OverlayRenderer> createState() => _OverlayRendererState();
@@ -40,8 +40,8 @@ class OverlayRenderer extends StatefulWidget {
 
 class _OverlayRendererState extends State<OverlayRenderer> {
   // Low-pass filter state for Face
-  double? sL_x, sL_y, sR_x, sR_y, sC_x, sC_y;
-  double? sW, sH;
+  double? slX, slY, srX, srY, scX, scY;
+  double? sw, sh;
 
   // Low-pass filter state for Hand (Key landmarks)
   Map<int, Offset> sHandPoints = {};
@@ -124,14 +124,14 @@ class _OverlayRendererState extends State<OverlayRenderer> {
     for (var face in widget.faces) {
       if (face.points.length < 468) continue;
 
-      sL_x = _smooth(sL_x, face.points[137].x.toDouble());
-      sL_y = _smooth(sL_y, face.points[137].y.toDouble());
-      sR_x = _smooth(sR_x, face.points[366].x.toDouble());
-      sR_y = _smooth(sR_y, face.points[366].y.toDouble());
-      sC_x = _smooth(sC_x, face.points[152].x.toDouble());
-      sC_y = _smooth(sC_y, face.points[152].y.toDouble());
-      sW = _smooth(sW, face.boundingBox.width.toDouble());
-      sH = _smooth(sH, face.boundingBox.height.toDouble());
+      slX = _smooth(slX, face.points[137].x.toDouble());
+      slY = _smooth(slY, face.points[137].y.toDouble());
+      srX = _smooth(srX, face.points[366].x.toDouble());
+      srY = _smooth(srY, face.points[366].y.toDouble());
+      scX = _smooth(scX, face.points[152].x.toDouble());
+      scY = _smooth(scY, face.points[152].y.toDouble());
+      sw = _smooth(sw, face.boundingBox.width.toDouble());
+      sh = _smooth(sh, face.boundingBox.height.toDouble());
 
       final double dx = face.points[454].x - face.points[234].x;
       final double dy = face.points[454].y - face.points[234].y;
@@ -141,8 +141,8 @@ class _OverlayRendererState extends State<OverlayRenderer> {
       final double rotY = atan2(dz, dx) * (180 / pi);
       final Matrix4 transform = Matrix4.rotationZ(rotZ);
 
-      final double faceWidth = sW! * scaleX;
-      final double faceHeight = sH! * scaleY;
+      final double faceWidth = sw! * scaleX;
+      final double faceHeight = sh! * scaleY;
 
       if (widget.activeCategory == 'Earrings') {
         final double earringSize = faceWidth * 0.38;
@@ -152,9 +152,9 @@ class _OverlayRendererState extends State<OverlayRenderer> {
         final bool showLeft = rotY < 75;
 
         if (showRight) {
-          double rawX = widget.isFrontCamera ? logicalWidth - sR_x! : sR_x!;
+          double rawX = widget.isFrontCamera ? logicalWidth - srX! : srX!;
           double x = (rawX * scaleX) + offsetX + inwardOffset;
-          double y = (sR_y! * scaleY) + offsetY - (faceHeight * 0.12);
+          double y = (srY! * scaleY) + offsetY - (faceHeight * 0.12);
 
           overlays.add(Positioned(
             left: x - (earringSize / 2) + widget.manualOffset.dx,
@@ -170,9 +170,9 @@ class _OverlayRendererState extends State<OverlayRenderer> {
         }
 
         if (showLeft) {
-          double rawX = widget.isFrontCamera ? logicalWidth - sL_x! : sL_x!;
+          double rawX = widget.isFrontCamera ? logicalWidth - slX! : slX!;
           double x = (rawX * scaleX) + offsetX - inwardOffset;
-          double y = (sL_y! * scaleY) + offsetY - (faceHeight * 0.12);
+          double y = (slY! * scaleY) + offsetY - (faceHeight * 0.12);
 
           overlays.add(Positioned(
             left: x - (earringSize / 2) + widget.manualOffset.dx,
@@ -188,9 +188,9 @@ class _OverlayRendererState extends State<OverlayRenderer> {
         }
       } else if (widget.activeCategory == 'Necklaces') {
         final double chinXRaw =
-            widget.isFrontCamera ? logicalWidth - sC_x! : sC_x!;
+            widget.isFrontCamera ? logicalWidth - scX! : scX!;
         final double centerX = (chinXRaw * scaleX) + offsetX;
-        final double neckY = (sC_y! * scaleY) + offsetY + (faceHeight * 0.18);
+        final double neckY = (scY! * scaleY) + offsetY + (faceHeight * 0.18);
         final double width = faceWidth * 0.95;
 
         overlays.add(Positioned(

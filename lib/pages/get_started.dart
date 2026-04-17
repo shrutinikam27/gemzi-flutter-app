@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/pages/homepage.dart';
+import 'package:gemzi_user_app/pages/homepage.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
 

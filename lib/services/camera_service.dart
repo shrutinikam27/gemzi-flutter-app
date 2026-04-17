@@ -16,7 +16,7 @@ class CameraService {
       (cam) => cam.lensDirection == direction,
       orElse: () => _cameras!.first,
     );
-    this.onImage = onImageStream;
+    onImage = onImageStream;
     
     if (_currentCamera != null) {
       await _startController(_currentCamera!);

@@ -5,9 +5,6 @@ import '../services/cart_service.dart';
 import '../services/order_service.dart';
 import '../widgets/translated_text.dart';
 import 'order_success_page.dart';
-import 'dart:io' show Platform;
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/services.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class CheckoutPage extends StatefulWidget {

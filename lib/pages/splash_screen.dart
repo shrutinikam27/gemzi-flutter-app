@@ -48,36 +48,11 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // OPTIONAL ICON
-              Icon(
-                Icons.diamond,
-                size: 70,
-                color: richGold,
+              Image.asset(
+                "assets/auth/gemzi_logo.png",
+                height: 250,
+                fit: BoxFit.contain,
               ),
-
-              const SizedBox(height: 15),
-
-              // APP NAME
-              Text(
-                "Gemzi",
-                style: TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                  color: richGold,
-                  letterSpacing: 2,
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              const Text(
-                "Luxury Jewellery Experience",
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
-              ),
-
               const SizedBox(height: 40),
 
               // LOADING INDICATOR

@@ -4,6 +4,7 @@ import 'product_detail_page.dart';
 import '../../utils/translator_service.dart';
 import '../../widgets/translated_text.dart';
 
+
 class NecklacesPage extends StatefulWidget {
   const NecklacesPage({super.key});
 
@@ -86,7 +87,7 @@ class _NecklacesPageState extends State<NecklacesPage> {
         body: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('products')
-              .where('category', isEqualTo: 'Necklace')
+              .where('category', isEqualTo: 'Necklaces')
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -112,7 +113,7 @@ class _NecklacesPageState extends State<NecklacesPage> {
                 final data = docs[index].data() as Map<String, dynamic>;
                 final name = data['name'] ?? 'Unnamed';
                 final price = data['price'] ?? 0;
-                final image = data['imageUrl'] ?? '';
+                final image = data['imageUrl'] ?? data['image'] ?? '';
                 final rating = data['rating']?.toString() ?? '4.5';
 
                 return GestureDetector(
@@ -135,7 +136,7 @@ class _NecklacesPageState extends State<NecklacesPage> {
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
+                          color: Colors.black.withValues(alpha: 0.08),
                           blurRadius: 10,
                         )
                       ],
@@ -145,27 +146,8 @@ class _NecklacesPageState extends State<NecklacesPage> {
                       children: [
                         /// Image from Network
                         ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(18),
-                          ),
-                          child: image.isNotEmpty
-                              ? Image.network(
-                                  image,
-                                  height: 120,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    height: 120,
-                                    color: Colors.grey.shade200,
-                                    child:
-                                        const Icon(Icons.image_not_supported),
-                                  ),
-                                )
-                              : Container(
-                                  height: 120,
-                                  color: Colors.grey.shade200,
-                                  child: const Icon(Icons.image),
-                                ),
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                          child: _buildImage(image),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(
@@ -186,8 +168,7 @@ class _NecklacesPageState extends State<NecklacesPage> {
                                   const Icon(Icons.star,
                                       size: 14, color: Colors.orange),
                                   const SizedBox(width: 3),
-                                  Text(rating,
-                                      style: const TextStyle(fontSize: 12)),
+                                  Text(rating, style: const TextStyle(fontSize: 12)),
                                 ],
                               ),
                               const SizedBox(height: 4),
@@ -210,6 +191,39 @@ class _NecklacesPageState extends State<NecklacesPage> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildImage(String path) {
+    final cleanPath = path.trim();
+    if (cleanPath.isEmpty) return _buildPlaceholder();
+    
+    if (cleanPath.toLowerCase().startsWith('http')) {
+      return Image.network(
+        cleanPath,
+        height: 120,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+      );
+    }
+    return Image.asset(
+      cleanPath.startsWith('assets/') ? cleanPath : "assets/auth/necklace.png",
+      height: 120,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _buildPlaceholder(),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      height: 120,
+      width: double.infinity,
+      color: const Color(0xFF17453F),
+      child: const Center(
+        child: Icon(Icons.diamond_outlined, color: Color(0xFFD4AF37), size: 40),
       ),
     );
   }

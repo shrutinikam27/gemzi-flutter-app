@@ -59,30 +59,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 child: IntrinsicHeight(
                   child: Column(
                     children: [
-                      /// Product Image + Wishlist
                       Stack(
                         children: [
                           Container(
                             padding: const EdgeInsets.all(20),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(20),
-                              child: widget.image.startsWith('http')
-                                  ? Image.network(
-                                      widget.image,
-                                      width: double.infinity,
-                                      height: 320,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          const Icon(Icons.broken_image, size: 60, color: Colors.grey),
-                                    )
-                                  : Image.asset(
-                                      widget.image,
-                                      width: double.infinity,
-                                      height: 320,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          const Icon(Icons.broken_image, size: 60, color: Colors.grey),
-                                    ),
+                              child: _buildProductImage(widget.image),
                             ),
                           ),
                           Positioned(
@@ -303,6 +286,48 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildProductImage(String? imagePath) {
+    if (imagePath == null || imagePath.trim().isEmpty) {
+      return _buildPlaceholder();
+    }
+    
+    final path = imagePath.trim();
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        width: double.infinity,
+        height: 320,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+      );
+    }
+    
+    return Image.asset(
+      path,
+      width: double.infinity,
+      height: 320,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _buildPlaceholder(),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: 320,
+      color: const Color(0xFF17453F),
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.diamond_outlined, color: Color(0xFFD4AF37), size: 60),
+          SizedBox(height: 10),
+          Text("Gemzi Collection",
+              style: TextStyle(color: Colors.white38, fontSize: 12)),
+        ],
       ),
     );
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gemzi_user_app/services/notification_service.dart';
+import 'package:gemzi_user_app/utils/translator_service.dart';
 import 'package:provider/provider.dart';
 
 import 'services/cart_service.dart';
@@ -14,6 +16,7 @@ import 'pages/login_screen.dart';
 import 'pages/signup_screen.dart';
 import 'pages/explore_screen.dart';
 import 'pages/homepage.dart';
+import 'pages/exclusive_collections_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,9 +24,19 @@ void main() async {
   // Disable Provider debug check
   Provider.debugCheckInvalidValueType = null;
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // 🔥 Load saved language (VERY IMPORTANT)
+  await TranslatorService.loadLanguage();
+
+  await NotificationService.init(); // 🔥 Initialize notifications
+
+  // 🔥 Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase init error (may already be initialized): $e');
+  }
 
   // 🔥🔥🔥 TEMP FIX (VERY IMPORTANT)
   // Prevent auto-login → fixes splash + success screen issue
@@ -88,7 +101,8 @@ class _MyAppState extends State<MyApp> {
         "/home": (_) => const GemziHome(),
         "/login": (_) => const LoginScreen(),
         "/signup": (_) => const SignupScreen(),
-        "/explore": (_) => const ExploreScreen(),
+        "/explore": (_) => ExploreScreen(),
+        "/exclusive-collections": (_) => ExclusiveCollectionsPage(),
       },
     );
   }

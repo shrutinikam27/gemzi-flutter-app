@@ -4,7 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detection.dart';
 import 'package:hand_landmarker/hand_landmarker.dart';
-import 'dart:typed_data';
+
 import 'package:permission_handler/permission_handler.dart';
 import 'package:gal/gal.dart';
 import 'package:screenshot/screenshot.dart';
@@ -16,7 +16,7 @@ import '../services/image_processor_service.dart';
 import '../widgets/overlay_renderer.dart';
 
 class TryOnScreen extends StatefulWidget {
-  const TryOnScreen({Key? key}) : super(key: key);
+  const TryOnScreen({super.key});
 
   @override
   State<TryOnScreen> createState() => _TryOnScreenState();
@@ -118,7 +118,9 @@ class _TryOnScreenState extends State<TryOnScreen> {
         isModelMode ||
         isCaptured ||
         controller == null ||
-        !controller.value.isInitialized) return;
+        !controller.value.isInitialized) {
+      return;
+    }
     isBusy = true;
 
     if (cameraImageSize == null) {
@@ -359,15 +361,15 @@ class _TryOnScreenState extends State<TryOnScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
               color: isPerfect
-                  ? Colors.green.withOpacity(0.8)
-                  : Colors.black.withOpacity(0.7),
+                  ? Colors.green.withValues(alpha: 0.8)
+                  : Colors.black.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(30),
               border: Border.all(
                   color: isPerfect ? Colors.greenAccent : Colors.white54,
                   width: 1.5),
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4))
               ]),
