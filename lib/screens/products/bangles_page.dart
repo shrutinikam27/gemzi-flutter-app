@@ -112,7 +112,7 @@ class _BanglesPageState extends State<BanglesPage> {
                 // 🛰️ Live Market Rate Header
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  color: surfaceDark.withOpacity(0.5),
+                  color: surfaceDark.withValues(alpha: 0.5),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -168,9 +168,15 @@ class _BanglesPageState extends State<BanglesPage> {
                     
                     if (weight == 0) {
                       final itemName = name.toLowerCase();
-                      if (itemName.contains("bangle")) weight = 32.5;
+                      if (itemName.contains("necklace")) weight = 24.5;
+                      else if (itemName.contains("bangle")) weight = 32.5;
+                      else if (itemName.contains("earring")) weight = 12.0;
+                      else if (itemName.contains("ring")) weight = 6.5;
+                      else if (itemName.contains("coin")) weight = 10.0;
+                      else if (itemName.contains("bracelet")) weight = 12.5;
                       else weight = 8.0;
                     }
+
                     
                     final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
 

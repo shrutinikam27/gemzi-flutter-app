@@ -129,7 +129,7 @@ class WeddingCollectionPage extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: surfaceDark,
                           borderRadius: BorderRadius.circular(25),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10)],
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10)],
                         ),
                         child: Column(
                           children: [

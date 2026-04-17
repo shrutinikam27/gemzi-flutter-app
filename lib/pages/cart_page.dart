@@ -5,6 +5,7 @@ import '../services/cart_service.dart';
 import '../pages/login_screen.dart';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
+import 'checkout_page.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -175,10 +176,11 @@ class _CartPageState extends State<CartPage> {
                                       return;
                                     }
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: TranslatedText(
-                                              'Proceeding to checkout...')),
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const CheckoutPage(),
+                                      ),
                                     );
                                   }
                                 : null,

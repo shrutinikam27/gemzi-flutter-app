@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../services/cart_service.dart';
 import '../../utils/translator_service.dart';
 import '../../widgets/translated_text.dart';
+import '../../pages/checkout_page.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String name;
@@ -227,12 +228,31 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                                         HapticFeedback.mediumImpact();
 
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: const TranslatedText(
-                                              "Proceeding to checkout...",
-                                            ),
+                                        final priceNum = double.tryParse(widget
+                                                .price
+                                                .replaceAll('₹', '')
+                                                .replaceAll(',', '')) ??
+                                            0.0;
+                                        final cartService =
+                                            Provider.of<CartService>(context,
+                                                listen: false);
+                                        
+                                        // Clear existing cart to only buy this specific item
+                                        cartService.clearCart();
+                                        cartService.addItem(CartItem(
+                                          id: DateTime.now()
+                                              .millisecondsSinceEpoch
+                                              .toString(),
+                                          name: widget.name,
+                                          price: priceNum.toString(),
+                                          image: widget.image,
+                                          quantity: 1,
+                                        ));
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const CheckoutPage(),
                                           ),
                                         );
                                       },

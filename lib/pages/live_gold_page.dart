@@ -41,8 +41,9 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
       
       // 1. Get the latest rate from the Daily-Cached Service
       double rate = await GoldRateService.getGoldRate();
-      double current24 = rate;
-      double current22 = rate * (22 / 24);
+      double current22 = rate;
+      double current24 = rate / 0.9167; // 💎 Reversing 22K → 24K calculation
+
 
       // 2. Fetch History
       List<String> history = prefs.getStringList("gold_history") ?? [];
@@ -120,7 +121,7 @@ class _LiveGoldPageState extends State<LiveGoldPage> {
         ),
         borderRadius: BorderRadius.circular(20),
         // ignore: deprecated_member_use
-        border: Border.all(color: richGold.withOpacity(0.4)),
+        border: Border.all(color: richGold.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [

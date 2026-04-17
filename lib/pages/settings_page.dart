@@ -75,7 +75,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: richGold.withOpacity(0.2),
+                  backgroundColor: richGold.withValues(alpha: 0.2),
                   child: Icon(Icons.person, color: richGold),
                 ),
                 const SizedBox(width: 12),
