@@ -5,13 +5,7 @@ import '../services/cart_service.dart';
 import '../pages/login_screen.dart';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
-<<<<<<< HEAD
-import '../services/razorpay_service.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
-import '../services/email_service.dart';
-=======
 import 'checkout_page.dart';
->>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -227,23 +221,11 @@ class _CartPageState extends State<CartPage> {
                                       return;
                                     }
 
-<<<<<<< HEAD
-                                    String mobile = "9999999999";
-                                    String email = user.email ?? "test@example.com";
-                                    
-                                    _razorpayService.openCheckout(
-                                      amount: cartService.totalPrice,
-                                      name: "Cart Checkout",
-                                      description: "Paying for ${cartService.totalQuantity} items",
-                                      contact: mobile,
-                                      email: email,
-=======
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => const CheckoutPage(),
                                       ),
->>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
                                     );
                                   }
                                 : null,

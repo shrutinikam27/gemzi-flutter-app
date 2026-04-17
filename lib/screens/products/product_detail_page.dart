@@ -6,13 +6,7 @@ import 'package:provider/provider.dart';
 import '../../services/cart_service.dart';
 import '../../utils/translator_service.dart';
 import '../../widgets/translated_text.dart';
-<<<<<<< HEAD
-import '../../services/razorpay_service.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
-import '../../services/email_service.dart';
-=======
 import '../../pages/checkout_page.dart';
->>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
 
 class ProductDetailPage extends StatefulWidget {
   final String name;
@@ -277,18 +271,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                                         HapticFeedback.mediumImpact();
 
-<<<<<<< HEAD
-                                        final priceNum = double.tryParse(widget.price.replaceAll('₹', '').replaceAll(',', '')) ?? 0.0;
-                                        String mobile = "9999999999";
-                                        String mail = user.email ?? "test@example.com";
-                                        
-                                        _razorpayService.openCheckout(
-                                          amount: priceNum,
-                                          name: widget.name,
-                                          description: "Payment for \${widget.name}",
-                                          contact: mobile,
-                                          email: mail,
-=======
                                         final priceNum = double.tryParse(widget
                                                 .price
                                                 .replaceAll('₹', '')
@@ -315,7 +297,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           MaterialPageRoute(
                                             builder: (context) => const CheckoutPage(),
                                           ),
->>>>>>> 49afcf2cfdbd18bc9f82470ad9b27a98406dc169
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(

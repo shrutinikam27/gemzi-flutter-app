@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/cart_service.dart';
 import '../services/order_service.dart';
+import '../services/razorpay_service.dart';
+import '../services/email_service.dart';
 import '../widgets/translated_text.dart';
 import 'order_success_page.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -15,6 +18,7 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
+// ... existing state variables ...
   final _formKey = GlobalKey<FormState>();
   String _selectedPaymentMethod = 'UPI';
   bool _isLoading = false;
@@ -32,19 +36,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
   static const Color richGold = Color(0xFFD4AF37);
   static const Color textLight = Colors.white;
 
-  late Razorpay _razorpay;
+  late RazorpayService _razorpayService;
 
   @override
   void initState() {
     super.initState();
-    _razorpay = Razorpay();
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    _razorpayService = RazorpayService(
+      onSuccess: _handlePaymentSuccess,
+      onError: _handlePaymentError,
+    );
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    _finalizeOrder();
+    _finalizeOrder(response.paymentId);
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -54,16 +58,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    setState(() => _isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('External Wallet Selected: ${response.walletName}')),
-    );
-  }
-
   @override
   void dispose() {
-    _razorpay.clear();
+    _razorpayService.dispose();
     _upiIdController.dispose();
     _nameController.dispose();
     _mobileController.dispose();
@@ -91,33 +88,41 @@ class _CheckoutPageState extends State<CheckoutPage> {
     setState(() => _isLoading = true);
 
     if (_selectedPaymentMethod == 'UPI') {
-      var options = {
-        'key': 'rzp_test_SYjFmzSZEJ2L1r',
-        'amount': (cartService.totalPrice * 100).toInt(),
-        'name': 'Jewellery App',
-        'description': 'Order Payment',
-        'prefill': {
-          'contact': '9999999999',
-          'email': 'test@gemziapp.com'
-        }
-      };
-
+      final user = FirebaseAuth.instance.currentUser;
       try {
-        _razorpay.open(options);
+        await _razorpayService.openCheckout(
+          amount: cartService.totalPrice,
+          name: 'Gemzi Order',
+          description: 'Payment for your jewellery selection',
+          contact: _mobileController.text.isNotEmpty ? _mobileController.text : '9999999999',
+          email: user?.email ?? 'test@gemziapp.com',
+        );
       } catch (e) {
-        setState(() => _isLoading = false);
+        if (mounted) setState(() => _isLoading = false);
       }
     } else {
       // Mock processing delay for COD
       await Future.delayed(const Duration(seconds: 2));
-      await _finalizeOrder();
+      await _finalizeOrder('COD_PAYMENT');
     }
   }
 
-  Future<void> _finalizeOrder() async {
+  Future<void> _finalizeOrder(String? paymentId) async {
     final cartService = Provider.of<CartService>(context, listen: false);
     final String orderId = 'ORD${Random().nextInt(900000) + 100000}';
     
+    // Send Email
+    EmailService.sendPurchaseEmail(
+      paymentId: paymentId ?? 'TXN_SUCCESS',
+      items: cartService.items.map((e) => {
+        'name': e.name,
+        'quantity': e.quantity,
+        'price': double.tryParse(e.price) ?? 0.0,
+      }).toList(),
+      totalAmount: cartService.totalPrice,
+      context: context,
+    );
+
     final order = Order(
       orderId: orderId,
       items: List.from(cartService.items), // Clone the items before clearing
