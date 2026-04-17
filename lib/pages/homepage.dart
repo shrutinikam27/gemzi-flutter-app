@@ -51,11 +51,12 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   double prev24 = 0;
   double prev22 = 0;
   
-  // ⏳ LIVE TIMER STATE
   int _hours = 05;
   int _minutes = 42;
   int _seconds = 18;
   Timer? _countdownTimer;
+  late Future<QuerySnapshot> _productsFuture;
+  late Future<double> _goldRateFuture;
 
   Future<void> loadGoldRate() async {
     if (!mounted) return;
@@ -109,11 +110,13 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    
+    // 🛡️ 1. Immediate Future Initialization (Fixes LateInitializationError)
+    _productsFuture = FirebaseFirestore.instance.collection('products').get();
+    _goldRateFuture = GoldRateService.getGoldRate();
 
-    // Start gold rate fetch
+    // 🛡️ 2. Other initializations
     loadGoldRate();
-
-    // Start ads carousel
     filteredItems = trendingItems;
     _startLiveTimer();
     Future.microtask(() => _loadUserName());
@@ -1248,13 +1251,13 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             ],
           ),
         ),
-        StreamBuilder<double>(
-          stream: GoldRateService.goldRateStream(),
+        FutureBuilder<double>(
+          future: _goldRateFuture,
           builder: (context, rateSnapshot) {
             final double currentRate = rateSnapshot.data ?? rate22; // Default to 22K rate
             
-            return StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('products').snapshots(),
+            return FutureBuilder<QuerySnapshot>(
+              future: _productsFuture,
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(child: Text("Firebase Error: ${snapshot.error}", style: const TextStyle(color: Colors.redAccent, fontSize: 12)));

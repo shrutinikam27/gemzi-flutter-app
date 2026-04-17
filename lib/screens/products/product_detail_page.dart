@@ -28,48 +28,10 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   bool isLiked = false;
-  late RazorpayService _razorpayService;
 
   @override
   void initState() {
     super.initState();
-    _razorpayService = RazorpayService(
-      onSuccess: _handlePaymentSuccess,
-      onError: _handlePaymentError,
-    );
-  }
-
-  @override
-  void dispose() {
-    _razorpayService.dispose();
-    super.dispose();
-  }
-
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment Successful: ${response.paymentId}'), backgroundColor: Colors.green),
-    );
-
-    final priceNum = double.tryParse(widget.price.replaceAll('₹', '').replaceAll(',', '')) ?? 0.0;
-    
-    EmailService.sendPurchaseEmail(
-      paymentId: response.paymentId ?? 'TXN_SUCCESS',
-      items: [
-        {
-          'name': widget.name,
-          'quantity': 1,
-          'price': priceNum,
-        }
-      ],
-      totalAmount: priceNum,
-      context: context,
-    );
-  }
-
-  void _handlePaymentError(PaymentFailureResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment Failed: ${response.message}'), backgroundColor: Colors.red),
-    );
   }
 
   @override

@@ -30,6 +30,7 @@ class ConfirmPlanScreen extends StatefulWidget {
 
 class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
   late RazorpayService _razorpayService;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -37,8 +38,6 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
     _razorpayService = RazorpayService(
       onSuccess: _handlePaymentSuccess,
       onError: _handlePaymentError,
-    );
-  }
     );
   }
 
