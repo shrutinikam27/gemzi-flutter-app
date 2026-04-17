@@ -57,6 +57,9 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   int _seconds = 18;
   Timer? _countdownTimer;
 
+  late Stream<double> _goldRateStream;
+  late Stream<QuerySnapshot> _productsStream;
+
   Future<void> loadGoldRate() async {
     if (!mounted) return;
     try {
@@ -109,6 +112,9 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+
+    _goldRateStream = GoldRateService.goldRateStream();
+    _productsStream = FirebaseFirestore.instance.collection('products').snapshots();
 
     // Start gold rate fetch
     loadGoldRate();
@@ -921,7 +927,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
   Widget _buildLiveGoldRate() {
     return StreamBuilder<double>(
-      stream: GoldRateService.goldRateStream(),
+      stream: _goldRateStream,
       builder: (context, snapshot) {
         final rate = snapshot.data ?? 7250.0;
         final r24 = rate / 0.9167; // 💎 Reversing 22K → 24K calculation
@@ -1249,12 +1255,12 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           ),
         ),
         StreamBuilder<double>(
-          stream: GoldRateService.goldRateStream(),
+          stream: _goldRateStream,
           builder: (context, rateSnapshot) {
             final double currentRate = rateSnapshot.data ?? rate22; // Default to 22K rate
             
             return StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('products').snapshots(),
+              stream: _productsStream,
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(child: Text("Firebase Error: ${snapshot.error}", style: const TextStyle(color: Colors.redAccent, fontSize: 12)));
@@ -1528,10 +1534,12 @@ class _GemziCarouselState extends State<GemziCarousel> {
   int _currentAdPage = 0;
   final Color richGold = const Color(0xFFD4AF37);
   final Color bronze = const Color(0xFFB8962E);
+  late Stream<QuerySnapshot> _bannersStream;
 
   @override
   void initState() {
     super.initState();
+    _bannersStream = FirebaseFirestore.instance.collection('banners').snapshots();
     _startAdScroll();
   }
 
@@ -1560,7 +1568,7 @@ class _GemziCarouselState extends State<GemziCarousel> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('banners').snapshots(),
+      stream: _bannersStream,
       builder: (context, snapshot) {
         List<Map<String, String>> ads = [];
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
