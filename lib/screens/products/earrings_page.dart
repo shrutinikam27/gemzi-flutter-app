@@ -17,69 +17,17 @@ class _EarringsPageState extends State<EarringsPage> {
   final Color surfaceDark = const Color(0xFF17453F);
   final Color richGold = const Color(0xFFD4AF37);
 
-  List<Map<String, String>> earrings = [
-    {
-      "name": "Crystal Drops",
-      "price": "₹50,000",
-      "image": "assets/auth/earringnew.png",
-      "rating": "4.8"
-    },
-    {
-      "name": "Pearl Bow Earrings",
-      "price": "₹65,200",
-      "image": "assets/auth/pearlbowerrings.png",
-      "rating": "4.7"
-    },
-    {
-      "name": "Pearl Rose Earrings",
-      "price": "₹60,000",
-      "image": "assets/auth/pearlroseearrings.png",
-      "rating": "4.9"
-    },
-    {
-      "name": "Crystal Studs",
-      "price": "₹60,000",
-      "image": "assets/auth/crystalstuds.png",
-      "rating": "4.8"
-    },
-    {
-      "name": "Golden Loop Drops",
-      "price": "₹85,000",
-      "image": "assets/auth/goldenloopdrops.png",
-      "rating": "4.5"
-    },
-    {
-      "name": "Sapphire Jhumka",
-      "price": "₹70,000",
-      "image": "assets/auth/sapphirejhumka.png",
-      "rating": "4.8"
-    },
-    {
-      "name": "Lotus Jhumka",
-      "price": "₹60,000",
-      "image": "assets/auth/lotusjhumka.png",
-      "rating": "4.8"
-    },
-    {
-      "name": "Temple Jhumka",
-      "price": "₹75,000",
-      "image": "assets/auth/templejhumka.png",
-      "rating": "4.8"
-    },
-    {
-      "name": "Royal Leaf Chandbali",
-      "price": "₹70,000",
-      "image": "assets/auth/royalleafchandbali.png",
-      "rating": "4.8"
-    },
-  ];
-
-  late List<bool> isLiked;
+  late Stream<double> _goldRateStream;
+  late Stream<QuerySnapshot> _productsStream;
 
   @override
   void initState() {
     super.initState();
-    isLiked = List.generate(earrings.length, (index) => false);
+    _goldRateStream = GoldRateService.goldRateStream();
+    _productsStream = FirebaseFirestore.instance
+        .collection('products')
+        .where('category', whereIn: ['Earrings', 'earrings', 'earring', 'Earring', 'EARRINGS'])
+        .snapshots();
   }
 
   @override
@@ -90,9 +38,11 @@ class _EarringsPageState extends State<EarringsPage> {
         backgroundColor: darkBg,
         appBar: AppBar(
           backgroundColor: surfaceDark,
-          iconTheme: const IconThemeData(color: Colors.white),
-
-          // ✅ translated title
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
           title: const TranslatedText(
             "Earrings",
             style: TextStyle(
@@ -103,7 +53,7 @@ class _EarringsPageState extends State<EarringsPage> {
           ),
         ),
         body: StreamBuilder<double>(
-          stream: GoldRateService.goldRateStream(),
+          stream: _goldRateStream,
           builder: (context, rateSnapshot) {
             final rate = rateSnapshot.data ?? 7200.0;
             
@@ -132,10 +82,7 @@ class _EarringsPageState extends State<EarringsPage> {
                 ),
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('products')
-                        .where('category', whereIn: ['Earrings', 'earrings', 'earring', 'Earring', 'EARRINGS'])
-                        .snapshots(),
+                    stream: _productsStream,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37)));
@@ -143,6 +90,7 @@ class _EarringsPageState extends State<EarringsPage> {
                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                         return const Center(child: Text("No earrings found", style: TextStyle(color: Colors.white70)));
                       }
+                      
                       final docs = snapshot.data!.docs;
 
                       return GridView.builder(
