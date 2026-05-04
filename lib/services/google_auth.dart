@@ -13,7 +13,8 @@ class GoogleAuthService {
           scopes: ['email', 'profile'],
         )
       : GoogleSignIn(
-          serverClientId: '945540945656-b7nqk1pn5od32vshfn73kb00jt0dct99.apps.googleusercontent.com',
+          // For Mobile (Android/iOS), Firebase handles clientId automatically via google-services.json.
+          // Explicitly declaring it can cause DEVELOPER_ERROR mismatches.
           scopes: ['email', 'profile'],
         );
 

@@ -319,6 +319,7 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
             final plan = data['planType'] ?? 'SIP';
             final duration = data['duration'] ?? '12 Months';
             final amount = data['amountPaid'] ?? 0;
+            final isSIP = data['isSIP'] ?? plan.toString().toLowerCase().contains('sip');
             
             return Container(
               margin: const EdgeInsets.only(bottom: 15),
@@ -352,7 +353,7 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text("₹$amount", style: const TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text("₹$amount${isSIP ? ' / Month' : ''}", style: const TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
                       const TranslatedText("Active", style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                     ],

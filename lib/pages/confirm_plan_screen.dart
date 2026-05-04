@@ -52,17 +52,21 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
       SnackBar(content: Text('Payment Successful: ${response.paymentId}'), backgroundColor: Colors.green),
     );
 
-    int total = widget.amount * int.parse(widget.duration.split(" ")[0]);
+    int durationValue = int.parse(widget.duration.split(" ")[0]);
+    int total = widget.amount * durationValue;
+    bool isSIP = widget.planType.toLowerCase().contains("sip");
+    double paidAmount = isSIP ? widget.amount.toDouble() : total.toDouble();
+
     EmailService.sendPurchaseEmail(
       paymentId: response.paymentId ?? 'TXN_SUCCESS',
       items: [
         {
           'name': "${widget.planType} - ${widget.duration}",
           'quantity': 1,
-          'price': total.toDouble(),
+          'price': paidAmount,
         }
       ],
-      totalAmount: total.toDouble(),
+      totalAmount: paidAmount,
       context: context,
     );
 
@@ -71,7 +75,9 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
       FirebaseFirestore.instance.collection('users').doc(user.uid).collection('investments').add({
         'planType': widget.planType,
         'duration': widget.duration,
-        'amountPaid': total.toDouble(),
+        'amountPaid': paidAmount,
+        'totalInvestment': total.toDouble(),
+        'isSIP': isSIP,
         'paymentId': response.paymentId ?? 'TXN_SUCCESS',
         'timestamp': FieldValue.serverTimestamp(),
       });
@@ -244,10 +250,15 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
                     String email = user?.email ?? "test@example.com";
                     
                     try {
+                      bool isSIP = widget.planType.toLowerCase().contains("sip");
+                      double chargeAmount = isSIP ? widget.amount.toDouble() : total.toDouble();
+
                       _razorpayService.openCheckout(
-                        amount: total.toDouble(),
+                        amount: chargeAmount,
                         name: widget.planType,
-                        description: "Investment for ${widget.planType} - ${widget.duration}",
+                        description: isSIP 
+                            ? "Monthly installment for ${widget.planType} - ${widget.duration}"
+                            : "Investment for ${widget.planType} - ${widget.duration}",
                         contact: mobile,
                         email: email,
                       );
