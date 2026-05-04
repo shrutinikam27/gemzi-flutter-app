@@ -45,6 +45,9 @@ class _OverlayRendererState extends State<OverlayRenderer> {
 
   // Low-pass filter state for Hand (Key landmarks)
   Map<int, Offset> sHandPoints = {};
+  List<dynamic>? lastKnownLandmarks;
+  int lostDetectionFrames = 0;
+  final int maxLostFrames = 10; // Keep item on hand for ~10 frames after losing tracking
 
   final double alpha = 0.3;
 
@@ -108,11 +111,35 @@ class _OverlayRendererState extends State<OverlayRenderer> {
     // --- Live Camera: Rings / Bangles ---
     if (widget.activeCategory == 'Rings' ||
         widget.activeCategory == 'Bangles') {
-      // If hand detected, use landmarks
-      if (widget.hands != null && widget.hands!.isNotEmpty) {
-        return _buildHandOverlays(screenSize, scaleX, scaleY, offsetX, offsetY,
-            logicalWidth, logicalHeight);
+      
+      bool hasDetection = widget.hands != null && widget.hands!.isNotEmpty;
+      
+      if (hasDetection) {
+        // If this is a fresh detection, start at the finger tip for a "sliding in" effect
+        if (lastKnownLandmarks == null || lostDetectionFrames >= maxLostFrames) {
+          final landmarks = widget.hands!.first.landmarks;
+          // Landmark 16 is Ring finger TIP
+          for (int i = 0; i < landmarks.length; i++) {
+            sHandPoints[i] = Offset(landmarks[i].x, landmarks[i].y);
+          }
+          // Specifically for Rings, set the smoothing target to the tip first
+          if (widget.activeCategory == 'Rings') {
+             sHandPoints[14] = Offset(landmarks[16].x, landmarks[16].y);
+          }
+        }
+        
+        lastKnownLandmarks = widget.hands!.first.landmarks;
+        lostDetectionFrames = 0;
+      } else {
+        lostDetectionFrames++;
       }
+
+      // If we have current detection OR recent "sticky" detection
+      if (hasDetection || (lastKnownLandmarks != null && lostDetectionFrames < maxLostFrames)) {
+        return _buildHandOverlays(screenSize, scaleX, scaleY, offsetX, offsetY,
+            logicalWidth, logicalHeight, lastKnownLandmarks!);
+      }
+      
       // Fallback: show centered, draggable overlay
       return _buildFallbackHandOverlay(screenSize);
     }
@@ -244,40 +271,42 @@ class _OverlayRendererState extends State<OverlayRenderer> {
       double offsetX,
       double offsetY,
       double logicalWidth,
-      double logicalHeight) {
+      double logicalHeight,
+      List<dynamic> landmarks) {
     List<Widget> overlays = [];
-    final landmarks = widget.hands!.first.landmarks;
 
     if (widget.activeCategory == 'Rings') {
-      // Place ring at middle of ring finger (between landmarks 13 and 14)
-      final mid = _smoothOffset(
-          14,
-          Offset(
-            (landmarks[13].x + landmarks[14].x) / 2,
-            (landmarks[13].y + landmarks[14].y) / 2,
-          ));
+      // Place ring on the ring finger proximal phalanx (between MCP and PIP)
+      // Landmarks: 13 (MCP), 14 (PIP), 16 (TIP for starting point)
+      final ringFingerBase = landmarks[13];
+      final ringFingerJoint = landmarks[14];
+      
+      // Target is exactly in the middle of the phalanx (50/50)
+      final targetX = (ringFingerBase.x + ringFingerJoint.x) / 2;
+      final targetY = (ringFingerBase.y + ringFingerJoint.y) / 2;
+
+      final midPoint = _smoothOffset(14, Offset(targetX, targetY));
 
       final double rawX = widget.isFrontCamera
-          ? (1.0 - mid.dx) * logicalWidth
-          : mid.dx * logicalWidth;
+          ? (1.0 - midPoint.dx) * logicalWidth
+          : midPoint.dx * logicalWidth;
       final double x = (rawX * scaleX) + offsetX;
-      final double y = (mid.dy * logicalHeight * scaleY) + offsetY;
+      final double y = (midPoint.dy * logicalHeight * scaleY) + offsetY;
 
-      // Finger angle for rotation
-      final double dx = landmarks[14].x - landmarks[13].x;
-      final double dy = landmarks[14].y - landmarks[13].y;
+      // Finger angle calculation
+      final double dx = ringFingerJoint.x - ringFingerBase.x;
+      final double dy = ringFingerJoint.y - ringFingerBase.y;
       final double angle = atan2(dy, dx) + (pi / 2);
 
-      // Scale ring to finger width (distance between adjacent knuckles)
-      final double fingerSpan =
-          (landmarks[14].x - landmarks[10].x).abs() * logicalWidth * scaleX;
-      final double ringWidth = (fingerSpan * 1.8).clamp(35.0, 100.0);
+      // Scale ring based on finger length
+      final double fingerLength = sqrt(pow(dx, 2) + pow(dy, 2)) * logicalHeight * scaleY;
+      final double ringWidth = (fingerLength * 1.0).clamp(35.0, 85.0);
 
       overlays.add(Positioned(
         left: x - (ringWidth / 2) + widget.manualOffset.dx,
-        top: y - (ringWidth * 0.3) + widget.manualOffset.dy,
+        top: y - (ringWidth * 0.25) + widget.manualOffset.dy, // Adjusted to set correctly
         child: Transform.rotate(
-          angle: angle,
+          angle: angle + widget.manualRotation,
           child: Transform.scale(
             scale: widget.manualScale,
             child: Image.memory(widget.activeJewelleryImage!,
@@ -286,30 +315,42 @@ class _OverlayRendererState extends State<OverlayRenderer> {
         ),
       ));
     } else if (widget.activeCategory == 'Bangles') {
-      // Place bangle at wrist
-      final wrist = _smoothOffset(0, Offset(landmarks[0].x, landmarks[0].y));
+      // Place bangle at the wrist/lower palm area
+      // Landmarks: 0 (Wrist), 9 (Middle finger MCP)
+      final wristPoint = landmarks[0];
+      final palmPoint = landmarks[9];
+      
+      // Move slightly up from wrist towards palm
+      final targetPoint = _smoothOffset(0, Offset(
+        wristPoint.x * 0.8 + palmPoint.x * 0.2,
+        wristPoint.y * 0.8 + palmPoint.y * 0.2,
+      ));
 
       final double rawX = widget.isFrontCamera
-          ? (1.0 - wrist.dx) * logicalWidth
-          : wrist.dx * logicalWidth;
+          ? (1.0 - targetPoint.dx) * logicalWidth
+          : targetPoint.dx * logicalWidth;
       final double x = (rawX * scaleX) + offsetX;
-      final double y = (wrist.dy * logicalHeight * scaleY) + offsetY;
+      final double y = (targetPoint.dy * logicalHeight * scaleY) + offsetY;
 
-      // Wrist-to-palm angle
-      final double dx = landmarks[9].x - landmarks[0].x;
-      final double dy = landmarks[9].y - landmarks[0].y;
+      // Arm/Wrist angle
+      final double dx = palmPoint.x - wristPoint.x;
+      final double dy = palmPoint.y - wristPoint.y;
       final double angle = atan2(dy, dx) + (pi / 2);
 
-      // Bangle width based on wrist span
-      final double wristSpan =
-          (landmarks[17].x - landmarks[1].x).abs() * logicalWidth * scaleX;
-      final double bangleWidth = (wristSpan * 2.5).clamp(80.0, 220.0);
+      // Bangle width based on wrist-to-pinky span
+      // Landmarks: 1 (Thumb CMC), 17 (Pinky MCP)
+      final double wristWidth = sqrt(
+        pow(landmarks[17].x - landmarks[1].x, 2) + 
+        pow(landmarks[17].y - landmarks[1].y, 2)
+      ) * logicalWidth * scaleX;
+      
+      final double bangleWidth = (wristWidth * 1.8).clamp(100.0, 250.0);
 
       overlays.add(Positioned(
         left: x - (bangleWidth / 2) + widget.manualOffset.dx,
-        top: y - (bangleWidth * 0.15) + widget.manualOffset.dy,
+        top: y - (bangleWidth * 0.2) + widget.manualOffset.dy,
         child: Transform.rotate(
-          angle: angle,
+          angle: angle + widget.manualRotation,
           child: Transform.scale(
             scale: widget.manualScale,
             child: Image.memory(widget.activeJewelleryImage!,

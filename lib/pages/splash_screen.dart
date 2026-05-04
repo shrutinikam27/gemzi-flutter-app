@@ -48,10 +48,28 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                "assets/auth/gemzi_logo.png",
+              Container(
                 height: 250,
-                fit: BoxFit.contain,
+                width: 250,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.05),
+                  border: Border.all(color: richGold.withValues(alpha: 0.3), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: richGold.withValues(alpha: 0.1),
+                      blurRadius: 40,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    "assets/auth/gemzi_logo.png",
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
               const SizedBox(height: 40),
 

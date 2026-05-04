@@ -64,44 +64,24 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       double old24 = rate24;
       double old22 = rate22;
 
-      final prefs = await SharedPreferences.getInstance();
-      List<String> history = prefs.getStringList('gold_history') ?? [];
+      // 🛡️ Always fetch today's live rate via the Service
+      // (The service already handles daily caching/limit protection)
+      double rate = await GoldRateService.getGoldRate();
 
-      bool loaded = false;
-      if (history.isNotEmpty) {
-        List<String> todayData = history.last.split('|');
-        if (todayData.length >= 3) {
-          double? hist24 = double.tryParse(todayData[1]);
-          double? hist22 = double.tryParse(todayData[2]);
-          if (hist24 != null && hist24 > 0 && hist22 != null) {
-            setState(() {
-              prev24 = rate24;
-              prev22 = rate22;
-              rate24 = hist24;
-              rate22 = hist22;
-            });
-            loaded = true;
-          }
-        }
-      }
-
-      if (!loaded) {
-        double rate = await GoldRateService.getGoldRate();
-        if (mounted) {
-          setState(() {
-            prev24 = old24;
-            prev22 = old22;
-            rate24 = rate * (24 / 22);
-            rate22 = rate;
-          });
-        }
+      if (mounted) {
+        setState(() {
+          prev24 = old24;
+          prev22 = old22;
+          rate24 = rate * (24 / 22);
+          rate22 = rate;
+        });
       }
     } catch (e) {
       debugPrint('GoldRate load error: $e');
       if (mounted) {
         setState(() {
-          rate24 = 7200;
-          rate22 = 6600;
+          rate24 = 7500; // Updated fallback to match current market better
+          rate22 = 6875;
         });
       }
     }
@@ -111,12 +91,29 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     
-    // 🛡️ 1. Immediate Future Initialization (Fixes LateInitializationError)
+    // 🛡️ 1. Immediate Future Initialization
     _productsFuture = FirebaseFirestore.instance.collection('products').get();
     _goldRateFuture = GoldRateService.getGoldRate();
 
-    // 🛡️ 2. Other initializations
-    loadGoldRate();
+    // 🛡️ 2. Sync with Service (which handles internal daily caching)
+    _goldRateFuture.then((rate) {
+      if (mounted) {
+        setState(() {
+          rate24 = rate * (24 / 22);
+          rate22 = rate;
+          prev24 = rate24 * 0.99; // Mock minor change if first time
+          prev22 = rate22 * 0.99;
+        });
+      }
+    }).catchError((e) {
+      if (mounted) {
+        setState(() {
+          rate24 = 7500;
+          rate22 = 6875;
+        });
+      }
+    });
+
     filteredItems = trendingItems;
     _startLiveTimer();
     Future.microtask(() => _loadUserName());
@@ -351,14 +348,14 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     final user = FirebaseAuth.instance.currentUser;
 
     return Drawer(
-      backgroundColor: Colors.white,
+      backgroundColor: darkBg,
       child: Column(
         children: [
           SafeArea(
             child: Align(
               alignment: Alignment.topRight,
               child: IconButton(
-                icon: const Icon(Icons.close),
+                icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
@@ -366,27 +363,28 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           Padding(
             padding: const EdgeInsets.all(12),
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3EDED),
-                borderRadius: BorderRadius.circular(12),
+                color: surfaceDark,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: richGold.withValues(alpha: 0.2)),
               ),
               child: user == null ? _buildLoginCard() : _buildProfileCard(user),
             ),
           ),
-          const Divider(),
+          const Divider(color: Colors.white12),
           Expanded(
             child: ListView(
               children: [
-                _menuItem(context, Icons.circle_outlined, "Rings",
+                _menuItem(context, Icons.diamond_outlined, "Rings",
                     rings_page.RingsPage()),
-                _menuItem(context, Icons.earbuds, "Earrings",
+                _menuItem(context, Icons.auto_awesome, "Earrings",
                     earrings_page.EarringsPage()),
                 _menuItem(context, Icons.diamond, "Necklace",
                     necklaces_page.NecklacesPage()),
                 _menuItem(
                   context,
-                  Icons.watch,
+                  Icons.toll,
                   "Bangles",
                   bangles_page.BanglesPage(),
                 ),
@@ -407,17 +405,30 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   Widget _buildLoginCard() {
     return Row(
       children: [
-        Image.asset("assets/auth/bag.png", width: 60),
-        const SizedBox(width: 10),
+        Container(
+          height: 60,
+          width: 60,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withValues(alpha: 0.05),
+            border: Border.all(color: richGold.withValues(alpha: 0.3), width: 1.5),
+            boxShadow: [
+              BoxShadow(color: richGold.withValues(alpha: 0.1), blurRadius: 10, spreadRadius: 2),
+            ],
+          ),
+          child: Image.asset("assets/auth/bag.png", fit: BoxFit.contain),
+        ),
+        const SizedBox(width: 15),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const TranslatedText(
                 "Flat Rs. 500 off",
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
-              const TranslatedText("on your first order"),
+              TranslatedText("on your first order", style: TextStyle(color: textSubdued)),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -425,18 +436,18 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                     onTap: () {
                       Navigator.pushNamed(context, "/login");
                     },
-                    child: const TranslatedText("LOGIN",
-                        style: TextStyle(color: Colors.red)),
+                    child: Text("LOGIN",
+                        style: TextStyle(color: richGold, fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(width: 10),
-                  const Text("|"),
+                  const Text("|", style: TextStyle(color: Colors.white54)),
                   const SizedBox(width: 10),
                   GestureDetector(
                     onTap: () {
                       Navigator.pushNamed(context, "/signup");
                     },
-                    child: const TranslatedText("SIGN UP",
-                        style: TextStyle(color: Colors.red)),
+                    child: Text("SIGN UP",
+                        style: TextStyle(color: richGold, fontWeight: FontWeight.bold)),
                   ),
                 ],
               )
@@ -462,20 +473,28 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
         return Row(
           children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: Colors.grey.shade300,
-              child: const Icon(Icons.person, size: 30),
+            Container(
+              height: 60,
+              width: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.05),
+                border: Border.all(color: richGold.withValues(alpha: 0.3), width: 1.5),
+                boxShadow: [
+                  BoxShadow(color: richGold.withValues(alpha: 0.1), blurRadius: 10, spreadRadius: 2),
+                ],
+              ),
+              child: Icon(Icons.person, size: 30, color: richGold),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 15),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(name,
                       style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text(email, style: const TextStyle(fontSize: 12)),
+                          fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                  Text(email, style: TextStyle(fontSize: 12, color: textSubdued)),
                   const SizedBox(height: 5),
                   GestureDetector(
                     onTap: () async {
@@ -484,7 +503,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                     },
                     child: const TranslatedText(
                       "Logout",
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(color: Colors.redAccent),
                     ),
                   )
                 ],
@@ -503,12 +522,12 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     Widget page,
   ) {
     return ListTile(
-      leading: Icon(icon),
+      leading: Icon(icon, color: richGold),
 
       // your translated text stays
-      title: TranslatedText(title),
+      title: TranslatedText(title, style: const TextStyle(color: Colors.white)),
 
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: richGold),
 
       onTap: () {
         Navigator.pop(context); // close drawer
@@ -1231,6 +1250,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // 🏷️ Section Header (Always Visible)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Row(
@@ -1251,30 +1271,35 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             ],
           ),
         ),
-        FutureBuilder<double>(
-          future: _goldRateFuture,
-          builder: (context, rateSnapshot) {
-            final double currentRate = rateSnapshot.data ?? rate22; // Default to 22K rate
-            
-            return FutureBuilder<QuerySnapshot>(
-              future: _productsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text("Firebase Error: ${snapshot.error}", style: const TextStyle(color: Colors.redAccent, fontSize: 12)));
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator(color: Color(0xFFD4AF37))));
-                }
-                
-                final docs = snapshot.data?.docs ?? [];
-                if (docs.isEmpty) {
-                  return const Center(child: Padding(padding: EdgeInsets.all(40), child: Text("No items in 'products' collection", style: TextStyle(color: Colors.white24, fontSize: 12))));
-                }
 
-                final items = docs.take(3).map((doc) => doc.data() as Map<String, dynamic>).toList();
-                return _buildProductGrid(items, currentRate);
-              },
-            );
+        // 💎 Stable Product Grid (No Refreshing/Flickering)
+        StreamBuilder<QuerySnapshot>(
+          // Use the persistent stream to avoid re-fetches on every setState tick
+          stream: FirebaseFirestore.instance.collection('products').limit(3).snapshots(),
+          builder: (context, snapshot) {
+            // Use the last known good rate to avoid waiting for gold API twice
+            final double currentRate = GoldRateService.currentRate;
+
+            if (snapshot.hasError) {
+              return const Center(child: Text("Unable to load collection", style: TextStyle(color: Colors.white24, fontSize: 12)));
+            }
+            
+            if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(40),
+                  child: CircularProgressIndicator(color: Color(0xFFD4AF37), strokeWidth: 2),
+                ),
+              );
+            }
+
+            final docs = snapshot.data?.docs ?? [];
+            if (docs.isEmpty) {
+              return const Center(child: Padding(padding: EdgeInsets.all(40), child: Text("No featured items available", style: TextStyle(color: Colors.white24, fontSize: 12))));
+            }
+
+            final items = docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+            return _buildProductGrid(items, currentRate);
           },
         ),
       ],

@@ -89,6 +89,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
   Future<void> _checkPermissionsAndInitialize() async {
     final status = await Permission.camera.request();
     if (status.isGranted) {
+      _handDetectionService.initialize(); // Explicitly initialize
       await _cameraService.initializeCamera(
           CameraLensDirection.front, _processCameraImage);
       if (mounted) setState(() {});
@@ -111,7 +112,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
 
   void _processCameraImage(CameraImage image) async {
     frameCount++;
-    if (frameCount % 3 != 0) return;
+    if (frameCount % 2 != 0) return;
 
     final controller = _cameraService.controller;
     if (isBusy ||
@@ -332,6 +333,8 @@ class _TryOnScreenState extends State<TryOnScreen> {
               children: [
                 previewWidget,
                 if (hasCamera || isModelMode) _buildOverlayLayer(),
+                if (!isModelMode && !isCaptured && _isHandCategory && (hands == null || hands!.isEmpty))
+                  _buildHandGuide(), // Guide the user to place hand correctly
               ],
             ),
           ),
@@ -623,6 +626,32 @@ class _TryOnScreenState extends State<TryOnScreen> {
                 shape: BoxShape.circle),
             child:
                 Icon(isCaptured ? Icons.refresh : null, color: Colors.black)),
+      ),
+    );
+  }
+
+  Widget _buildHandGuide() {
+    return Center(
+      child: Opacity(
+        opacity: 0.3,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.pan_tool_outlined, color: Colors.white, size: 200),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                "Place your hand inside the frame",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
