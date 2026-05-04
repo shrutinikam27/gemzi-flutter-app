@@ -11,25 +11,25 @@ class WeddingCollectionPage extends StatelessWidget {
     {
       "name": "Royal Polki Set",
       "weight": 17.5,
-      "image": "https://images.unsplash.com/photo-1549439602-43ebca2327af?q=80&w=1000",
+      "image": "assets/auth/royalpearlset.jpeg",
       "rating": "5.0"
     },
     {
       "name": "Diamond Bloom Necklace",
       "weight": 38.0,
-      "image": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1000",
+      "image": "assets/auth/necklacenew2.png",
       "rating": "4.9"
     },
     {
       "name": "Temple Gold Haram",
       "weight": 25.0,
-      "image": "https://images.unsplash.com/photo-1610992015732-2449b0c26670?q=80&w=1000",
+      "image": "assets/auth/heritagegoldharam.png",
       "rating": "5.0"
     },
     {
       "name": "Bridal Emerald Choker",
       "weight": 22.0,
-      "image": "https://images.unsplash.com/photo-1589128777073-263566ae5e4d?q=80&w=1000",
+      "image": "assets/auth/nacklace3.jpeg",
       "rating": "4.8"
     }
   ];
@@ -59,8 +59,8 @@ class WeddingCollectionPage extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    "https://images.unsplash.com/photo-1549439602-43ebca2327af?q=80&w=1000",
+                  Image.asset(
+                    "assets/auth/nacklace6.jpeg",
                     fit: BoxFit.cover,
                   ),
                   Container(
@@ -136,7 +136,9 @@ class WeddingCollectionPage extends StatelessWidget {
                             Expanded(
                               child: ClipRRect(
                                 borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-                                child: Image.network(item['image']!, width: double.infinity, fit: BoxFit.cover),
+                                child: item['image']!.startsWith('http')
+                                    ? Image.network(item['image']!, width: double.infinity, fit: BoxFit.cover, errorBuilder: (c,e,s) => Container(color: surfaceDark, child: const Icon(Icons.diamond_outlined, color: richGold, size: 50)))
+                                    : Image.asset(item['image']!, width: double.infinity, fit: BoxFit.cover, errorBuilder: (c,e,s) => Container(color: surfaceDark, child: const Icon(Icons.diamond_outlined, color: richGold, size: 50))),
                               ),
                             ),
                             Padding(

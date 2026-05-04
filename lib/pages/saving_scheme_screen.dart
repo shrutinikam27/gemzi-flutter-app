@@ -18,9 +18,53 @@ class SavingSchemeScreen extends StatefulWidget {
 }
 
 class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
-  int selectedAmount = 500;
+  int selectedAmount = 2000;
   String planType = "Monthly SIP";
   double currentRate = GoldRateService.currentRate;
+
+  void _playGoldCoinAnimation() {
+    debugPrint("🎬 Starting Gold Coin Animation...");
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.9),
+      builder: (context) {
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+        });
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SlideInDown(
+                from: 100,
+                duration: const Duration(milliseconds: 800),
+                child: const Icon(Icons.monetization_on, color: Color(0xFFD4AF37), size: 100),
+              ),
+              const SizedBox(height: 10),
+              BounceInUp(
+                duration: const Duration(milliseconds: 1000),
+                child: const Icon(Icons.savings_outlined, color: Colors.white, size: 160),
+              ),
+              const SizedBox(height: 30),
+              FadeIn(
+                delay: const Duration(milliseconds: 500),
+                child: const Text(
+                  "Digital Gold Stored!", 
+                  style: TextStyle(
+                    color: Color(0xFFD4AF37), 
+                    fontSize: 26, 
+                    fontWeight: FontWeight.bold, 
+                    decoration: TextDecoration.none,
+                    letterSpacing: 1.2
+                  )
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -170,36 +214,41 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                       const SizedBox(height: 15),
                       SizedBox(
                         height: 100,
-                        child: schemes.isEmpty 
-                          ? const Center(child: Text("No schemes found", style: TextStyle(color: Colors.white30)))
-                          : ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: schemes.length,
-                            itemBuilder: (context, index) {
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: schemes.isEmpty ? 2 : schemes.length,
+                          itemBuilder: (context, index) {
+                            String name;
+                            if (schemes.isEmpty) {
+                              name = index == 0 ? "Monthly SIP" : "Gold Saver";
+                            } else {
                               final sData = schemes[index].data() as Map<String, dynamic>;
-                              bool isSelected = planType == sData['name'];
-                              return GestureDetector(
-                                onTap: () => setState(() => planType = sData['name']),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  padding: const EdgeInsets.all(18),
-                                  margin: const EdgeInsets.only(right: 15),
-                                  width: 150,
-                                  decoration: BoxDecoration(
-                                    color: isSelected ? const Color(0xFFE6C76A) : Colors.white.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: isSelected ? Colors.white : Colors.white12),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      sData['name'],
-                                      style: TextStyle(color: isSelected ? Colors.black : Colors.white70, fontWeight: FontWeight.bold),
-                                    ),
+                              name = sData['name'] ?? "Scheme";
+                            }
+                            
+                            bool isSelected = planType == name;
+                            return GestureDetector(
+                              onTap: () => setState(() => planType = name),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                padding: const EdgeInsets.all(18),
+                                margin: const EdgeInsets.only(right: 15),
+                                width: 150,
+                                decoration: BoxDecoration(
+                                  color: isSelected ? const Color(0xFFE6C76A) : Colors.white.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: isSelected ? Colors.white : Colors.white12),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    name,
+                                    style: TextStyle(color: isSelected ? Colors.black : Colors.white70, fontWeight: FontWeight.bold),
                                   ),
                                 ),
-                              );
-                            },
-                          ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
 
                       const SizedBox(height: 30),
@@ -307,6 +356,7 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
 
         final investments = snapshot.data?.docs ?? [];
         if (investments.isEmpty) {
+<<<<<<< HEAD
           return const Center(child: TranslatedText("No active investments yet", style: TextStyle(color: Colors.white54)));
         }
 
@@ -322,6 +372,12 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
             final isSIP = data['isSIP'] ?? plan.toString().toLowerCase().contains('sip');
             
             return Container(
+=======
+          // Return a dummy card for demonstration
+          return GestureDetector(
+            onTap: _playGoldCoinAnimation,
+            child: Container(
+>>>>>>> aae979177450f31ff34dd0b0c8c5f15edfb8be08
               margin: const EdgeInsets.only(bottom: 15),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -340,25 +396,88 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                     child: const Icon(Icons.workspace_premium, color: Color(0xFFE6C76A)),
                   ),
                   const SizedBox(width: 15),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(plan.toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                        const SizedBox(height: 4),
-                        Text(duration.toString(), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                        Text("Monthly SIP (Demo)", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        SizedBox(height: 4),
+                        Text("12 Months Plan", style: TextStyle(color: Colors.white54, fontSize: 12)),
                       ],
                     ),
                   ),
-                  Column(
+                  const Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
+<<<<<<< HEAD
                       Text("₹$amount${isSIP ? ' / Month' : ''}", style: const TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
                       const TranslatedText("Active", style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+=======
+                      Text("₹2000", style: TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
+                      SizedBox(height: 4),
+                      Text("Sample", style: TextStyle(color: Colors.blueAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+>>>>>>> aae979177450f31ff34dd0b0c8c5f15edfb8be08
                     ],
                   ),
                 ],
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: investments.length,
+          itemBuilder: (context, index) {
+            final data = investments[index].data() as Map<String, dynamic>;
+            final plan = data['planType'] ?? 'SIP';
+            final duration = data['duration'] ?? '12 Months';
+            final amount = data['amountPaid'] ?? 0;
+            
+            return GestureDetector(
+              onTap: _playGoldCoinAnimation,
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 15),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE6C76A).withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE6C76A).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.workspace_premium, color: Color(0xFFE6C76A)),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(plan.toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text(duration.toString(), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text("₹$amount", style: const TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 4),
+                        const TranslatedText("Active", style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             );
           },

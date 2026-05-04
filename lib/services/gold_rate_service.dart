@@ -42,41 +42,63 @@ class GoldRateService {
     _isFetching = true;
 
     try {
-      if (kDebugMode) debugPrint("📡 CALLING GOLD API (Daily limit protection active)...");
-      
-      final response = await http.get(
-        Uri.parse(
-            "https://api.metalpriceapi.com/v1/latest?api_key=8259d61a7c5762457d1a74e978e8c559&base=USD&currencies=INR,XAU"),
-      );
+      // 🌐 ATTEMPT 1: GoldAPI.io (Primary)
+      try {
+        if (kDebugMode) debugPrint("📡 CALLING GOLD API (Primary: goldapi.io)...");
+        final response = await http.get(
+          Uri.parse("https://www.goldapi.io/api/XAU/INR"),
+          headers: {
+            "x-access-token": "goldapi-16rksm362243j-io",
+            "Content-Type": "application/json"
+          },
+        ).timeout(const Duration(seconds: 8));
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        
-        if (!data.containsKey("rates")) throw Exception("Rates missing");
-
-        final rates = data["rates"];
-        double inrRate = (rates["INR"] as num?)?.toDouble() ?? 83.5; 
-        double? xauRateRaw = (rates["XAU"] as num?)?.toDouble() ?? 
-                            (rates["XAU_USD"] as num?)?.toDouble() ??
-                            (rates["GOLD"] as num?)?.toDouble();
-
-        if (xauRateRaw == null || xauRateRaw == 0) return 7250.0;
-
-        double retail24K = ( (1 / xauRateRaw) * inrRate ) / 31.1035;
-        double retail22K = retail24K * 0.9167;
-
-        // 💾 PERSIST DATA FOR THE DAY
-        await prefs.setString("last_gold_fetch_date", today);
-        await prefs.setDouble("stored_gold_rate", retail22K);
-        _memoryCache = retail22K;
-
-        if (kDebugMode) debugPrint("✅ API FETCH SUCCESS: New rate for $today is ₹${retail22K.toStringAsFixed(2)}");
-        return retail22K;
-      } else {
-        return _memoryCache ?? storedRate ?? 7250.0;
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          double pricePerOunce = (data["price"] as num).toDouble();
+          if (pricePerOunce > 50000) {
+            double rate = (pricePerOunce / 31.1035) * 0.9167;
+            await prefs.setString("last_gold_fetch_date", today);
+            await prefs.setDouble("stored_gold_rate", rate);
+            _memoryCache = rate;
+            return rate;
+          }
+        }
+      } catch (e) {
+        debugPrint("⚠️ Primary API Network Error: $e");
       }
+
+      // 🔄 ATTEMPT 2: MetalPriceAPI (Fallback)
+      try {
+        if (kDebugMode) debugPrint("🔄 Trying Fallback API (metalpriceapi)...");
+        final altResponse = await http.get(
+          Uri.parse("https://api.metalpriceapi.com/v1/latest?api_key=8259d61a7c5762457d1a74e978e8c559&base=USD&currencies=INR,XAU"),
+        ).timeout(const Duration(seconds: 8));
+
+        if (altResponse.statusCode == 200) {
+          final altData = json.decode(altResponse.body);
+          if (altData["success"] == true) {
+            final rates = altData["rates"];
+            double inr = (rates["INR"] as num).toDouble();
+            double xau = (rates["XAU"] as num).toDouble();
+            if (xau != 0) {
+              double rate = ((1 / xau) * inr / 31.1035) * 0.9167;
+              await prefs.setString("last_gold_fetch_date", today);
+              await prefs.setDouble("stored_gold_rate", rate);
+              _memoryCache = rate;
+              return rate;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("⚠️ Fallback API Network Error: $e");
+      }
+
+      // 💾 FINAL ATTEMPT: Last Known Good Rate from Storage
+      debugPrint("📢 Using Offline Cached Price");
+      return _memoryCache ?? storedRate ?? 7250.0;
+
     } catch (e) {
-      debugPrint("ERROR FETCHING GOLD RATE: $e");
       return _memoryCache ?? storedRate ?? 7250.0; 
     } finally {
       _isFetching = false;

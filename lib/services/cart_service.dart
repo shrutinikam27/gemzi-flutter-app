@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CartItem {
   final String id;
@@ -45,16 +46,23 @@ class CartService with ChangeNotifier {
   int get itemCount => _items.length;
   int get totalQuantity => _items.fold(0, (sum, item) => sum + item.quantity);
 
+  String get _cartKey {
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    return 'cart_$userId';
+  }
+
   Future<void> loadCart() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final cartString = prefs.getString('cart');
+      final cartString = prefs.getString(_cartKey);
       if (cartString != null) {
         final List<dynamic> cartJson =
             List<Map<String, dynamic>>.from(jsonDecode(cartString));
         _items = cartJson.map((e) => CartItem.fromJson(e)).toList();
-        notifyListeners();
+      } else {
+        _items = [];
       }
+      notifyListeners();
     } catch (e) {
       debugPrint('Cart load error: $e');
     }
@@ -108,13 +116,16 @@ class CartService with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cartJson = _items.map((e) => e.toJson()).toList();
-      await prefs.setString('cart', jsonEncode(cartJson));
+      await prefs.setString(_cartKey, jsonEncode(cartJson));
     } catch (e) {
       debugPrint('Cart save error: $e');
     }
   }
 
   void init() {
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      loadCart();
+    });
     loadCart();
   }
 }
