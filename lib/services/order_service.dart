@@ -44,20 +44,29 @@ class OrderService {
   static const String _ordersKey = 'saved_orders';
 
   /// Saves the order both to Firestore (for admin) and locally (for history)
-  static Future<void> placeOrder(Order order) async {
-    // 1. Save to Firestore
-    try {
+  static Future<bool> placeOrder(Order order) async {
+    // 1. Save to Global Firestore Collection (for Admin)
+    Map<String, dynamic> firestoreData = order.toJson();
+    firestoreData['timestamp'] = FieldValue.serverTimestamp();
+    
+    await FirebaseFirestore.instance
+        .collection('orders')
+        .doc(order.orderId)
+        .set(firestoreData);
+
+    // 2. Save to User-Specific Collection (for User History)
+    if (order.userId != 'unknown') {
       await FirebaseFirestore.instance
+          .collection('users')
+          .doc(order.userId)
           .collection('orders')
           .doc(order.orderId)
-          .set(order.toJson());
-    } catch (e) {
-      print("Error saving order to Firestore: $e");
-      // Continue to save locally even if Firestore fails
+          .set(firestoreData);
     }
 
-    // 2. Save locally
+    // 3. Save locally
     await saveOrderLocal(order);
+    return true;
   }
 
   static Future<void> saveOrderLocal(Order order) async {

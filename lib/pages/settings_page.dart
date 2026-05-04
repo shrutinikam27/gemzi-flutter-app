@@ -13,6 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../services/notification_service.dart';
 import 'my_investments_page.dart';
+import 'my_orders_page.dart';
+
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -191,7 +193,20 @@ class _SettingsPageState extends State<SettingsPage> {
             _sectionLabel("Account & Security"),
 
             _buildSettingTile(
+              icon: Icons.shopping_bag_outlined,
+              title: "My Product Orders",
+              subtitle: "Track your purchases",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MyOrdersPage()),
+                );
+              },
+            ),
+
+            _buildSettingTile(
               icon: Icons.wallet_membership_rounded,
+
               title: "Payment Methods",
               subtitle: "Saved cards & UPI",
               onTap: () {

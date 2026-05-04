@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/translated_text.dart';
+import 'my_orders_page.dart';
+
 
 class OrderSuccessPage extends StatefulWidget {
   final String orderId;
@@ -81,6 +83,33 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> with SingleTickerPr
                 style: const TextStyle(color: textLight, fontSize: 14, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 48),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyOrdersPage()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: richGold,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const TranslatedText(
+                    'View My Orders',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 height: 52,

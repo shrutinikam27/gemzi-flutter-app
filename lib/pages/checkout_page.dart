@@ -71,18 +71,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
     super.dispose();
   }
 
-  Future<void> _placeOrder(CartService cartService) async {
-    if (_selectedPaymentMethod == 'COD') {
-      if (!_formKey.currentState!.validate()) {
-        return;
-      }
-    } else if (_selectedPaymentMethod == 'UPI') {
-      if (_upiIdController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid UPI ID (e.g. name@bank)')),
-        );
-        return;
-      }
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_selectedPaymentMethod == 'UPI' && _upiIdController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid UPI ID (e.g. name@bank)')),
+      );
+      return;
     }
 
     setState(() => _isLoading = true);
@@ -108,6 +105,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Future<void> _finalizeOrder(String? paymentId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    
+    if (user == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please log in to complete your purchase"), backgroundColor: Colors.redAccent),
+        );
+      }
+      setState(() => _isLoading = false);
+      return;
+    }
+
     final cartService = Provider.of<CartService>(context, listen: false);
     final String orderId = 'ORD${Random().nextInt(900000) + 100000}';
     
@@ -123,30 +132,45 @@ class _CheckoutPageState extends State<CheckoutPage> {
       context: context,
     );
 
-    final user = FirebaseAuth.instance.currentUser;
     final order = Order(
       orderId: orderId,
-      userId: user?.uid ?? 'unknown',
-      userEmail: user?.email ?? 'unknown',
+      userId: user.uid,
+      userEmail: user.email ?? 'Member',
       items: List.from(cartService.items), // Clone the items before clearing
       totalAmount: cartService.totalPrice,
       paymentMethod: _selectedPaymentMethod,
-      address: _selectedPaymentMethod == 'COD' ? {
+      address: {
         'name': _nameController.text,
         'mobile': _mobileController.text,
         'address': _addressController.text,
         'city': _cityController.text,
         'state': _stateController.text,
         'pincode': _pincodeController.text,
-      } : null,
+      },
       timestamp: DateTime.now(),
     );
 
     // Save to Firestore & Local storage, then clear cart
-    await OrderService.placeOrder(order);
-    await cartService.clearCart();
+    String? errorMessage;
+    try {
+      bool success = await OrderService.placeOrder(order);
+      if (!success) errorMessage = "Unknown Firestore error";
+    } catch (e) {
+      errorMessage = e.toString();
+    }
 
+    await cartService.clearCart();
     setState(() => _isLoading = false);
+
+    if (errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Cloud Sync Failed: $errorMessage"),
+          backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 10),
+        ),
+      );
+    }
 
     if (mounted) {
       Navigator.pushReplacement(
@@ -286,33 +310,38 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
                       const SizedBox(height: 20),
 
-                      // Dynamic Fields based on Payment Method
+                      // Mandatory Delivery Details for all Home Delivery orders
+                      Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const TranslatedText('Home Delivery Details', 
+                                style: TextStyle(color: richGold, fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 12),
+                            _buildTextField(_nameController, 'Full Name'),
+                            _buildTextField(_mobileController, 'Mobile Number', type: TextInputType.phone),
+                            _buildTextField(_addressController, 'Address Line'),
+                            Row(
+                              children: [
+                                Expanded(child: _buildTextField(_cityController, 'City')),
+                                const SizedBox(width: 12),
+                                Expanded(child: _buildTextField(_stateController, 'State')),
+                              ],
+                            ),
+                            _buildTextField(_pincodeController, 'Pincode', type: TextInputType.number),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 12),
+
+                      // UPI Field (Only if UPI selected)
                       AnimatedSize(
                         duration: const Duration(milliseconds: 300),
                         child: _selectedPaymentMethod == 'UPI' 
                           ? _buildTextField(_upiIdController, 'Enter UPI ID (e.g. mobile@upi)')
-                          : Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const TranslatedText('Delivery Details', 
-                                      style: TextStyle(color: richGold, fontSize: 16, fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 12),
-                                  _buildTextField(_nameController, 'Full Name'),
-                                  _buildTextField(_mobileController, 'Mobile Number', type: TextInputType.phone),
-                                  _buildTextField(_addressController, 'Address Line'),
-                                  Row(
-                                    children: [
-                                      Expanded(child: _buildTextField(_cityController, 'City')),
-                                      const SizedBox(width: 12),
-                                      Expanded(child: _buildTextField(_stateController, 'State')),
-                                    ],
-                                  ),
-                                  _buildTextField(_pincodeController, 'Pincode', type: TextInputType.number),
-                                ],
-                              ),
-                            ),
+                          : const SizedBox.shrink(),
                       ),
                     ],
                   ),
