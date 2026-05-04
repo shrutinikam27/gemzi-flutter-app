@@ -58,6 +58,8 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
         .orderBy('timestamp', descending: true)
         .snapshots();
 
+    final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+
     _balanceSubscription = docRef.snapshots().listen((doc) {
       if (doc.exists) {
         double newBalance = (doc.data()?['walletBalance'] ?? 0.0).toDouble();
@@ -72,7 +74,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
           });
         }
       } else {
-        FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        docRef.set({
           'walletBalance': 0.0,
         }, SetOptions(merge: true));
       }

@@ -1,38 +1,66 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'cart_service.dart';
 
 class Order {
   final String orderId;
+  final String userId;
+  final String userEmail;
   final List<CartItem> items;
   final double totalAmount;
   final String paymentMethod;
   final Map<String, String>? address;
   final DateTime timestamp;
+  final String status;
 
   Order({
     required this.orderId,
+    required this.userId,
+    required this.userEmail,
     required this.items,
     required this.totalAmount,
     required this.paymentMethod,
     this.address,
     required this.timestamp,
+    this.status = 'pending',
   });
 
   Map<String, dynamic> toJson() => {
         'orderId': orderId,
+        'userId': userId,
+        'userEmail': userEmail,
         'items': items.map((e) => e.toJson()).toList(),
         'totalAmount': totalAmount,
         'paymentMethod': paymentMethod,
         'address': address,
         'timestamp': timestamp.toIso8601String(),
+        'status': status,
       };
 }
 
 class OrderService {
   static const String _ordersKey = 'saved_orders';
 
-  static Future<void> saveOrder(Order order) async {
+  /// Saves the order both to Firestore (for admin) and locally (for history)
+  static Future<void> placeOrder(Order order) async {
+    // 1. Save to Firestore
+    try {
+      await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(order.orderId)
+          .set(order.toJson());
+    } catch (e) {
+      print("Error saving order to Firestore: $e");
+      // Continue to save locally even if Firestore fails
+    }
+
+    // 2. Save locally
+    await saveOrderLocal(order);
+  }
+
+  static Future<void> saveOrderLocal(Order order) async {
     final prefs = await SharedPreferences.getInstance();
     final ordersString = prefs.getString(_ordersKey);
     List<dynamic> ordersJson = [];
@@ -41,7 +69,7 @@ class OrderService {
       try {
         ordersJson = jsonDecode(ordersString);
       } catch (e) {
-        // Handle potential parsing errors if format changes
+        // Handle potential parsing errors
       }
     }
     

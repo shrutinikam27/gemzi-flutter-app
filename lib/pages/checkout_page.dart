@@ -123,8 +123,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
       context: context,
     );
 
+    final user = FirebaseAuth.instance.currentUser;
     final order = Order(
       orderId: orderId,
+      userId: user?.uid ?? 'unknown',
+      userEmail: user?.email ?? 'unknown',
       items: List.from(cartService.items), // Clone the items before clearing
       totalAmount: cartService.totalPrice,
       paymentMethod: _selectedPaymentMethod,
@@ -139,8 +142,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
       timestamp: DateTime.now(),
     );
 
-    // Save locally and clear cart
-    await OrderService.saveOrder(order);
+    // Save to Firestore & Local storage, then clear cart
+    await OrderService.placeOrder(order);
     await cartService.clearCart();
 
     setState(() => _isLoading = false);
