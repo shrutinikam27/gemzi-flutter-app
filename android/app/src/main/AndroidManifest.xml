@@ -3,10 +3,14 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission 
         android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
         android:maxSdkVersion="29" 
         tools:replace="android:maxSdkVersion" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <application
         android:label="Gemzi"
@@ -14,6 +18,10 @@
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true"
         android:enableOnBackInvokedCallback="true">
+
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="face,face_mesh" />
         <activity
             android:name="com.example.flutter_project.MainActivity"
             android:exported="true"

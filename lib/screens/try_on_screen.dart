@@ -86,13 +86,26 @@ class _TryOnScreenState extends State<TryOnScreen> {
     _selectJewellery(categoryItems['Earrings']![0]['image']!);
   }
 
+  String? _initError;
+
   Future<void> _checkPermissionsAndInitialize() async {
-    final status = await Permission.camera.request();
-    if (status.isGranted) {
-      _handDetectionService.initialize(); // Explicitly initialize
-      await _cameraService.initializeCamera(
-          CameraLensDirection.front, _processCameraImage);
-      if (mounted) setState(() {});
+    try {
+      final status = await Permission.camera.request();
+      if (status.isGranted) {
+        _handDetectionService.initialize();
+        await _cameraService.initializeCamera(
+            CameraLensDirection.front, _processCameraImage);
+        if (mounted) setState(() { _initError = null; });
+      } else {
+        setState(() {
+          _initError = "Camera permission denied. Please enable it in settings.";
+        });
+      }
+    } catch (e) {
+      debugPrint("Init error: $e");
+      setState(() {
+        _initError = "Failed to initialize camera: $e";
+      });
     }
   }
 
@@ -319,6 +332,29 @@ class _TryOnScreenState extends State<TryOnScreen> {
       } else {
         previewWidget = CameraPreview(controller);
       }
+    } else if (_initError != null) {
+      previewWidget = Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 60),
+              const SizedBox(height: 16),
+              Text(
+                _initError!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _checkPermissionsAndInitialize,
+                child: const Text("Retry"),
+              )
+            ],
+          ),
+        ),
+      );
     }
 
     return Scaffold(
