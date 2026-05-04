@@ -168,8 +168,8 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: richGold),
-        title: TranslatedText("Payment Dashboard",
-            style: TextStyle(color: richGold, fontWeight: FontWeight.bold)),
+        title: const TranslatedText("Digital Gold Vault",
+            style: TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(

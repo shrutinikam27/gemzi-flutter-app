@@ -407,7 +407,21 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                       children: [
                         Text("₹$amount${isSIP ? ' / Month' : ''}", style: const TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 4),
-                        const TranslatedText("Active", style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: (data['status'] == 'active' ? Colors.green : Colors.amber).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Text(
+                            (data['status'] ?? 'pending').toString().toUpperCase(), 
+                            style: TextStyle(
+                              color: data['status'] == 'active' ? Colors.greenAccent : Colors.amberAccent, 
+                              fontSize: 10, 
+                              fontWeight: FontWeight.bold
+                            )
+                          ),
+                        ),
                       ],
                     ),
                   ],

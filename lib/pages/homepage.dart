@@ -55,6 +55,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   int _minutes = 42;
   int _seconds = 18;
   Timer? _countdownTimer;
+  StreamSubscription<DocumentSnapshot>? _userSubscription;
+  double walletBalance = 0.0;
   late Future<QuerySnapshot> _productsFuture;
   late Future<double> _goldRateFuture;
 
@@ -116,7 +118,25 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
 
     filteredItems = trendingItems;
     _startLiveTimer();
-    Future.microtask(() => _loadUserName());
+    _listenToUserData();
+  }
+
+  void _listenToUserData() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    _userSubscription = FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .snapshots()
+        .listen((doc) {
+      if (doc.exists && mounted) {
+        setState(() {
+          userName = doc.data()?['name'] ?? "User";
+          walletBalance = (doc.data()?['walletBalance'] ?? 0.0).toDouble();
+        });
+      }
+    });
   }
 
   void searchProducts(String query) {
@@ -281,6 +301,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _userSubscription?.cancel();
     searchController.dispose();
     super.dispose();
   }
@@ -397,8 +418,9 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 _menuItem(
                   context,
                   Icons.account_balance_wallet_outlined,
-                  "Digital Vault",
-                  PaymentMethodsPage(),
+                  "Digital Gold Vault",
+                  const PaymentMethodsPage(),
+                  trailingText: "₹${walletBalance.toStringAsFixed(2)}",
                 ),
               ],
             ),
@@ -525,19 +547,23 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     BuildContext context,
     IconData icon,
     String title,
-    Widget page,
-  ) {
+    Widget page, {
+    String? trailingText,
+  }) {
     return ListTile(
       leading: Icon(icon, color: richGold),
-
-      // your translated text stays
-      title: TranslatedText(title, style: const TextStyle(color: Colors.white)),
-
-      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: richGold),
-
+      title: TranslatedText(title, style: const TextStyle(color: Colors.white, fontSize: 14)),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (trailingText != null)
+            Text(trailingText, style: TextStyle(color: richGold, fontSize: 12, fontWeight: FontWeight.bold)),
+          const SizedBox(width: 8),
+          Icon(Icons.arrow_forward_ios, size: 14, color: richGold.withValues(alpha: 0.5)),
+        ],
+      ),
       onTap: () {
         Navigator.pop(context); // close drawer
-
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => page),

@@ -72,6 +72,7 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
 
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      // 1. Internal User History
       FirebaseFirestore.instance.collection('users').doc(user.uid).collection('investments').add({
         'planType': widget.planType,
         'duration': widget.duration,
@@ -79,7 +80,19 @@ class _ConfirmPlanScreenState extends State<ConfirmPlanScreen> {
         'totalInvestment': total.toDouble(),
         'isSIP': isSIP,
         'paymentId': response.paymentId ?? 'TXN_SUCCESS',
+        'status': 'pending', // Approval Workflow
         'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // 2. Global Admin Order Collection
+      FirebaseFirestore.instance.collection('user_schemes').add({
+        'userId': user.uid,
+        'userEmail': user.email ?? 'Unknown',
+        'schemeName': widget.planType,
+        'amount': paidAmount,
+        'subscriptionId': "GMZ-${Random().nextInt(9000) + 1000}",
+        'status': 'pending',
+        'joinedDate': FieldValue.serverTimestamp(),
       });
     }
 
