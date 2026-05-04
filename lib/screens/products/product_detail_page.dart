@@ -6,9 +6,7 @@ import 'package:provider/provider.dart';
 import '../../services/cart_service.dart';
 import '../../utils/translator_service.dart';
 import '../../widgets/translated_text.dart';
-import '../../services/razorpay_service.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
-import '../../services/email_service.dart';
+import '../../pages/checkout_page.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String name;
@@ -30,48 +28,10 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   bool isLiked = false;
-  late RazorpayService _razorpayService;
 
   @override
   void initState() {
     super.initState();
-    _razorpayService = RazorpayService(
-      onSuccess: _handlePaymentSuccess,
-      onError: _handlePaymentError,
-    );
-  }
-
-  @override
-  void dispose() {
-    _razorpayService.dispose();
-    super.dispose();
-  }
-
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment Successful: ${response.paymentId}'), backgroundColor: Colors.green),
-    );
-
-    final priceNum = double.tryParse(widget.price.replaceAll('₹', '').replaceAll(',', '')) ?? 0.0;
-    
-    EmailService.sendPurchaseEmail(
-      paymentId: response.paymentId ?? 'TXN_SUCCESS',
-      items: [
-        {
-          'name': widget.name,
-          'quantity': 1,
-          'price': priceNum,
-        }
-      ],
-      totalAmount: priceNum,
-      context: context,
-    );
-  }
-
-  void _handlePaymentError(PaymentFailureResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment Failed: ${response.message}'), backgroundColor: Colors.red),
-    );
   }
 
   @override
@@ -273,16 +233,32 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                                         HapticFeedback.mediumImpact();
 
-                                        final priceNum = double.tryParse(widget.price.replaceAll('₹', '').replaceAll(',', '')) ?? 0.0;
-                                        String mobile = "9999999999";
-                                        String mail = user.email ?? "test@example.com";
+                                        final priceNum = double.tryParse(widget
+                                                .price
+                                                .replaceAll('₹', '')
+                                                .replaceAll(',', '')) ??
+                                            0.0;
+                                        final cartService =
+                                            Provider.of<CartService>(context,
+                                                listen: false);
                                         
-                                        _razorpayService.openCheckout(
-                                          amount: priceNum,
+                                        // Clear existing cart to only buy this specific item
+                                        cartService.clearCart();
+                                        cartService.addItem(CartItem(
+                                          id: DateTime.now()
+                                              .millisecondsSinceEpoch
+                                              .toString(),
                                           name: widget.name,
-                                          description: "Payment for \${widget.name}",
-                                          contact: mobile,
-                                          email: mail,
+                                          price: priceNum.toString(),
+                                          image: widget.image,
+                                          quantity: 1,
+                                        ));
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const CheckoutPage(),
+                                          ),
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(

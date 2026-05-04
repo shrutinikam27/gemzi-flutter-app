@@ -18,13 +18,13 @@ class RazorpayService {
     if (onWallet != null) onWallet!(response);
   }
 
-  void openCheckout({
+  Future<void> openCheckout({
     required double amount,
     required String name,
     required String description,
     required String contact,
     required String email,
-  }) {
+  }) async {
     var options = {
       'key': 'rzp_test_SeGMUx79YKdi6E', // Secret test key
       'amount': (amount * 100).toInt(), // Amount in paise

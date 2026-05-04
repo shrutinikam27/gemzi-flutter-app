@@ -5,9 +5,7 @@ import '../services/cart_service.dart';
 import '../pages/login_screen.dart';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
-import '../services/razorpay_service.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
-import '../services/email_service.dart';
+import 'checkout_page.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -17,57 +15,17 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  late RazorpayService _razorpayService;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<CartService>(context, listen: false).init();
     });
-    
-    _razorpayService = RazorpayService(
-      onSuccess: _handlePaymentSuccess,
-      onError: _handlePaymentError,
-    );
   }
 
   @override
   void dispose() {
-    _razorpayService.dispose();
     super.dispose();
-  }
-
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment Successful: ${response.paymentId}'), backgroundColor: Colors.green),
-    );
-    
-    final cartService = Provider.of<CartService>(context, listen: false);
-    
-    List<Map<String, dynamic>> itemsList = cartService.items.map((cartItem) {
-      return {
-        'name': cartItem.name,
-        'quantity': cartItem.quantity,
-        'price': cartItem.price,
-      };
-    }).toList();
-
-    EmailService.sendPurchaseEmail(
-      paymentId: response.paymentId ?? 'TXN_SUCCESS',
-      items: itemsList,
-      totalAmount: cartService.totalPrice,
-      context: context,
-    );
-    
-    // Optionally clear cart
-    cartService.clearCart();
-  }
-
-  void _handlePaymentError(PaymentFailureResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment Failed: ${response.message}'), backgroundColor: Colors.red),
-    );
   }
 
   @override
@@ -223,15 +181,11 @@ class _CartPageState extends State<CartPage> {
                                       return;
                                     }
 
-                                    String mobile = "9999999999";
-                                    String email = user.email ?? "test@example.com";
-                                    
-                                    _razorpayService.openCheckout(
-                                      amount: cartService.totalPrice,
-                                      name: "Cart Checkout",
-                                      description: "Paying for ${cartService.totalQuantity} items",
-                                      contact: mobile,
-                                      email: email,
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const CheckoutPage(),
+                                      ),
                                     );
                                   }
                                 : null,
