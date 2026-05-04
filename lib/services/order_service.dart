@@ -14,6 +14,8 @@ class Order {
   final Map<String, String>? address;
   final DateTime timestamp;
   final String status;
+  final double discount;
+  final String? appliedScheme;
 
   Order({
     required this.orderId,
@@ -25,6 +27,8 @@ class Order {
     this.address,
     required this.timestamp,
     this.status = 'pending',
+    this.discount = 0.0,
+    this.appliedScheme,
   });
 
   Map<String, dynamic> toJson() => {
@@ -37,6 +41,8 @@ class Order {
         'address': address,
         'timestamp': timestamp.toIso8601String(),
         'status': status,
+        'discount': discount,
+        'appliedScheme': appliedScheme,
       };
 }
 

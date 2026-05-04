@@ -3,12 +3,13 @@ import 'package:provider/provider.dart';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/cart_service.dart';
-import '../services/order_service.dart';
+import '../services/order_service.dart' as os;
 import '../services/razorpay_service.dart';
 import '../services/email_service.dart';
 import '../widgets/translated_text.dart';
 import 'order_success_page.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -31,6 +32,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final TextEditingController _stateController = TextEditingController();
   final TextEditingController _pincodeController = TextEditingController();
 
+  List<DocumentSnapshot> _availableSchemes = [];
+  DocumentSnapshot? _selectedScheme;
+  double _discountAmount = 0.0;
+
   static const Color darkBg = Color(0xFF0F2F2B);
   static const Color surfaceDark = Color(0xFF17453F);
   static const Color richGold = Color(0xFFD4AF37);
@@ -45,6 +50,74 @@ class _CheckoutPageState extends State<CheckoutPage> {
       onSuccess: _handlePaymentSuccess,
       onError: _handlePaymentError,
     );
+    _fetchSchemes();
+  }
+
+  void _fetchSchemes() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint("❌ No user logged in, skipping scheme fetch");
+        return;
+      }
+
+      bool isFirstOrder = true;
+      try {
+        // Check if user has previous orders
+        final ordersSnapshot = await FirebaseFirestore.instance
+            .collection('orders')
+            .where('userId', isEqualTo: user.uid)
+            .limit(1)
+            .get();
+        
+        isFirstOrder = ordersSnapshot.docs.isEmpty;
+        debugPrint("📊 User Order Status: ${isFirstOrder ? 'FIRST ORDER' : 'RECURRING CUSTOMER'}");
+      } catch (e) {
+        debugPrint("⚠️ Order check failed (possibly missing index): $e");
+        // Fallback: assume not first order if check fails to be safe, or true to be generous
+        isFirstOrder = false; 
+      }
+
+      // Fetch all schemes
+      final snapshot = await FirebaseFirestore.instance.collection('schemes').get();
+      debugPrint("📥 Fetched ${snapshot.docs.length} total schemes from Firestore");
+      
+      if (mounted) {
+        setState(() {
+          _availableSchemes = snapshot.docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            bool firstOnly = data['isFirstOrderOnly'] ?? false;
+            
+            if (firstOnly) {
+              return isFirstOrder;
+            }
+            return true;
+          }).toList();
+          debugPrint("✅ Available schemes after filtering: ${_availableSchemes.length}");
+        });
+      }
+    } catch (e) {
+      debugPrint("❌ Fatal error fetching schemes: $e");
+    }
+  }
+
+  void _applyScheme(DocumentSnapshot? scheme) {
+    if (scheme == null) {
+      setState(() {
+        _selectedScheme = null;
+        _discountAmount = 0.0;
+      });
+      return;
+    }
+
+    final data = scheme.data() as Map<String, dynamic>;
+    final discountPercent = (data['discountPercentage'] ?? 0.0).toDouble();
+    final cartService = Provider.of<CartService>(context, listen: false);
+    
+    setState(() {
+      _selectedScheme = scheme;
+      _discountAmount = (cartService.totalPrice * discountPercent) / 100;
+    });
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
@@ -71,6 +144,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     super.dispose();
   }
 
+  void _placeOrder(CartService cartService) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -88,7 +162,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       final user = FirebaseAuth.instance.currentUser;
       try {
         await _razorpayService.openCheckout(
-          amount: cartService.totalPrice,
+          amount: cartService.totalPrice - _discountAmount,
           name: 'Gemzi Order',
           description: 'Payment for your jewellery selection',
           contact: _mobileController.text.isNotEmpty ? _mobileController.text : '9999999999',
@@ -128,16 +202,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
         'quantity': e.quantity,
         'price': double.tryParse(e.price) ?? 0.0,
       }).toList(),
-      totalAmount: cartService.totalPrice,
+      totalAmount: cartService.totalPrice - _discountAmount,
       context: context,
     );
 
-    final order = Order(
+    final order = os.Order(
       orderId: orderId,
       userId: user.uid,
       userEmail: user.email ?? 'Member',
       items: List.from(cartService.items), // Clone the items before clearing
-      totalAmount: cartService.totalPrice,
+      totalAmount: cartService.totalPrice - _discountAmount,
+      discount: _discountAmount,
+      appliedScheme: _selectedScheme != null ? (_selectedScheme!.data() as Map<String, dynamic>)['name'] : null,
       paymentMethod: _selectedPaymentMethod,
       address: {
         'name': _nameController.text,
@@ -153,7 +229,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     // Save to Firestore & Local storage, then clear cart
     String? errorMessage;
     try {
-      bool success = await OrderService.placeOrder(order);
+      bool success = await os.OrderService.placeOrder(order);
       if (!success) errorMessage = "Unknown Firestore error";
     } catch (e) {
       errorMessage = e.toString();
@@ -310,6 +386,47 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
                       const SizedBox(height: 20),
 
+                      // 🏷️ DISCOUNT SCHEMES SECTION
+                      if (_availableSchemes.isNotEmpty) ...[
+                        const TranslatedText('Apply Discount Scheme', 
+                            style: TextStyle(color: richGold, fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: surfaceDark,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<DocumentSnapshot?>(
+                              value: _selectedScheme,
+                              dropdownColor: surfaceDark,
+                              hint: const TranslatedText("Select a scheme for discount", style: TextStyle(color: Colors.white54)),
+                              icon: const Icon(Icons.keyboard_arrow_down, color: richGold),
+                              isExpanded: true,
+                              items: [
+                                const DropdownMenuItem<DocumentSnapshot?>(
+                                  value: null,
+                                  child: TranslatedText("No Scheme", style: TextStyle(color: textLight)),
+                                ),
+                                ..._availableSchemes.map((scheme) {
+                                  final data = scheme.data() as Map<String, dynamic>;
+                                  return DropdownMenuItem<DocumentSnapshot?>(
+                                    value: scheme,
+                                    child: Text(
+                                      "${data['name']} (${data['discountPercentage']}% OFF)",
+                                      style: const TextStyle(color: textLight),
+                                    ),
+                                  );
+                                }),
+                              ],
+                              onChanged: _applyScheme,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+
                       // Mandatory Delivery Details for all Home Delivery orders
                       Form(
                         key: _formKey,
@@ -357,12 +474,24 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ),
                 child: Column(
                   children: [
+                    if (_discountAmount > 0) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const TranslatedText('Discount Applied:',
+                              style: TextStyle(color: Colors.greenAccent, fontSize: 16)),
+                          Text('-₹${_discountAmount.toStringAsFixed(0)}',
+                              style: const TextStyle(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const TranslatedText('Total Amount:',
                             style: TextStyle(color: textLight, fontSize: 18, fontWeight: FontWeight.bold)),
-                        Text('₹${cartService.totalPrice.toStringAsFixed(0)}',
+                        Text('₹${(cartService.totalPrice - _discountAmount).toStringAsFixed(0)}',
                             style: const TextStyle(color: richGold, fontSize: 20, fontWeight: FontWeight.bold)),
                       ],
                     ),
