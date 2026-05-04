@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detection.dart';
-import 'package:hand_landmarker/hand_landmarker.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 import 'package:gal/gal.dart';
@@ -11,7 +10,6 @@ import 'package:screenshot/screenshot.dart';
 
 import '../services/camera_service.dart';
 import '../services/face_detection_service.dart';
-import '../services/hand_detection_service.dart';
 import '../services/image_processor_service.dart';
 import '../widgets/overlay_renderer.dart';
 
@@ -25,7 +23,6 @@ class TryOnScreen extends StatefulWidget {
 class _TryOnScreenState extends State<TryOnScreen> {
   final CameraService _cameraService = CameraService();
   final FaceDetectionService _faceDetectionService = FaceDetectionService();
-  final HandDetectionService _handDetectionService = HandDetectionService();
   final ScreenshotController _screenshotController = ScreenshotController();
 
   // --- Modes ---
@@ -35,14 +32,13 @@ class _TryOnScreenState extends State<TryOnScreen> {
 
   // --- AR State ---
   List<FaceMesh> faces = [];
-  List<Hand>? hands;
   bool isBusy = false;
   int frameCount = 0;
   Size? cameraImageSize;
   String distanceMessage = "";
 
   // --- Jewellery Selection ---
-  String activeCategory = 'Earrings';
+  String activeCategory = 'Necklaces';
   Uint8List? processingImage;
   String? processingImageName;
 
@@ -52,9 +48,10 @@ class _TryOnScreenState extends State<TryOnScreen> {
   double manualRotation = 0.0;
 
   final Color richGold = const Color(0xFFD4AF37);
-  final Color surfaceDark = const Color(0xFF1A1A1A);
+  final Color darkBg = const Color(0xFF0F2F2B);
+  final Color surfaceDark = const Color(0xFF17453F);
 
-  final List<String> categories = ['Necklaces', 'Earrings', 'Rings', 'Bangles'];
+  final List<String> categories = ['Necklaces', 'Earrings'];
 
   final Map<String, List<Map<String, String>>> categoryItems = {
     'Earrings': [
@@ -66,24 +63,13 @@ class _TryOnScreenState extends State<TryOnScreen> {
       {"name": "Pearl Neck", "image": "assets/auth/necklacenew1.png"},
       {"name": "Daimond Neck", "image": "assets/auth/necklacenew2.png"},
     ],
-    'Rings': [
-      {"name": "Ring 1", "image": "assets/auth/ringnew2.png"},
-      {"name": "Ring 2", "image": "assets/auth/ringnew1.png"},
-    ],
-    'Bangles': [
-      {"name": "Bangles 1", "image": "assets/auth/banglesnew1.png"},
-      {"name": "Bangles 2", "image": "assets/auth/banglesnew2.png"},
-    ],
   };
-
-  bool get _isHandCategory =>
-      activeCategory == 'Rings' || activeCategory == 'Bangles';
 
   @override
   void initState() {
     super.initState();
     _checkPermissionsAndInitialize();
-    _selectJewellery(categoryItems['Earrings']![0]['image']!);
+    _selectJewellery(categoryItems['Necklaces']![0]['image']!);
   }
 
   String? _initError;
@@ -92,7 +78,6 @@ class _TryOnScreenState extends State<TryOnScreen> {
     try {
       final status = await Permission.camera.request();
       if (status.isGranted) {
-        _handDetectionService.initialize();
         await _cameraService.initializeCamera(
             CameraLensDirection.front, _processCameraImage);
         if (mounted) setState(() { _initError = null; });
@@ -107,20 +92,6 @@ class _TryOnScreenState extends State<TryOnScreen> {
         _initError = "Failed to initialize camera: $e";
       });
     }
-  }
-
-  /// Switches camera to back for hand categories, front for face categories
-  Future<void> _switchCameraForCategory(String category) async {
-    if (!_cameraService.isInitialized) return;
-
-    final bool needsBack = category == 'Rings' || category == 'Bangles';
-    final direction =
-        needsBack ? CameraLensDirection.back : CameraLensDirection.front;
-
-    // Reset image size since camera is changing
-    cameraImageSize = null;
-    await _cameraService.switchToDirection(direction);
-    if (mounted) setState(() {});
   }
 
   void _processCameraImage(CameraImage image) async {
@@ -147,56 +118,33 @@ class _TryOnScreenState extends State<TryOnScreen> {
     }
 
     try {
-      if (!_isHandCategory) {
-        // Face tracking for Earrings/Necklaces
-        final detectedFaces =
-            await _faceDetectionService.processImage(image, controller);
+      final detectedFaces =
+          await _faceDetectionService.processImage(image, controller);
 
-        String newGuidance = "";
-        if (detectedFaces.isNotEmpty) {
-          final face = detectedFaces.first;
-          final double faceW = face.boundingBox.width;
-          final double screenW =
-              cameraImageSize!.width < cameraImageSize!.height
-                  ? cameraImageSize!.width
-                  : cameraImageSize!.height;
+      String newGuidance = "";
+      if (detectedFaces.isNotEmpty) {
+        final face = detectedFaces.first;
+        final double faceW = face.boundingBox.width;
+        final double screenW =
+            cameraImageSize!.width < cameraImageSize!.height
+                ? cameraImageSize!.width
+                : cameraImageSize!.height;
 
-          final double ratio = faceW / screenW;
-          if (ratio < 0.35) {
-            newGuidance = "Move Closer";
-          } else if (ratio > 0.65) {
-            newGuidance = "Move Further Away";
-          } else {
-            newGuidance = "Perfect";
-          }
-        }
-
-        if (mounted) {
-          setState(() {
-            faces = detectedFaces;
-            hands = null;
-            distanceMessage = newGuidance;
-          });
-        }
-      } else {
-        // Hand tracking for Rings/Bangles
-        final detectedHands =
-            _handDetectionService.processImage(image, controller);
-
-        String newGuidance = "";
-        if (detectedHands == null || detectedHands.isEmpty) {
-          newGuidance = "Show your hand to camera";
+        final double ratio = faceW / screenW;
+        if (ratio < 0.35) {
+          newGuidance = "Move Closer";
+        } else if (ratio > 0.65) {
+          newGuidance = "Move Further Away";
         } else {
-          newGuidance = "Hand Detected ✓";
+          newGuidance = "Perfect";
         }
+      }
 
-        if (mounted) {
-          setState(() {
-            hands = detectedHands;
-            faces = [];
-            distanceMessage = newGuidance;
-          });
-        }
+      if (mounted) {
+        setState(() {
+          faces = detectedFaces;
+          distanceMessage = newGuidance;
+        });
       }
     } catch (e) {
       debugPrint("Detection error: $e");
@@ -236,7 +184,6 @@ class _TryOnScreenState extends State<TryOnScreen> {
       isCaptured = false;
       capturedFile = null;
       faces = [];
-      hands = null;
       manualOffset = Offset.zero;
       manualScale = 1.0;
       manualRotation = 0.0;
@@ -292,7 +239,6 @@ class _TryOnScreenState extends State<TryOnScreen> {
   void dispose() {
     _cameraService.dispose();
     _faceDetectionService.dispose();
-    _handDetectionService.dispose();
     super.dispose();
   }
 
@@ -304,9 +250,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
     Widget previewWidget = const Center(child: CircularProgressIndicator());
 
     if (isModelMode) {
-      final String modelAsset = _isHandCategory
-          ? 'assets/auth/handmodel.jpeg'
-          : 'assets/auth/model.png';
+      const String modelAsset = 'assets/auth/model.png';
 
       previewWidget = Image.asset(modelAsset,
           fit: BoxFit.contain,
@@ -358,10 +302,20 @@ class _TryOnScreenState extends State<TryOnScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: darkBg,
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // Elegant Gradient Background
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [darkBg, surfaceDark, Colors.black],
+              ),
+            ),
+          ),
           Screenshot(
             controller: _screenshotController,
             child: Stack(
@@ -369,8 +323,6 @@ class _TryOnScreenState extends State<TryOnScreen> {
               children: [
                 previewWidget,
                 if (hasCamera || isModelMode) _buildOverlayLayer(),
-                if (!isModelMode && !isCaptured && _isHandCategory && (hands == null || hands!.isEmpty))
-                  _buildHandGuide(), // Guide the user to place hand correctly
               ],
             ),
           ),
@@ -387,8 +339,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
       return const SizedBox.shrink();
     }
 
-    final bool isPerfect =
-        distanceMessage == "Perfect" || distanceMessage.contains("✓");
+    final bool isPerfect = distanceMessage == "Perfect";
 
     return Positioned(
       top: 130,
@@ -415,11 +366,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (_isHandCategory && !isPerfect)
-                const Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: Icon(Icons.pan_tool, color: Colors.white70, size: 18),
-                ),
+              const SizedBox.shrink(),
               Text(
                 distanceMessage,
                 style: const TextStyle(
@@ -435,6 +382,8 @@ class _TryOnScreenState extends State<TryOnScreen> {
     );
   }
 
+  double _baseScale = 1.0;
+
   Widget _buildOverlayLayer() {
     return GestureDetector(
       onDoubleTap: () {
@@ -444,18 +393,30 @@ class _TryOnScreenState extends State<TryOnScreen> {
           manualRotation = 0.0;
         });
       },
+      onScaleStart: (details) {
+        _baseScale = manualScale;
+      },
       onScaleUpdate: (details) {
         setState(() {
           manualOffset += details.focalPointDelta;
-          if (details.scale != 1.0) manualScale *= details.scale;
-          if (details.rotation != 0.0) manualRotation += details.rotation;
+          if (details.scale != 1.0) {
+            manualScale = (_baseScale * details.scale).clamp(0.2, 4.0);
+          }
+          if (details.rotation != 0.0) {
+            manualRotation += details.rotation;
+          }
+          final size = MediaQuery.of(context).size;
+          manualOffset = Offset(
+            manualOffset.dx.clamp(-size.width * 0.8, size.width * 0.8),
+            manualOffset.dy.clamp(-size.height * 0.8, size.height * 0.8),
+          );
         });
       },
       child: Container(
         color: Colors.transparent,
         child: OverlayRenderer(
           faces: faces,
-          hands: hands,
+          hands: const [],
           expectedImageSize: cameraImageSize ?? Size.zero,
           activeJewelleryImage: processingImage,
           activeJewelleryPath: processingImageName,
@@ -484,7 +445,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
             children: [
               IconButton(
                   icon: const Icon(Icons.arrow_back,
-                      color: Colors.white, size: 28),
+                      color: Color(0xFFD4AF37), size: 28),
                   onPressed: () => Navigator.pop(context)),
               _buildModeToggle(),
               const SizedBox(width: 48),
@@ -500,7 +461,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
       width: 200,
       height: 40,
       decoration: BoxDecoration(
-          color: Colors.white12, borderRadius: BorderRadius.circular(20)),
+          color: const Color(0xFF4A3728).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
       child: Row(
         children: [
           _modeButton("Camera", !isModelMode, () async {
@@ -522,7 +483,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-              color: active ? Colors.white : Colors.transparent,
+              color: active ? richGold : Colors.transparent,
               borderRadius: BorderRadius.circular(20)),
           alignment: Alignment.center,
           child: Text(label,
@@ -599,31 +560,21 @@ class _TryOnScreenState extends State<TryOnScreen> {
   Widget _categoryTab(String cat) {
     bool active = activeCategory == cat;
     return GestureDetector(
-      onTap: () async {
-        final String prevCategory = activeCategory;
+      onTap: () {
         setState(() {
           activeCategory = cat;
           faces = [];
-          hands = null;
           distanceMessage = "";
           manualOffset = Offset.zero;
           manualScale = 1.0;
         });
         _selectJewellery(categoryItems[cat]![0]['image']!);
-
-        // Auto-switch camera when changing between face/hand categories
-        final bool wasHand =
-            prevCategory == 'Rings' || prevCategory == 'Bangles';
-        final bool isNowHand = cat == 'Rings' || cat == 'Bangles';
-        if (wasHand != isNowHand && !isModelMode) {
-          await _switchCameraForCategory(cat);
-        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Text(cat,
             style: TextStyle(
-                color: active ? richGold : Colors.white70,
+                color: active ? richGold : const Color(0xFF8B7355),
                 fontWeight: FontWeight.bold)),
       ),
     );
@@ -658,36 +609,10 @@ class _TryOnScreenState extends State<TryOnScreen> {
             border: Border.all(color: Colors.white, width: 4)),
         child: Container(
             decoration: BoxDecoration(
-                color: isCaptured ? richGold : Colors.white,
+                color: isCaptured ? richGold : Colors.black12,
                 shape: BoxShape.circle),
             child:
                 Icon(isCaptured ? Icons.refresh : null, color: Colors.black)),
-      ),
-    );
-  }
-
-  Widget _buildHandGuide() {
-    return Center(
-      child: Opacity(
-        opacity: 0.3,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.pan_tool_outlined, color: Colors.white, size: 200),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                "Place your hand inside the frame",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

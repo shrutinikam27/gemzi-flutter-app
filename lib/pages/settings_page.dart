@@ -70,10 +70,11 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       backgroundColor: darkBg,
       appBar: AppBar(
+        iconTheme: IconThemeData(color: richGold),
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const TranslatedText("Settings",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -87,7 +88,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [surfaceDark, surfaceDark.withValues(alpha: 0.6)],
+                    colors: [surfaceDark, surfaceDark.withValues(alpha: 0.7)],
                   ),
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(color: richGold.withValues(alpha: 0.2)),
@@ -120,8 +121,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         children: [
                           Text(
                             userName,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: richGold,
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                             ),
@@ -252,7 +253,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                label: const TranslatedText(
+                label: TranslatedText(
                   "Logout Account",
                   style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
                 ),
@@ -306,7 +307,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         title: TranslatedText(title, style: const TextStyle(color: Colors.white, fontSize: 15)),
         subtitle: TranslatedText(subtitle, style: TextStyle(color: textSubdued, fontSize: 11)),
-        trailing: Icon(Icons.chevron_right_rounded, color: textSubdued, size: 20),
+        trailing: Icon(Icons.chevron_right_rounded, color: richGold, size: 20),
         onTap: onTap,
       ),
     );

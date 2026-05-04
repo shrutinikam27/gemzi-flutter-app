@@ -24,6 +24,7 @@ import 'settings_page.dart';
 import 'live_gold_page.dart';
 import '../screens/try_on_screen.dart';
 import 'cart_page.dart';
+import 'payment_methods_page.dart';
 import 'dart:async';
 
 class GemziHome extends StatefulWidget {
@@ -36,10 +37,9 @@ class GemziHome extends StatefulWidget {
 class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   TextEditingController searchController = TextEditingController();
   List<Map<String, dynamic>> filteredItems = [];
-  final Color darkBg = const Color(0xFF0F2F2B);
-  final Color surfaceDark = const Color(0xFF17453F);
-  final Color richGold = const Color(0xFFD4AF37);
-  final Color bronze = const Color(0xFFB8962E);
+  final Color darkBg = const Color(0xFF0F2F2B); // Forest Green
+  final Color surfaceDark = const Color(0xFF17453F); // Dark Teal
+  final Color richGold = const Color(0xFFD4AF37); // Gold accent
   final Color textLight = Colors.white;
   final Color textSubdued = const Color(0xFFB8D1CD);
   final Color white = Colors.white;
@@ -394,6 +394,12 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                   "Saving Schemes",
                   const SavingSchemeScreen(),
                 ),
+                _menuItem(
+                  context,
+                  Icons.account_balance_wallet_outlined,
+                  "Digital Vault",
+                  PaymentMethodsPage(),
+                ),
               ],
             ),
           ),
@@ -544,7 +550,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [darkBg, surfaceDark, darkBg],
+          colors: [darkBg, surfaceDark, Colors.black],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -972,22 +978,31 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 children: [
                   const Icon(Icons.show_chart, color: Color(0xFFD4AF37)),
                   const SizedBox(width: 10),
-                  TranslatedText("Gold Rate Live",
-                      style: TextStyle(color: textLight, fontWeight: FontWeight.bold)),
+                  Flexible(
+                    child: TranslatedText("Gold Rate Live",
+                        style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 14),
+                        overflow: TextOverflow.ellipsis),
+                  ),
                   const Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "24K: ₹${r24.toStringAsFixed(0)}/g",
-                        style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                      Text(
-                        "22K: ₹${r22.toStringAsFixed(0)}/g",
-                        style: TextStyle(color: textSubdued, fontSize: 11),
-                      )
-                    ],
-                  )
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          "24K: ₹${r24.toStringAsFixed(0)}/g",
+                          style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          "22K: ₹${r22.toStringAsFixed(0)}/g",
+                          style: TextStyle(color: richGold, fontSize: 11),
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Icon(Icons.arrow_forward_ios, color: richGold, size: 14),
                 ],
               ),
             ),
@@ -1051,12 +1066,15 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             const SizedBox(height: 25),
             Text(title, style: TextStyle(color: richGold, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1)),
             const SizedBox(height: 15),
-            TranslatedText(content, style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5), textAlign: TextAlign.center),
+            TranslatedText(content, style: TextStyle(color: textLight, fontSize: 14, height: 1.5), textAlign: TextAlign.center),
             const SizedBox(height: 30),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: richGold, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: richGold,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15))),
                 onPressed: () => Navigator.pop(context),
                 child: const TranslatedText("UNDERSTOOD", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               ),
@@ -1109,7 +1127,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 8),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [richGold, bronze]),
+                        gradient: LinearGradient(colors: [richGold, richGold]),
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: const TranslatedText(
@@ -1151,7 +1169,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             darkBg.withAlpha(153), // 0.6 * 255
           ],
         ),
-        borderGradient: LinearGradient(colors: [richGold, bronze]),
+        borderGradient: LinearGradient(colors: [richGold, richGold]),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -1220,7 +1238,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [bronze, richGold]),
+          gradient: LinearGradient(colors: [richGold, richGold]),
           borderRadius: BorderRadius.circular(30),
         ),
         child: const Row(
@@ -1454,15 +1472,15 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           child: GestureDetector(
             onTap: () => Navigator.pushNamed(context, "/exclusive-collections"),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TranslatedText("Exclusive Collections",
+                const TranslatedText("Exclusive Collections",
                     style: TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFFD4AF37),
                         fontWeight: FontWeight.bold,
                         fontSize: 18)),
-                Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 14),
+                Icon(Icons.arrow_forward_ios, color: Color(0xFFD4AF37), size: 14),
               ],
             ),
           ),

@@ -356,7 +356,6 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
 
         final investments = snapshot.data?.docs ?? [];
         if (investments.isEmpty) {
-<<<<<<< HEAD
           return const Center(child: TranslatedText("No active investments yet", style: TextStyle(color: Colors.white54)));
         }
 
@@ -370,71 +369,6 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
             final duration = data['duration'] ?? '12 Months';
             final amount = data['amountPaid'] ?? 0;
             final isSIP = data['isSIP'] ?? plan.toString().toLowerCase().contains('sip');
-            
-            return Container(
-=======
-          // Return a dummy card for demonstration
-          return GestureDetector(
-            onTap: _playGoldCoinAnimation,
-            child: Container(
->>>>>>> aae979177450f31ff34dd0b0c8c5f15edfb8be08
-              margin: const EdgeInsets.only(bottom: 15),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE6C76A).withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE6C76A).withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.workspace_premium, color: Color(0xFFE6C76A)),
-                  ),
-                  const SizedBox(width: 15),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Monthly SIP (Demo)", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                        SizedBox(height: 4),
-                        Text("12 Months Plan", style: TextStyle(color: Colors.white54, fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-<<<<<<< HEAD
-                      Text("₹$amount${isSIP ? ' / Month' : ''}", style: const TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
-                      const SizedBox(height: 4),
-                      const TranslatedText("Active", style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
-=======
-                      Text("₹2000", style: TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
-                      SizedBox(height: 4),
-                      Text("Sample", style: TextStyle(color: Colors.blueAccent, fontSize: 12, fontWeight: FontWeight.bold)),
->>>>>>> aae979177450f31ff34dd0b0c8c5f15edfb8be08
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: investments.length,
-          itemBuilder: (context, index) {
-            final data = investments[index].data() as Map<String, dynamic>;
-            final plan = data['planType'] ?? 'SIP';
-            final duration = data['duration'] ?? '12 Months';
-            final amount = data['amountPaid'] ?? 0;
             
             return GestureDetector(
               onTap: _playGoldCoinAnimation,
@@ -471,7 +405,7 @@ class _SavingSchemeScreenState extends State<SavingSchemeScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text("₹$amount", style: const TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text("₹$amount${isSIP ? ' / Month' : ''}", style: const TextStyle(color: Color(0xFFE6C76A), fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 4),
                         const TranslatedText("Active", style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                       ],
