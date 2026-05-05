@@ -92,7 +92,7 @@ class FaceDetectionService {
     for (int y = 0; y < uvHeight; y++) {
       for (int x = 0; x < uvWidth; x++) {
         final int uvIndex =
-            y * (uPlane.bytesPerRow ?? 0) + x * (uPlane.bytesPerPixel ?? 1);
+            y * uPlane.bytesPerRow + x * (uPlane.bytesPerPixel ?? 1);
         nv21[id++] = vBuffer[uvIndex];
         nv21[id++] = uBuffer[uvIndex];
       }

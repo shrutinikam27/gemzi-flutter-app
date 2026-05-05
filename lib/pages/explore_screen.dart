@@ -88,13 +88,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         // 💎 Unified Intelligent Fallbacks
                         if (weight == 0) {
                           final name = (data['name'] ?? "").toString().toLowerCase();
-                          if (name.contains("necklace")) weight = 24.5;
-                          else if (name.contains("bangle")) weight = 32.5;
-                          else if (name.contains("earring")) weight = 12.0;
-                          else if (name.contains("ring")) weight = 6.5;
-                          else if (name.contains("coin")) weight = 10.0;
-                          else if (name.contains("bracelet")) weight = 12.5;
-                          else weight = 8.0;
+                          if (name.contains("necklace")) { weight = 24.5; }
+                          else if (name.contains("bangle")) { weight = 32.5; }
+                          else if (name.contains("earring")) { weight = 12.0; }
+                          else if (name.contains("ring")) { weight = 6.5; }
+                          else if (name.contains("coin")) { weight = 10.0; }
+                          else if (name.contains("bracelet")) { weight = 12.5; }
+                          else { weight = 8.0; }
                         }
                         
                         final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);

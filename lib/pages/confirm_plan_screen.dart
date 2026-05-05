@@ -6,7 +6,7 @@ import 'dart:math';
 import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
 import '../services/gold_rate_service.dart';
-import 'order_success_page.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/razorpay_service.dart';

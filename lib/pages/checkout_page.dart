@@ -85,7 +85,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       if (mounted) {
         setState(() {
           _availableSchemes = snapshot.docs.where((doc) {
-            final data = doc.data() as Map<String, dynamic>;
+            final data = doc.data();
             bool firstOnly = data['isFirstOrderOnly'] ?? false;
             
             if (firstOnly) {
@@ -361,6 +361,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ),
                         child: Column(
                           children: [
+                            // ignore: deprecated_member_use
                             RadioListTile<String>(
                               title: const TranslatedText('UPI Payment (Pay Now)', style: TextStyle(color: textLight)),
                               value: 'UPI',
@@ -371,6 +372,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
                             ),
                             const SizedBox(height: 8),
+                            // ignore: deprecated_member_use
                             RadioListTile<String>(
                               title: const TranslatedText('Cash on Delivery (COD)', style: TextStyle(color: textLight)),
                               value: 'COD',

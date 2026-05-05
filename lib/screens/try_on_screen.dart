@@ -57,11 +57,14 @@ class _TryOnScreenState extends State<TryOnScreen> {
     'Earrings': [
       {"name": "Emerald", "image": "assets/auth/earringnew.png"},
       {"name": "Pearl", "image": "assets/auth/earringnew1.png"},
+      {"name": "Gold Jhumka", "image": "assets/auth/earringnew3.png"},
+      {"name": "Royal Gold Jhumka", "image": "assets/auth/earringnew4.png"},
     ],
     'Necklaces': [
-      {"name": "Gold Neck", "image": "assets/auth/necklacenew.png"},
-      {"name": "Pearl Neck", "image": "assets/auth/necklacenew1.png"},
-      {"name": "Daimond Neck", "image": "assets/auth/necklacenew2.png"},
+      {"name": "Pendent Neck", "image": "assets/auth/necklasenew3.jpeg"},
+      {"name": "Pearl Neck", "image": "assets/auth/necklasenew4.jpeg"},
+      {"name": "Gold Neck", "image": "assets/auth/necklasenew5.jpeg"},
+      {"name": "Daimond Neck", "image": "assets/auth/necklacenew.png"},
     ],
   };
 
@@ -80,10 +83,14 @@ class _TryOnScreenState extends State<TryOnScreen> {
       if (status.isGranted) {
         await _cameraService.initializeCamera(
             CameraLensDirection.front, _processCameraImage);
-        if (mounted) setState(() { _initError = null; });
+        if (mounted)
+          setState(() {
+            _initError = null;
+          });
       } else {
         setState(() {
-          _initError = "Camera permission denied. Please enable it in settings.";
+          _initError =
+              "Camera permission denied. Please enable it in settings.";
         });
       }
     } catch (e) {
@@ -125,10 +132,9 @@ class _TryOnScreenState extends State<TryOnScreen> {
       if (detectedFaces.isNotEmpty) {
         final face = detectedFaces.first;
         final double faceW = face.boundingBox.width;
-        final double screenW =
-            cameraImageSize!.width < cameraImageSize!.height
-                ? cameraImageSize!.width
-                : cameraImageSize!.height;
+        final double screenW = cameraImageSize!.width < cameraImageSize!.height
+            ? cameraImageSize!.width
+            : cameraImageSize!.height;
 
         final double ratio = faceW / screenW;
         if (ratio < 0.35) {
@@ -461,7 +467,8 @@ class _TryOnScreenState extends State<TryOnScreen> {
       width: 200,
       height: 40,
       decoration: BoxDecoration(
-          color: const Color(0xFF4A3728).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+          color: const Color(0xFF4A3728).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20)),
       child: Row(
         children: [
           _modeButton("Camera", !isModelMode, () async {
