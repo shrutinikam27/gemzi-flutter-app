@@ -54,7 +54,6 @@ class _TryOnScreenState extends State<TryOnScreen> {
   final Color richGold = const Color(0xFFD4AF37);
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
-  final Color richGold = const Color(0xFFD4AF37);
 
   final List<String> categories = ['Necklaces', 'Earrings', 'Rings', 'Bracelets'];
 
