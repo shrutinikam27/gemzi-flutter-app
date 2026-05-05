@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
 import '../services/cart_service.dart';
@@ -60,6 +61,11 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   late Future<QuerySnapshot> _productsFuture;
   late Future<double> _goldRateFuture;
 
+  // ── Video Player ──────────────────────────────────────────────────────────
+  VideoPlayerController? _videoController;
+  bool _videoInitialized = false;
+  // ─────────────────────────────────────────────────────────────────────────
+
   Future<void> loadGoldRate() async {
     if (!mounted) return;
     try {
@@ -119,6 +125,43 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     filteredItems = trendingItems;
     _startLiveTimer();
     _listenToUserData();
+    _initVideoPlayer();
+  }
+
+  Future<void> _initVideoPlayer() async {
+    try {
+      if (_videoController != null) {
+        await _videoController!.dispose();
+      }
+      
+      _videoController = VideoPlayerController.asset('assets/video/video.mp4');
+      
+      // 🛠️ Wait for initialization with timeout
+      await _videoController!.initialize().timeout(const Duration(seconds: 10));
+      
+      // 🔇 Force Mute & Loop
+      await _videoController!.setVolume(0.0);
+      await _videoController!.setLooping(true);
+      
+      if (mounted) {
+        setState(() => _videoInitialized = true);
+        await _videoController!.play();
+        debugPrint("✅ Video Initialized & Playing: assets/video/video.mp4");
+      }
+      
+      _videoController!.addListener(_videoListener);
+    } catch (e) {
+      debugPrint("❌ Video Initialization Failed: $e");
+      if (mounted) {
+        setState(() => _videoInitialized = false);
+      }
+    }
+  }
+
+  void _videoListener() {
+    if (mounted && _videoController != null && _videoController!.value.hasError) {
+      debugPrint("❌ Video Runtime Error: ${_videoController!.value.errorDescription}");
+    }
   }
 
   void _listenToUserData() {
@@ -303,6 +346,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     _countdownTimer?.cancel();
     _userSubscription?.cancel();
     searchController.dispose();
+    _videoController?.removeListener(_videoListener);
+    _videoController?.dispose();
     super.dispose();
   }
 
@@ -352,6 +397,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                       _buildCategoryList(),
                       _buildLiveGoldRate(),
                       _buildAdBanner(), // 💍 THE STAR AD (WITH TIMER)
+                      _buildVideoSection(), // 🎬 PROMO VIDEO
                       _buildMainProductCollection(),
                       _buildExclusiveCollections(),
                       _buildARSection(),
@@ -1351,18 +1397,12 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   }
 
   Widget _buildProductGrid(List<Map<String, dynamic>> items, double rate) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
+    return SizedBox(
+      height: 280, // Optimized height for horizontal cards
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: items.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.65,
-        ),
         itemBuilder: (context, index) {
           final item = items[index];
           
@@ -1370,7 +1410,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           double weight = 0.0;
           String weightStr = item['weight']?.toString() ?? "";
           
-          // Remove "g", "gm", "grams" and white spaces
           String cleanWeight = weightStr.toLowerCase()
               .replaceAll("g", "")
               .replaceAll("m", "")
@@ -1380,7 +1419,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               
           weight = double.tryParse(cleanWeight) ?? 0.0;
           
-          // 💎 Unified Intelligent Fallbacks (Matching across all pages)
           if (weight == 0) {
             final name = (item['name'] ?? "").toString().toLowerCase();
             if (name.contains("necklace")) weight = 24.5;
@@ -1389,11 +1427,16 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             else if (name.contains("ring")) weight = 6.5;
             else if (name.contains("coin")) weight = 10.0;
             else if (name.contains("bracelet")) weight = 12.5;
-            else weight = 8.0; // Global fallback
+            else weight = 8.0; 
           }
 
           final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
-          return _buildPremiumProductCard(item, dynamicPrice, weight, rate);
+          
+          return Container(
+            width: 180, // Fixed width for horizontal items
+            margin: const EdgeInsets.only(right: 15),
+            child: _buildPremiumProductCard(item, dynamicPrice, weight, rate),
+          );
         },
       ),
     );
@@ -1587,6 +1630,90 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     );
   }
 
+  // ════════════════════════════════════════════════════════════════════════
+  // 🎬  HOMEPAGE VIDEO SECTION
+  Widget _buildVideoSection() {
+    // 🎨 Placeholder while loading
+    if (!_videoInitialized || _videoController == null) {
+      return Container(
+        height: 160,
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          color: surfaceDark,
+          border: Border.all(color: richGold.withValues(alpha: 0.1)),
+        ),
+        child: Center(
+          child: CircularProgressIndicator(color: richGold, strokeWidth: 2),
+        ),
+      );
+    }
+
+    final ctrl = _videoController!;
+
+    return FadeInUp(
+      duration: const Duration(milliseconds: 600),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          color: surfaceDark,
+          border: Border.all(color: richGold.withValues(alpha: 0.3), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: richGold.withValues(alpha: 0.12),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header ──────────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome, color: richGold, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Exclusive Showcase',
+                    style: TextStyle(
+                      color: textLight,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(Icons.fullscreen, color: richGold.withValues(alpha: 0.5), size: 18),
+                ],
+              ),
+            ),
+
+            // ── Video Player (Cinematic Ratio) ──────────────────────────────
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
+              child: AspectRatio(
+                aspectRatio: 2.35 / 1, // 🎬 Cinematic widescreen ratio
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  clipBehavior: Clip.hardEdge,
+                  child: SizedBox(
+                    width: ctrl.value.size.width > 0 ? ctrl.value.size.width : 1920,
+                    height: ctrl.value.size.height > 0 ? ctrl.value.size.height : 817,
+                    child: VideoPlayer(ctrl),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }
 
 class GemziCarousel extends StatefulWidget {
@@ -1708,4 +1835,6 @@ class _GemziCarouselState extends State<GemziCarousel> {
     );
   }
 
+
 }
+
