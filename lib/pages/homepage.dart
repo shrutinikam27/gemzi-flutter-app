@@ -6,7 +6,7 @@ import 'package:animate_do/animate_do.dart';
 import '../services/cart_service.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 import '../screens/products/rings_page.dart' as rings_page;
 import '../screens/products/product_detail_page.dart';
@@ -58,7 +58,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   Timer? _countdownTimer;
   StreamSubscription<DocumentSnapshot>? _userSubscription;
   double walletBalance = 0.0;
-  late Future<QuerySnapshot> _productsFuture;
+
   late Future<double> _goldRateFuture;
 
   // ── Video Player ──────────────────────────────────────────────────────────
@@ -100,7 +100,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     super.initState();
     
     // 🛡️ 1. Immediate Future Initialization
-    _productsFuture = FirebaseFirestore.instance.collection('products').get();
     _goldRateFuture = GoldRateService.getGoldRate();
 
     // 🛡️ 2. Sync with Service (which handles internal daily caching)
@@ -240,40 +239,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     );
   }
 
-  // ✅ FETCH USER NAME FROM FIREBASE
-  // ✅ SAFE USER FETCH (NO CRASH)
-  Future<void> _loadUserName() async {
-    final user = FirebaseAuth.instance.currentUser;
 
-    if (user == null) return;
-
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection("users")
-          .doc(user.uid)
-          .get();
-
-      if (doc.exists) {
-        final data = doc.data();
-
-        if (data != null && data['name'] != null) {
-          setState(() {
-            userName = data['name'];
-          });
-        } else {
-          setState(() {
-            userName = "User";
-          });
-        }
-      } else {
-        setState(() {
-          userName = "User";
-        });
-      }
-    } catch (e) {
-      // Removed print for production - error handled silently
-    }
-  }
 
   final List<String> categoryImages = [
     "assets/auth/ring.png",
@@ -1421,13 +1387,13 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           
           if (weight == 0) {
             final name = (item['name'] ?? "").toString().toLowerCase();
-            if (name.contains("necklace")) weight = 24.5;
-            else if (name.contains("bangle")) weight = 32.5;
-            else if (name.contains("earring")) weight = 12.0;
-            else if (name.contains("ring")) weight = 6.5;
-            else if (name.contains("coin")) weight = 10.0;
-            else if (name.contains("bracelet")) weight = 12.5;
-            else weight = 8.0; 
+            if (name.contains("necklace")) { weight = 24.5; }
+            else if (name.contains("bangle")) { weight = 32.5; }
+            else if (name.contains("earring")) { weight = 12.0; }
+            else if (name.contains("ring")) { weight = 6.5; }
+            else if (name.contains("coin")) { weight = 10.0; }
+            else if (name.contains("bracelet")) { weight = 12.5; }
+            else { weight = 8.0; } // Global fallback
           }
 
           final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);

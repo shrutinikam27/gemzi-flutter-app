@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detection.dart';
+import 'package:hand_landmarker/hand_landmarker.dart';
 
 class OverlayRenderer extends StatefulWidget {
   final List<FaceMesh> faces;
@@ -41,6 +42,9 @@ class _OverlayRendererState extends State<OverlayRenderer> {
   // Low-pass filter state for Face
   double? slX, slY, srX, srY, scX, scY;
   double? sw, sh;
+  
+  // Low-pass filter state for Hand
+  double? hx, hy, hw, hr;
 
   final double alpha = 0.3;
 
@@ -85,6 +89,14 @@ class _OverlayRendererState extends State<OverlayRenderer> {
     // --- Model Mode ---
     if (widget.isModelMode) {
       return _buildModelOverlays(screenSize);
+    }
+
+    // --- Live Camera: Hand categories ---
+    if (widget.activeCategory == 'Rings' ||
+        widget.activeCategory == 'Bracelets') {
+      if (widget.hands == null || widget.hands!.isEmpty)
+        return const SizedBox.shrink();
+      return _buildHandOverlays(scaleX, scaleY, offsetX, offsetY, logicalWidth);
     }
 
     // --- Live Camera: Face categories ---
@@ -184,6 +196,89 @@ class _OverlayRendererState extends State<OverlayRenderer> {
     return Stack(children: overlays);
   }
 
+  Widget _buildHandOverlays(double scaleX, double scaleY, double offsetX,
+      double offsetY, double logicalWidth) {
+    List<Widget> overlays = [];
+    final handsList = widget.hands as List<Hand>;
+
+    for (var hand in handsList) {
+      if (hand.landmarks.length < 21) continue;
+
+      final landmarks = hand.landmarks;
+
+      if (widget.activeCategory == 'Rings') {
+        // Point 13: Ring finger MCP, Point 14: Ring finger PIP
+        final p13 = landmarks[13];
+        final p14 = landmarks[14];
+
+        hx = _smooth(hx, (p13.x + p14.x) / 2);
+        hy = _smooth(hy, (p13.y + p14.y) / 2);
+
+        final double dx = p14.x - p13.x;
+        final double dy = p14.y - p13.y;
+        final double distance = sqrt(dx * dx + dy * dy);
+        final double angle = atan2(dy, dx) + (pi / 2);
+
+        hw = _smooth(hw, distance * 1.5);
+        hr = _smooth(hr, angle);
+
+        double rawX = widget.isFrontCamera ? logicalWidth - hx! : hx!;
+        double x = (rawX * scaleX) + offsetX;
+        double y = (hy! * scaleY) + offsetY;
+
+        final double ringSize = hw! * scaleX * 1.2;
+
+        overlays.add(Positioned(
+          left: x - (ringSize / 2) + widget.manualOffset.dx,
+          top: y - (ringSize / 2) + widget.manualOffset.dy,
+          child: Transform.rotate(
+            angle: hr! + widget.manualRotation,
+            child: Transform.scale(
+              scale: widget.manualScale,
+              child: Image.memory(widget.activeJewelleryImage!,
+                  width: ringSize, height: ringSize, fit: BoxFit.contain),
+            ),
+          ),
+        ));
+      } else if (widget.activeCategory == 'Bracelets') {
+        // Point 0: Wrist, Point 9: Middle finger MCP (for orientation)
+        final p0 = landmarks[0];
+        final p9 = landmarks[9];
+
+        hx = _smooth(hx, p0.x.toDouble());
+        hy = _smooth(hy, p0.y.toDouble());
+
+        final double dx = p9.x - p0.x;
+        final double dy = p9.y - p0.y;
+        final double distance = sqrt(dx * dx + dy * dy);
+        final double angle = atan2(dy, dx) + (pi / 2);
+
+        hw = _smooth(hw, distance * 0.8);
+        hr = _smooth(hr, angle);
+
+        double rawX = widget.isFrontCamera ? logicalWidth - hx! : hx!;
+        double x = (rawX * scaleX) + offsetX;
+        double y = (hy! * scaleY) + offsetY;
+
+        final double braceletWidth = hw! * scaleX * 2.2;
+
+        overlays.add(Positioned(
+          left: x - (braceletWidth / 2) + widget.manualOffset.dx,
+          top: y - (braceletWidth * 0.2) + widget.manualOffset.dy,
+          child: Transform.rotate(
+            angle: hr! + widget.manualRotation,
+            child: Transform.scale(
+              scale: widget.manualScale,
+              child: Image.memory(widget.activeJewelleryImage!,
+                  width: braceletWidth, fit: BoxFit.contain),
+            ),
+          ),
+        ));
+      }
+    }
+    return Stack(children: overlays);
+  }
+
   Widget _buildModelOverlays(Size screenSize) {
     final double necklaceY = screenSize.height * 0.53 + widget.manualOffset.dy;
     final double earringsY = screenSize.height * 0.43 + widget.manualOffset.dy;
@@ -212,6 +307,24 @@ class _OverlayRendererState extends State<OverlayRenderer> {
             top: necklaceY,
             child: Image.memory(widget.activeJewelleryImage!,
                 width: width, fit: BoxFit.contain)),
+      ]);
+    } else if (widget.activeCategory == 'Rings') {
+      final double rSize = screenSize.width * 0.2 * widget.manualScale;
+      return Stack(children: [
+        Positioned(
+            left: (screenSize.width - rSize) / 2 + widget.manualOffset.dx,
+            top: screenSize.height * 0.6 + widget.manualOffset.dy,
+            child: Image.memory(widget.activeJewelleryImage!,
+                width: rSize, height: rSize, fit: BoxFit.contain)),
+      ]);
+    } else if (widget.activeCategory == 'Bracelets') {
+      final double bWidth = screenSize.width * 0.4 * widget.manualScale;
+      return Stack(children: [
+        Positioned(
+            left: (screenSize.width - bWidth) / 2 + widget.manualOffset.dx,
+            top: screenSize.height * 0.7 + widget.manualOffset.dy,
+            child: Image.memory(widget.activeJewelleryImage!,
+                width: bWidth, fit: BoxFit.contain)),
       ]);
     }
     return const SizedBox.shrink();

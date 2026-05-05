@@ -49,13 +49,13 @@ class ImageProcessorService {
       // PROTECT Jewellery: Gold, Silver, Diamonds, Pearls
       // Gold: R > B, G > B
       // Silver/Diamond/Pearl: High brightness, but we must be careful not to erase the subject
-      final bool isGoldTone = (r > b + 20) && (g > b + 10);
+      final bool isGoldTone = (r > b + 15) && (g > b + 5);
       
-      // Target only very specific background-like pixels
-      // Background is usually VERY white (250+) or very neutral grey
-      if (!isGoldTone && brightness > 250 && variance < 5) {
+      // Target background-like pixels. JPEG backgrounds are often off-white (220+) 
+      // with slight color variance due to compression artifacts.
+      if (!isGoldTone && brightness > 225 && variance < 25) {
         newImage.setPixelRgba(pixel.x, pixel.y, r, g, b, 0); // Transparent
-      } else if (brightness > 254) {
+      } else if (brightness > 245) {
         newImage.setPixelRgba(pixel.x, pixel.y, r, g, b, 0); // Absolute white
       } else {
         newImage.setPixelRgba(pixel.x, pixel.y, r, g, b, a); // Preserve

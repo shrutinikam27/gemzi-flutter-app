@@ -10,8 +10,10 @@ import 'package:screenshot/screenshot.dart';
 
 import '../services/camera_service.dart';
 import '../services/face_detection_service.dart';
+import '../services/hand_detection_service.dart';
 import '../services/image_processor_service.dart';
 import '../widgets/overlay_renderer.dart';
+import 'package:hand_landmarker/hand_landmarker.dart';
 
 class TryOnScreen extends StatefulWidget {
   const TryOnScreen({super.key});
@@ -23,6 +25,7 @@ class TryOnScreen extends StatefulWidget {
 class _TryOnScreenState extends State<TryOnScreen> {
   final CameraService _cameraService = CameraService();
   final FaceDetectionService _faceDetectionService = FaceDetectionService();
+  final HandDetectionService _handDetectionService = HandDetectionService();
   final ScreenshotController _screenshotController = ScreenshotController();
 
   // --- Modes ---
@@ -32,6 +35,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
 
   // --- AR State ---
   List<FaceMesh> faces = [];
+  List<dynamic> hands = [];
   bool isBusy = false;
   int frameCount = 0;
   Size? cameraImageSize;
@@ -50,18 +54,32 @@ class _TryOnScreenState extends State<TryOnScreen> {
   final Color richGold = const Color(0xFFD4AF37);
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
+  final Color richGold = const Color(0xFFD4AF37);
 
-  final List<String> categories = ['Necklaces', 'Earrings'];
+  final List<String> categories = ['Necklaces', 'Earrings', 'Rings', 'Bracelets'];
 
   final Map<String, List<Map<String, String>>> categoryItems = {
     'Earrings': [
       {"name": "Emerald", "image": "assets/auth/earringnew.png"},
       {"name": "Pearl", "image": "assets/auth/earringnew1.png"},
+      {"name": "Gold Jhumka", "image": "assets/auth/earringnew3.png"},
+      {"name": "Royal Gold Jhumka", "image": "assets/auth/earringnew4.png"},
     ],
     'Necklaces': [
-      {"name": "Gold Neck", "image": "assets/auth/necklacenew.png"},
-      {"name": "Pearl Neck", "image": "assets/auth/necklacenew1.png"},
-      {"name": "Daimond Neck", "image": "assets/auth/necklacenew2.png"},
+      {"name": "Pendent Neck", "image": "assets/auth/necklasenew3.jpeg"},
+      {"name": "Pearl Neck", "image": "assets/auth/necklasenew4.jpeg"},
+      {"name": "Gold Neck", "image": "assets/auth/necklasenew5.jpeg"},
+      {"name": "Daimond Neck", "image": "assets/auth/necklacenew.png"},
+    ],
+    'Rings': [
+      {"name": "Gold Ring", "image": "assets/auth/ringnew.png"},
+      {"name": "Diamond Ring", "image": "assets/auth/ring6.png"},
+      {"name": "Eternity Ring", "image": "assets/auth/ringnew1.png"},
+    ],
+    'Bracelets': [
+      {"name": "Gold Bangle", "image": "assets/auth/bangles.png"},
+      {"name": "Diamond Bangle", "image": "assets/auth/banglesnew1.png"},
+      {"name": "Royal Bangle", "image": "assets/auth/banglesnew2.png"},
     ],
   };
 
@@ -80,10 +98,14 @@ class _TryOnScreenState extends State<TryOnScreen> {
       if (status.isGranted) {
         await _cameraService.initializeCamera(
             CameraLensDirection.front, _processCameraImage);
-        if (mounted) setState(() { _initError = null; });
+        if (mounted)
+          setState(() {
+            _initError = null;
+          });
       } else {
         setState(() {
-          _initError = "Camera permission denied. Please enable it in settings.";
+          _initError =
+              "Camera permission denied. Please enable it in settings.";
         });
       }
     } catch (e) {
@@ -118,33 +140,50 @@ class _TryOnScreenState extends State<TryOnScreen> {
     }
 
     try {
-      final detectedFaces =
-          await _faceDetectionService.processImage(image, controller);
+      if (activeCategory == 'Necklaces' || activeCategory == 'Earrings') {
+        final detectedFaces =
+            await _faceDetectionService.processImage(image, controller);
 
-      String newGuidance = "";
-      if (detectedFaces.isNotEmpty) {
-        final face = detectedFaces.first;
-        final double faceW = face.boundingBox.width;
-        final double screenW =
-            cameraImageSize!.width < cameraImageSize!.height
-                ? cameraImageSize!.width
-                : cameraImageSize!.height;
+        String newGuidance = "";
+        if (detectedFaces.isNotEmpty) {
+          final face = detectedFaces.first;
+          final double faceW = face.boundingBox.width;
+          final double screenW =
+              cameraImageSize!.width < cameraImageSize!.height
+                  ? cameraImageSize!.width
+                  : cameraImageSize!.height;
 
-        final double ratio = faceW / screenW;
-        if (ratio < 0.35) {
-          newGuidance = "Move Closer";
-        } else if (ratio > 0.65) {
-          newGuidance = "Move Further Away";
-        } else {
-          newGuidance = "Perfect";
+          final double ratio = faceW / screenW;
+          if (ratio < 0.35) {
+            newGuidance = "Move Closer";
+          } else if (ratio > 0.65) {
+            newGuidance = "Move Further Away";
+          } else {
+            newGuidance = "Perfect";
+          }
         }
-      }
 
-      if (mounted) {
-        setState(() {
-          faces = detectedFaces;
-          distanceMessage = newGuidance;
-        });
+        if (mounted) {
+          setState(() {
+            faces = detectedFaces;
+            hands = []; // Clear hands if we are in face mode
+            distanceMessage = newGuidance;
+          });
+        }
+      } else {
+        // Hand detection for Rings and Bracelets
+        final detectedHands =
+            _handDetectionService.processImage(image, controller);
+
+        if (mounted) {
+          setState(() {
+            hands = detectedHands ?? [];
+            faces = []; // Clear faces if we are in hand mode
+            distanceMessage = (detectedHands?.isNotEmpty ?? false)
+                ? "Hand Detected"
+                : "Show Your Hand";
+          });
+        }
       }
     } catch (e) {
       debugPrint("Detection error: $e");
@@ -239,6 +278,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
   void dispose() {
     _cameraService.dispose();
     _faceDetectionService.dispose();
+    _handDetectionService.dispose();
     super.dispose();
   }
 
@@ -416,7 +456,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
         color: Colors.transparent,
         child: OverlayRenderer(
           faces: faces,
-          hands: const [],
+          hands: hands,
           expectedImageSize: cameraImageSize ?? Size.zero,
           activeJewelleryImage: processingImage,
           activeJewelleryPath: processingImageName,
@@ -461,7 +501,8 @@ class _TryOnScreenState extends State<TryOnScreen> {
       width: 200,
       height: 40,
       decoration: BoxDecoration(
-          color: const Color(0xFF4A3728).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+          color: const Color(0xFF4A3728).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20)),
       child: Row(
         children: [
           _modeButton("Camera", !isModelMode, () async {
@@ -564,6 +605,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
         setState(() {
           activeCategory = cat;
           faces = [];
+          hands = [];
           distanceMessage = "";
           manualOffset = Offset.zero;
           manualScale = 1.0;
