@@ -63,10 +63,10 @@ windows/flutter/generated_plugins.cmake
 windows/build/
 
 # Web
-web/index.html
-web/favicon.png
-web/icons/
-web/manifest.json
+# web/index.html
+# web/favicon.png
+# web/icons/
+# web/manifest.json
 
 # Firebase
 .firebase/
@@ -87,3 +87,7 @@ Thumbs.db
 .env
 .env.local
 *.hprof
+
+# Logs and large files
+logcat.txt
+*.log
