@@ -1,30 +1,41 @@
 #!/bin/bash
 
-# Install Flutter
-if [ ! -d "$HOME/flutter" ]; then
-  echo "Cloning Flutter SDK..."
-  git clone https://github.com/flutter/flutter.git -b stable --depth 1 $HOME/flutter
+# Exit on error
+set -e
+
+echo "🚀 Starting Gemzi Web Build Pipeline..."
+
+# 1. Install Flutter
+if [ ! -d "/vercel/flutter" ]; then
+    echo "📥 Cloning Flutter SDK..."
+    git clone https://github.com/flutter/flutter.git -b stable /vercel/flutter
 fi
 
-# Add Flutter to PATH
-export PATH="$PATH:$HOME/flutter/bin"
+export PATH="$PATH:/vercel/flutter/bin"
 
-# Enable Web
-echo "Enabling Web support..."
+echo "🔧 Configuring Flutter..."
 flutter config --enable-web
-flutter config --no-analytics
+flutter doctor -v
 
-# Build the project
-echo "Running pub get..."
+# 2. Build Web
+echo "📦 Running Flutter Pub Get..."
 flutter pub get
 
-echo "Building for Web..."
-flutter build web --release
+echo "🏗️ Building Flutter Web (Release)..."
+flutter build web --release --no-wasm-dry-run
 
-# Create public directory for Vercel
-echo "Preparing public directory..."
-rm -rf public
+# 3. Prepare Output
+echo "📂 Preparing deployment directory..."
 mkdir -p public
 cp -r build/web/* public/
 
-echo "Build complete."
+# 4. Verification
+if [ -f "public/index.html" ]; then
+    echo "✅ Build successful! index.html found in public/"
+    ls -lah public/
+else
+    echo "❌ ERROR: build/web/index.html not found!"
+    exit 1
+fi
+
+echo "✨ Build Pipeline Complete."

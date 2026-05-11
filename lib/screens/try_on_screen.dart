@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detection.dart';
+// import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detection.dart';
 
 import 'package:permission_handler/permission_handler.dart';
-import 'package:gal/gal.dart';
+// import 'package:gal/gal.dart';
 import 'package:screenshot/screenshot.dart';
 
 import '../services/camera_service.dart';
@@ -35,7 +35,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
   XFile? capturedFile;
 
   // --- AR State ---
-  List<FaceMesh> faces = [];
+  List<dynamic> faces = [];
   List<dynamic> hands = [];
   bool isBusy = false;
   int frameCount = 0;
