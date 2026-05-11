@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "public": true,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/((?!.*\\.(?:js|css|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|otf|wasm|dart)).*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
