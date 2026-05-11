@@ -1,6 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:io';
+// import 'dart:io'; // Removed for web compatibility
 
 class CameraService {
   CameraController? controller;
@@ -29,7 +29,7 @@ class CameraService {
       camera,
       ResolutionPreset.high,
       enableAudio: false,
-      imageFormatGroup: (kIsWeb || !Platform.isAndroid) ? ImageFormatGroup.bgra8888 : ImageFormatGroup.yuv420,
+      imageFormatGroup: (kIsWeb) ? ImageFormatGroup.bgra8888 : ImageFormatGroup.yuv420,
     );
     await controller?.initialize();
     isInitialized = true;
