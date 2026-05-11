@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import '../utils/responsive.dart';
 import '../screens/products/product_detail_page.dart';
 import 'package:animate_do/animate_do.dart';
 import '../services/gold_rate_service.dart';
@@ -69,8 +69,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return GridView.builder(
                       padding: const EdgeInsets.all(18),
                       itemCount: filteredDocs.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: Responsive.isDesktop(context)
+                            ? 5
+                            : (Responsive.isTablet(context) ? 3 : 2),
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 20,
                         childAspectRatio: 0.65,

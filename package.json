@@ -1,0 +1,8 @@
+{
+  "name": "gemzi-flutter-app",
+  "version": "1.0.0",
+  "description": "Flutter web deployment on Vercel",
+  "scripts": {
+    "build": "sh build.sh"
+  }
+}

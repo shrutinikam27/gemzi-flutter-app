@@ -27,6 +27,8 @@ import '../screens/try_on_screen.dart';
 import 'cart_page.dart';
 import 'payment_methods_page.dart';
 import 'dart:async';
+import '../utils/responsive.dart';
+import 'package:flutter/foundation.dart';
 
 class GemziHome extends StatefulWidget {
   const GemziHome({super.key});
@@ -345,45 +347,68 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     return KeyedSubtree(
         key: ValueKey(TranslatorService.currentLang),
         child: Scaffold(
-          drawer: buildSideDrawer(context),
+          drawer: Responsive.isMobile(context)
+              ? Drawer(
+                  backgroundColor: darkBg,
+                  child: _buildSidebarContent(context),
+                )
+              : null,
           backgroundColor: darkBg,
-          body: Stack(
+          body: Row(
             children: [
-              _buildBackgroundGradient(),
-              SafeArea(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 100),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTopHeader(context),
-                      _buildSearchBar(),
-                      const GemziCarousel(),
-                      _buildServiceTrustRow(),
-                      _buildCategoryList(),
-                      _buildLiveGoldRate(),
-                      _buildAdBanner(), // 💍 THE STAR AD (WITH TIMER)
-                      _buildVideoSection(), // 🎬 PROMO VIDEO
-                      _buildMainProductCollection(),
-                      _buildExclusiveCollections(),
-                      _buildARSection(),
-                    ],
+              if (!Responsive.isMobile(context))
+                Container(
+                  width: 280,
+                  decoration: BoxDecoration(
+                    color: darkBg,
+                    border: Border(
+                        right:
+                            BorderSide(color: richGold.withValues(alpha: 0.1))),
                   ),
+                  child: _buildSidebarContent(context, isDrawer: false),
+                ),
+              Expanded(
+                child: Stack(
+                  children: [
+                    _buildBackgroundGradient(),
+                    SafeArea(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.isDesktop(context) ? 40 : 0,
+                        ).copyWith(bottom: 100),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildTopHeader(context),
+                            _buildSearchBar(),
+                            const GemziCarousel(),
+                            _buildServiceTrustRow(),
+                            _buildCategoryList(),
+                            _buildLiveGoldRate(),
+                            _buildAdBanner(),
+                            _buildVideoSection(),
+                            _buildMainProductCollection(),
+                            _buildExclusiveCollections(),
+                            _buildARSection(),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (Responsive.isMobile(context)) _buildFloatingNavBar(),
+                  ],
                 ),
               ),
-              _buildFloatingNavBar(),
             ],
           ),
         ));
   }
 
-  Widget buildSideDrawer(BuildContext context) {
+  Widget _buildSidebarContent(BuildContext context, {bool isDrawer = true}) {
     final user = FirebaseAuth.instance.currentUser;
 
-    return Drawer(
-      backgroundColor: darkBg,
-      child: Column(
-        children: [
+    return Column(
+      children: [
+        if (isDrawer)
           SafeArea(
             child: Align(
               alignment: Alignment.topRight,
@@ -392,53 +417,55 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 onPressed: () => Navigator.pop(context),
               ),
             ),
+          )
+        else
+          const SizedBox(height: 60),
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: surfaceDark,
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: richGold.withValues(alpha: 0.2)),
+            ),
+            child: user == null ? _buildLoginCard() : _buildProfileCard(user),
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: surfaceDark,
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: richGold.withValues(alpha: 0.2)),
+        ),
+        const Divider(color: Colors.white12),
+        Expanded(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              _menuItem(context, Icons.diamond_outlined, "Rings",
+                  rings_page.RingsPage()),
+              _menuItem(context, Icons.auto_awesome, "Earrings",
+                  earrings_page.EarringsPage()),
+              _menuItem(context, Icons.diamond, "Necklace",
+                  necklaces_page.NecklacesPage()),
+              _menuItem(
+                context,
+                Icons.toll,
+                "Bangles",
+                bangles_page.BanglesPage(),
               ),
-              child: user == null ? _buildLoginCard() : _buildProfileCard(user),
-            ),
+              _menuItem(
+                context,
+                Icons.savings_outlined,
+                "Saving Schemes",
+                const SavingSchemeScreen(),
+              ),
+              _menuItem(
+                context,
+                Icons.account_balance_wallet_outlined,
+                "Digital Gold Vault",
+                const PaymentMethodsPage(),
+                trailingText: "₹${walletBalance.toStringAsFixed(2)}",
+              ),
+            ],
           ),
-          const Divider(color: Colors.white12),
-          Expanded(
-            child: ListView(
-              children: [
-                _menuItem(context, Icons.diamond_outlined, "Rings",
-                    rings_page.RingsPage()),
-                _menuItem(context, Icons.auto_awesome, "Earrings",
-                    earrings_page.EarringsPage()),
-                _menuItem(context, Icons.diamond, "Necklace",
-                    necklaces_page.NecklacesPage()),
-                _menuItem(
-                  context,
-                  Icons.toll,
-                  "Bangles",
-                  bangles_page.BanglesPage(),
-                ),
-                _menuItem(
-                  context,
-                  Icons.savings_outlined,
-                  "Saving Schemes",
-                  const SavingSchemeScreen(),
-                ),
-                _menuItem(
-                  context,
-                  Icons.account_balance_wallet_outlined,
-                  "Digital Gold Vault",
-                  const PaymentMethodsPage(),
-                  trailingText: "₹${walletBalance.toStringAsFixed(2)}",
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -464,7 +491,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const TranslatedText(
+              TranslatedText(
                 "Flat Rs. 500 off",
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
@@ -797,7 +824,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const TranslatedText(
+                  TranslatedText(
                     "Royal Heritage Collection",
                     style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                   ),
@@ -812,7 +839,11 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                       const Text(" : ", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                       _timerBlock(_seconds.toString().padLeft(2, '0'), "s"),
                       const SizedBox(width: 10),
-                      const TranslatedText("Offer ends soon!", style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                      TranslatedText("Offer ends soon!",
+                          style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
@@ -1153,7 +1184,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const TranslatedText(
+                    TranslatedText(
                       "Try Jewellery in AR",
                       style: TextStyle(
                           color: Colors.white,
@@ -1168,7 +1199,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                         gradient: LinearGradient(colors: [richGold, richGold]),
                         borderRadius: BorderRadius.circular(25),
                       ),
-                      child: const TranslatedText(
+                      child: TranslatedText(
                         "Try Now",
                         style: TextStyle(
                             color: Colors.white, fontWeight: FontWeight.bold),
@@ -1363,49 +1394,80 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   }
 
   Widget _buildProductGrid(List<Map<String, dynamic>> items, double rate) {
-    return SizedBox(
-      height: 280, // Optimized height for horizontal cards
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          
-          // 💰 Robust Weight Parsing & Fallbacks (Ensures no ₹0 prices)
-          double weight = 0.0;
-          String weightStr = item['weight']?.toString() ?? "";
-          
-          String cleanWeight = weightStr.toLowerCase()
-              .replaceAll("g", "")
-              .replaceAll("m", "")
-              .replaceAll("s", "")
-              .replaceAll("ra", "")
-              .trim();
-              
-          weight = double.tryParse(cleanWeight) ?? 0.0;
-          
-          if (weight == 0) {
-            final name = (item['name'] ?? "").toString().toLowerCase();
-            if (name.contains("necklace")) { weight = 24.5; }
-            else if (name.contains("bangle")) { weight = 32.5; }
-            else if (name.contains("earring")) { weight = 12.0; }
-            else if (name.contains("ring")) { weight = 6.5; }
-            else if (name.contains("coin")) { weight = 10.0; }
-            else if (name.contains("bracelet")) { weight = 12.5; }
-            else { weight = 8.0; } // Global fallback
-          }
+    if (Responsive.isMobile(context)) {
+      return SizedBox(
+        height: 280, // Optimized height for horizontal cards
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            double weight = _parseWeight(item);
+            final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
 
-          final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
-          
-          return Container(
-            width: 180, // Fixed width for horizontal items
-            margin: const EdgeInsets.only(right: 15),
-            child: _buildPremiumProductCard(item, dynamicPrice, weight, rate),
-          );
-        },
-      ),
-    );
+            return Container(
+              width: 180,
+              margin: const EdgeInsets.only(right: 15),
+              child: _buildPremiumProductCard(item, dynamicPrice, weight, rate),
+            );
+          },
+        ),
+      );
+    } else {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: Responsive.isDesktop(context) ? 4 : 3,
+            crossAxisSpacing: 20,
+            mainAxisSpacing: 20,
+            childAspectRatio: 0.7,
+          ),
+          itemBuilder: (context, index) {
+            final item = items[index];
+            double weight = _parseWeight(item);
+            final dynamicPrice = (weight * rate * 1.15).toStringAsFixed(0);
+            return _buildPremiumProductCard(item, dynamicPrice, weight, rate);
+          },
+        ),
+      );
+    }
+  }
+
+  double _parseWeight(Map<String, dynamic> item) {
+    double weight = 0.0;
+    String weightStr = item['weight']?.toString() ?? "";
+    String cleanWeight = weightStr
+        .toLowerCase()
+        .replaceAll("g", "")
+        .replaceAll("m", "")
+        .replaceAll("s", "")
+        .replaceAll("ra", "")
+        .trim();
+    weight = double.tryParse(cleanWeight) ?? 0.0;
+    if (weight == 0) {
+      final name = (item['name'] ?? "").toString().toLowerCase();
+      if (name.contains("necklace")) {
+        weight = 24.5;
+      } else if (name.contains("bangle")) {
+        weight = 32.5;
+      } else if (name.contains("earring")) {
+        weight = 12.0;
+      } else if (name.contains("ring")) {
+        weight = 6.5;
+      } else if (name.contains("coin")) {
+        weight = 10.0;
+      } else if (name.contains("bracelet")) {
+        weight = 12.5;
+      } else {
+        weight = 8.0;
+      }
+    }
+    return weight;
   }
 
   Widget _buildPremiumProductCard(Map<String, dynamic> item, String dynamicPrice, double weight, double rate) {
@@ -1510,89 +1572,107 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const TranslatedText("Exclusive Collections",
+                TranslatedText("Exclusive Collections",
                     style: TextStyle(
                         color: Color(0xFFD4AF37),
                         fontWeight: FontWeight.bold,
                         fontSize: 18)),
-                Icon(Icons.arrow_forward_ios, color: Color(0xFFD4AF37), size: 14),
+                Icon(Icons.arrow_forward_ios,
+                    color: Color(0xFFD4AF37), size: 14),
               ],
             ),
           ),
         ),
-        SizedBox(
-          height: 150,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: collections.length + 1,
-            itemBuilder: (context, index) {
-              if (index == collections.length) {
-                return GestureDetector(
-                  onTap: () =>
-                      Navigator.pushNamed(context, "/exclusive-collections"),
-                  child: Container(
-                    width: 150,
-                    margin: const EdgeInsets.only(right: 15),
-                    decoration: BoxDecoration(
-                      color: surfaceDark,
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: richGold.withValues(alpha: 0.3)),
-                    ),
-                    child: Center(
-                        child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add_circle_outline,
-                            color: richGold, size: 40),
-                        const SizedBox(height: 10),
-                        TranslatedText("View More",
-                            style: TextStyle(color: richGold)),
-                      ],
-                    )),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Responsive.isMobile(context)
+              ? SizedBox(
+                  height: 150,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: collections.length + 1,
+                    itemBuilder: (context, index) =>
+                        _buildExclusiveCard(context, collections, index),
                   ),
-                );
-              }
-              final col = collections[index];
-              return GestureDetector(
-                onTap: () {
-                   Navigator.pushNamed(context, "/exclusive-collections");
-                },
-                child: Container(
-                  width: 250,
-                  margin: const EdgeInsets.only(right: 15),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    image: DecorationImage(
-                        image: AssetImage(col['image']!), fit: BoxFit.cover),
+                )
+              : GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: collections.length + 1,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: Responsive.isDesktop(context) ? 3 : 2,
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
+                    childAspectRatio: 2.0,
                   ),
-                  child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.7)
-                      ],
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(12),
-                  alignment: Alignment.bottomLeft,
-                  child: TranslatedText(col['name']!,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16)),
-
+                  itemBuilder: (context, index) =>
+                      _buildExclusiveCard(context, collections, index),
                 ),
-              ),
-            );
-          },
-          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildExclusiveCard(
+      BuildContext context, List<Map<String, String>> collections, int index) {
+    if (index == collections.length) {
+      return GestureDetector(
+        onTap: () => Navigator.pushNamed(context, "/exclusive-collections"),
+        child: Container(
+          width: 150,
+          margin: Responsive.isMobile(context)
+              ? const EdgeInsets.only(right: 15)
+              : EdgeInsets.zero,
+          decoration: BoxDecoration(
+            color: surfaceDark,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: richGold.withValues(alpha: 0.3)),
+          ),
+          child: Center(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_circle_outline, color: richGold, size: 40),
+              const SizedBox(height: 10),
+              TranslatedText("View More", style: TextStyle(color: richGold)),
+            ],
+          )),
+        ),
+      );
+    }
+    final col = collections[index];
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, "/exclusive-collections");
+      },
+      child: Container(
+        width: 250,
+        margin: Responsive.isMobile(context)
+            ? const EdgeInsets.only(right: 15)
+            : EdgeInsets.zero,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          image: DecorationImage(
+              image: AssetImage(col['image']!), fit: BoxFit.cover),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.transparent, Colors.black.withValues(alpha: 0.7)],
+            ),
+          ),
+          padding: const EdgeInsets.all(12),
+          alignment: Alignment.bottomLeft,
+          child: TranslatedText(col['name']!,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16)),
+        ),
+      ),
     );
   }
 
@@ -1679,7 +1759,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       ),
     );
   }
-
 }
 
 class GemziCarousel extends StatefulWidget {

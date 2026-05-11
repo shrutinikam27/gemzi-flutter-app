@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:io';
 
 class CameraService {
@@ -28,7 +29,7 @@ class CameraService {
       camera,
       ResolutionPreset.high,
       enableAudio: false,
-      imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.yuv420 : ImageFormatGroup.bgra8888,
+      imageFormatGroup: (kIsWeb || !Platform.isAndroid) ? ImageFormatGroup.bgra8888 : ImageFormatGroup.yuv420,
     );
     await controller?.initialize();
     isInitialized = true;

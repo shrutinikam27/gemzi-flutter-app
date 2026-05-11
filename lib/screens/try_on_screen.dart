@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detection.dart';
 
 import 'package:permission_handler/permission_handler.dart';
@@ -93,6 +94,18 @@ class _TryOnScreenState extends State<TryOnScreen> {
 
   Future<void> _checkPermissionsAndInitialize() async {
     try {
+      if (kIsWeb) {
+        await _cameraService.initializeCamera(
+            CameraLensDirection.front, _processCameraImage);
+        if (mounted) {
+          setState(() {
+            _initError = null;
+            // On web, we might default to model mode if ML is not supported
+            isModelMode = true; 
+          });
+        }
+        return;
+      }
       final status = await Permission.camera.request();
       if (status.isGranted) {
         await _cameraService.initializeCamera(
@@ -116,6 +129,8 @@ class _TryOnScreenState extends State<TryOnScreen> {
   }
 
   void _processCameraImage(CameraImage image) async {
+    if (kIsWeb) return; // ML Kit doesn't support Web
+
     frameCount++;
     if (frameCount % 2 != 0) return;
 
