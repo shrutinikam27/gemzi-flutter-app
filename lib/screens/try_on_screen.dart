@@ -14,7 +14,7 @@ import '../services/face_detection_service.dart';
 import '../services/hand_detection_service.dart';
 import '../services/image_processor_service.dart';
 import '../widgets/overlay_renderer.dart';
-import 'package:hand_landmarker/hand_landmarker.dart';
+// Removed hand_landmarker for web compatibility
 
 class TryOnScreen extends StatefulWidget {
   const TryOnScreen({super.key});
