@@ -1,20 +1,10 @@
 import 'dart:typed_data';
 import 'dart:math';
 import 'package:flutter/material.dart';
-// Stub classes for types that are no longer available (removed for Web compatibility)
-class FaceMesh {
-  final List<FaceMeshPoint> points = [];
-  final Rect boundingBox = Rect.zero;
-}
-class FaceMeshPoint {
-  final double x = 0, y = 0, z = 0;
-}
-class Hand {
-  final List<HandLandmark> landmarks = [];
-}
-class HandLandmark {
-  final double x = 0, y = 0, z = 0;
-}
+import 'ar_types_stub.dart'
+    if (dart.library.io) 'ar_types_mobile.dart'
+    if (dart.library.html) 'ar_types_web.dart'
+    if (dart.library.js_interop) 'ar_types_web.dart';
 
 class OverlayRenderer extends StatefulWidget {
   final List<FaceMesh> faces;

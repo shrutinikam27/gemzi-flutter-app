@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-// import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detection.dart';
-
+import '../widgets/ar_types_stub.dart'
+    if (dart.library.io) '../widgets/ar_types_mobile.dart'
+    if (dart.library.html) '../widgets/ar_types_web.dart'
+    if (dart.library.js_interop) '../widgets/ar_types_web.dart';
+import 'package:gal/gal.dart';
 import 'package:permission_handler/permission_handler.dart';
-// import 'package:gal/gal.dart';
 import 'package:screenshot/screenshot.dart';
 
 import '../services/camera_service.dart';
@@ -14,7 +16,6 @@ import '../services/face_detection_service.dart';
 import '../services/hand_detection_service.dart';
 import '../services/image_processor_service.dart';
 import '../widgets/overlay_renderer.dart';
-// Removed hand_landmarker for web compatibility
 
 class TryOnScreen extends StatefulWidget {
   const TryOnScreen({super.key});
@@ -26,7 +27,6 @@ class TryOnScreen extends StatefulWidget {
 class _TryOnScreenState extends State<TryOnScreen> {
   final CameraService _cameraService = CameraService();
   final FaceDetectionService _faceDetectionService = FaceDetectionService();
-  final HandDetectionService _handDetectionService = HandDetectionService();
   final ScreenshotController _screenshotController = ScreenshotController();
 
   // --- Modes ---
@@ -56,7 +56,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
   final Color darkBg = const Color(0xFF0F2F2B);
   final Color surfaceDark = const Color(0xFF17453F);
 
-  final List<String> categories = ['Necklaces', 'Earrings', 'Rings', 'Bracelets'];
+  final List<String> categories = ['Necklaces', 'Earrings'];
 
   final Map<String, List<Map<String, String>>> categoryItems = {
     'Earrings': [
@@ -70,16 +70,6 @@ class _TryOnScreenState extends State<TryOnScreen> {
       {"name": "Pearl Neck", "image": "assets/auth/necklasenew4.jpeg"},
       {"name": "Gold Neck", "image": "assets/auth/necklasenew5.jpeg"},
       {"name": "Daimond Neck", "image": "assets/auth/necklacenew.png"},
-    ],
-    'Rings': [
-      {"name": "Gold Ring", "image": "assets/auth/ringnew.png"},
-      {"name": "Diamond Ring", "image": "assets/auth/ring6.png"},
-      {"name": "Eternity Ring", "image": "assets/auth/ringnew1.png"},
-    ],
-    'Bracelets': [
-      {"name": "Gold Bangle", "image": "assets/auth/bangles.png"},
-      {"name": "Diamond Bangle", "image": "assets/auth/banglesnew1.png"},
-      {"name": "Royal Bangle", "image": "assets/auth/banglesnew2.png"},
     ],
   };
 
@@ -180,22 +170,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
         if (mounted) {
           setState(() {
             faces = detectedFaces.cast<FaceMesh>();
-            hands = []; // Clear hands if we are in face mode
             distanceMessage = newGuidance;
-          });
-        }
-      } else {
-        // Hand detection for Rings and Bracelets
-        final detectedHands =
-            _handDetectionService.processImage(image, controller);
-
-        if (mounted) {
-          setState(() {
-            hands = detectedHands?.cast<Hand>() ?? [];
-            faces = []; // Clear faces if we are in hand mode
-            distanceMessage = (detectedHands?.isNotEmpty ?? false)
-                ? "Hand Detected"
-                : "Show Your Hand";
           });
         }
       }
@@ -264,8 +239,11 @@ class _TryOnScreenState extends State<TryOnScreen> {
       return;
     }
     try {
-      // Gal is removed for Web compatibility
-      _showToast("Gallery saving disabled in this build.");
+      final imageBytes = await _screenshotController.capture();
+      if (imageBytes != null) {
+        await Gal.putImageBytes(imageBytes);
+        _showToast("Saved to Gallery!");
+      }
     } catch (e) {
       debugPrint("Save error: $e");
       _showToast("Error saving image.");
@@ -281,7 +259,6 @@ class _TryOnScreenState extends State<TryOnScreen> {
   void dispose() {
     _cameraService.dispose();
     _faceDetectionService.dispose();
-    _handDetectionService.dispose();
     super.dispose();
   }
 
@@ -608,7 +585,6 @@ class _TryOnScreenState extends State<TryOnScreen> {
         setState(() {
           activeCategory = cat;
           faces = [];
-          hands = [];
           distanceMessage = "";
           manualOffset = Offset.zero;
           manualScale = 1.0;

@@ -29,7 +29,11 @@ class CameraService {
       camera,
       ResolutionPreset.high,
       enableAudio: false,
-      imageFormatGroup: (kIsWeb) ? ImageFormatGroup.bgra8888 : ImageFormatGroup.yuv420,
+      imageFormatGroup: kIsWeb
+          ? ImageFormatGroup.bgra8888
+          : (defaultTargetPlatform == TargetPlatform.android
+              ? ImageFormatGroup.nv21
+              : ImageFormatGroup.bgra8888),
     );
     await controller?.initialize();
     isInitialized = true;
