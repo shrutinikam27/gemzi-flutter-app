@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/translated_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/responsive.dart';
 import '../screens/products/product_detail_page.dart';
@@ -28,7 +29,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
-        title: const Text(
+        title: const TranslatedText(
           "Explore Collections",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white),
         ),
@@ -206,7 +207,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Text(
+                      child: TranslatedText(
                         "${weight}g",
                         style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
@@ -220,7 +221,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  TranslatedText(
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -230,7 +231,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   const SizedBox(height: 2),
                   const SizedBox(height: 4),
                     const SizedBox(height: 4),
-                    Text(
+                    TranslatedText(
                       "₹$price",
                       style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 16),
                     ),

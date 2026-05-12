@@ -66,11 +66,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Locale _locale = const Locale('en');
+  Locale _locale = Locale(TranslatorService.currentLang);
 
   void setLocale(Locale locale) {
     setState(() {
       _locale = locale;
+      TranslatorService.currentLang = locale.languageCode;
     });
   }
 

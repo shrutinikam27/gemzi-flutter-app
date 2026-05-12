@@ -824,7 +824,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                       color: richGold,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
+                    child: const TranslatedText(
                       "WEDDING SPECIAL 💍",
                       style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10),
                     ),
@@ -1063,12 +1063,12 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
+                        TranslatedText(
                           "24K: ₹${r24.toStringAsFixed(0)}/g",
                           style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 13),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text(
+                        TranslatedText(
                           "22K: ₹${r22.toStringAsFixed(0)}/g",
                           style: TextStyle(color: richGold, fontSize: 11),
                           overflow: TextOverflow.ellipsis,
@@ -1729,7 +1729,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 children: [
                   Icon(Icons.auto_awesome, color: richGold, size: 18),
                   const SizedBox(width: 8),
-                  Text(
+                  TranslatedText(
                     'Exclusive Showcase',
                     style: TextStyle(
                       color: textLight,

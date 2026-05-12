@@ -35,7 +35,12 @@ class TranslatorService {
       final url =
           "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=$currentLang&dt=t&q=${Uri.encodeComponent(text)}";
 
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        },
+      );
 
       if (response.statusCode == 200) {
         var data = json.decode(response.body);

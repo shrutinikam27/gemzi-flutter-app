@@ -14,6 +14,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../services/notification_service.dart';
 import 'my_investments_page.dart';
 import 'my_orders_page.dart';
+import '../main.dart';
 
 
 class SettingsPage extends StatefulWidget {
@@ -388,6 +389,10 @@ class _SettingsPageState extends State<SettingsPage> {
       onTap: () async {
         await TranslatorService.saveLanguage(code);
         setState(() => TranslatorService.currentLang = code);
+        // 🔥 Update global app locale
+        if (mounted) {
+          MyApp.setLocale(context, Locale(code));
+        }
         Navigator.pop(context);
       },
       child: Container(
