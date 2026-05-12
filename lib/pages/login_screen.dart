@@ -59,178 +59,182 @@ class _LoginScreenState extends State<LoginScreen> {
 
           // Content
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 25),
-              child: Column(
-                children: [
-                  const SizedBox(height: 50),
-                  
-                  FadeInDown(
-                    duration: const Duration(milliseconds: 800),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 220,
-                            width: 220,
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.05),
-                              border: Border.all(color: richGold.withValues(alpha: 0.3), width: 1.5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: richGold.withValues(alpha: 0.1),
-                                  blurRadius: 40,
-                                  spreadRadius: 5,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 50),
+                      
+                      FadeInDown(
+                        duration: const Duration(milliseconds: 800),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                height: 220,
+                                width: 220,
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withValues(alpha: 0.05),
+                                  border: Border.all(color: richGold.withValues(alpha: 0.3), width: 1.5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: richGold.withValues(alpha: 0.1),
+                                      blurRadius: 40,
+                                      spreadRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    "assets/auth/gemzi_logo.png",
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+    
+                      const SizedBox(height: 50),
+    
+                      // Glassmorphic Card
+                      FadeInUp(
+                        duration: const Duration(milliseconds: 1000),
+                        child: GlassmorphicContainer(
+                          width: double.infinity,
+                          height: 480,
+                          borderRadius: 30,
+                          blur: 15,
+                          alignment: Alignment.center,
+                          border: 2,
+                          linearGradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withValues(alpha: 0.05),
+                              Colors.white.withValues(alpha: 0.02),
+                            ],
+                          ),
+                          borderGradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              richGold.withValues(alpha: 0.5),
+                              Colors.transparent,
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(25),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Welcome Back",
+                                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                                ),
+                                const Text(
+                                  "Sign in to continue your investments",
+                                  style: TextStyle(color: Colors.white60, fontSize: 13),
+                                ),
+                                const SizedBox(height: 35),
+    
+                                _inputField("Email Address", Icons.alternate_email_rounded, emailCtrl),
+                                const SizedBox(height: 20),
+                                _inputField("Secure Password", Icons.lock_outline_rounded, passCtrl, obscure: true),
+    
+                                const SizedBox(height: 10),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: GestureDetector(
+                                    onTap: _resetPassword,
+                                    child: Text(
+                                      "Forgot Password?",
+                                      style: TextStyle(color: richGold, fontSize: 12, fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                ),
+    
+                                const Spacer(),
+    
+                                // SIGN IN BUTTON
+                                GestureDetector(
+                                  onTap: _isLoading ? null : _loginUser,
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 55,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
+                                      gradient: LinearGradient(colors: [richGold, const Color(0xFFB8860B)]),
+                                      boxShadow: [
+                                        BoxShadow(color: richGold.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8)),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: _isLoading
+                                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                          : const Text("SIGN IN", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+                                    ),
+                                  ),
+                                ),
+    
+                                const SizedBox(height: 20),
+    
+                                // GOOGLE BUTTON
+                                GestureDetector(
+                                  onTap: _loginWithGoogle,
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 55,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
+                                      border: Border.all(color: Colors.white10),
+                                      color: Colors.white.withValues(alpha: 0.05),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset("assets/auth/google.png", height: 22),
+                                        const SizedBox(width: 12),
+                                        const Text("Continue with Google", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                            child: ClipOval(
-                              child: Image.asset(
-                                "assets/auth/gemzi_logo.png",
-                                fit: BoxFit.contain,
-                              ),
-                            ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 50),
-
-                  // Glassmorphic Card
-                  FadeInUp(
-                    duration: const Duration(milliseconds: 1000),
-                    child: GlassmorphicContainer(
-                      width: double.infinity,
-                      height: 480,
-                      borderRadius: 30,
-                      blur: 15,
-                      alignment: Alignment.center,
-                      border: 2,
-                      linearGradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white.withValues(alpha: 0.05),
-                          Colors.white.withValues(alpha: 0.02),
-                        ],
-                      ),
-                      borderGradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          richGold.withValues(alpha: 0.5),
-                          Colors.transparent,
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(25),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+    
+                      const SizedBox(height: 30),
+    
+                      FadeIn(
+                        delay: const Duration(milliseconds: 1200),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
-                              "Welcome Back",
-                              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                            ),
-                            const Text(
-                              "Sign in to continue your investments",
-                              style: TextStyle(color: Colors.white60, fontSize: 13),
-                            ),
-                            const SizedBox(height: 35),
-
-                            _inputField("Email Address", Icons.alternate_email_rounded, emailCtrl),
-                            const SizedBox(height: 20),
-                            _inputField("Secure Password", Icons.lock_outline_rounded, passCtrl, obscure: true),
-
-                            const SizedBox(height: 10),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: GestureDetector(
-                                onTap: _resetPassword,
-                                child: Text(
-                                  "Forgot Password?",
-                                  style: TextStyle(color: richGold, fontSize: 12, fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ),
-
-                            const Spacer(),
-
-                            // SIGN IN BUTTON
+                            const Text("Don't have an account? ", style: TextStyle(color: Colors.white60)),
                             GestureDetector(
-                              onTap: _isLoading ? null : _loginUser,
-                              child: Container(
-                                width: double.infinity,
-                                height: 55,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  gradient: LinearGradient(colors: [richGold, const Color(0xFFB8860B)]),
-                                  boxShadow: [
-                                    BoxShadow(color: richGold.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8)),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: _isLoading
-                                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                      : const Text("SIGN IN", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // GOOGLE BUTTON
-                            GestureDetector(
-                              onTap: _loginWithGoogle,
-                              child: Container(
-                                width: double.infinity,
-                                height: 55,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(color: Colors.white10),
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.asset("assets/auth/google.png", height: 22),
-                                    const SizedBox(width: 12),
-                                    const Text("Continue with Google", style: TextStyle(color: Colors.white, fontSize: 14)),
-                                  ],
-                                ),
-                              ),
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const SignupScreen()));
+                              },
+                              child: Text("Register Now", style: TextStyle(color: richGold, fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 40),
+                    ],
                   ),
-
-                  const SizedBox(height: 30),
-
-                  FadeIn(
-                    delay: const Duration(milliseconds: 1200),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Don't have an account? ", style: TextStyle(color: Colors.white60)),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const SignupScreen()));
-                          },
-                          child: Text("Register Now", style: TextStyle(color: richGold, fontWeight: FontWeight.bold)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

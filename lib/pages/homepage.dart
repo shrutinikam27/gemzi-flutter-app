@@ -372,25 +372,30 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                   children: [
                     _buildBackgroundGradient(),
                     SafeArea(
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.isDesktop(context) ? 40 : 0,
-                        ).copyWith(bottom: 100),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildTopHeader(context),
-                            _buildSearchBar(),
-                            const GemziCarousel(),
-                            _buildServiceTrustRow(),
-                            _buildCategoryList(),
-                            _buildLiveGoldRate(),
-                            _buildAdBanner(),
-                            _buildVideoSection(),
-                            _buildMainProductCollection(),
-                            _buildExclusiveCollections(),
-                            _buildARSection(),
-                          ],
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1400),
+                          child: SingleChildScrollView(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.isDesktop(context) ? 40 : 10,
+                            ).copyWith(bottom: 100),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildTopHeader(context),
+                                _buildSearchBar(),
+                                const GemziCarousel(),
+                                _buildServiceTrustRow(),
+                                _buildCategoryList(),
+                                _buildLiveGoldRate(),
+                                _buildAdBanner(),
+                                _buildVideoSection(),
+                                _buildMainProductCollection(),
+                                _buildExclusiveCollections(),
+                                _buildARSection(),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -630,13 +635,14 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         padding: const EdgeInsets.all(20),
         child: Row(
           children: [
-            Builder(
-              builder: (context) => GestureDetector(
-                onTap: () => Scaffold.of(context).openDrawer(),
-                child: Icon(Icons.menu, color: richGold, size: 28),
+            if (Responsive.isMobile(context))
+              Builder(
+                builder: (context) => GestureDetector(
+                  onTap: () => Scaffold.of(context).openDrawer(),
+                  child: Icon(Icons.menu, color: richGold, size: 28),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
+            if (Responsive.isMobile(context)) const SizedBox(width: 12),
             TranslatedText(
               "Gemzi",
               style: TextStyle(

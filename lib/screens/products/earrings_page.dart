@@ -92,12 +92,17 @@ class _EarringsPageState extends State<EarringsPage> {
                       }
                       
                       final docs = snapshot.data!.docs;
+                      final screenWidth = MediaQuery.of(context).size.width;
+                      int crossAxisCount = 2;
+                      if (screenWidth > 1200) crossAxisCount = 5;
+                      else if (screenWidth > 900) crossAxisCount = 4;
+                      else if (screenWidth > 600) crossAxisCount = 3;
 
                       return GridView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: docs.length,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
                           crossAxisSpacing: 14,
                           mainAxisSpacing: 18,
                           childAspectRatio: 0.7,
