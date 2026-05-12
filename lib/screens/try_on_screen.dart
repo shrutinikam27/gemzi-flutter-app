@@ -35,7 +35,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
   XFile? capturedFile;
 
   // --- AR State ---
-  List<dynamic> faces = [];
+  List<FaceMesh> faces = [];
   List<dynamic> hands = [];
   bool isBusy = false;
   int frameCount = 0;
@@ -179,7 +179,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
 
         if (mounted) {
           setState(() {
-            faces = detectedFaces;
+            faces = detectedFaces.cast<FaceMesh>();
             hands = []; // Clear hands if we are in face mode
             distanceMessage = newGuidance;
           });
@@ -191,7 +191,7 @@ class _TryOnScreenState extends State<TryOnScreen> {
 
         if (mounted) {
           setState(() {
-            hands = detectedHands ?? [];
+            hands = detectedHands?.cast<Hand>() ?? [];
             faces = []; // Clear faces if we are in hand mode
             distanceMessage = (detectedHands?.isNotEmpty ?? false)
                 ? "Hand Detected"
@@ -259,24 +259,13 @@ class _TryOnScreenState extends State<TryOnScreen> {
   }
 
   Future<void> _saveToGallery() async {
+    if (kIsWeb) {
+      _showToast("Gallery saving not supported on Web.");
+      return;
+    }
     try {
-      final hasAccess = await Gal.hasAccess();
-      if (!hasAccess) {
-        final granted = await Gal.requestAccess();
-        if (!granted) {
-          _showToast("Gallery access denied.");
-          return;
-        }
-      }
-
-      final Uint8List? imageBytes = await _screenshotController.capture(
-          delay: const Duration(milliseconds: 10));
-      if (imageBytes != null) {
-        await Gal.putImageBytes(imageBytes);
-        _showToast("Saved to your Gallery!");
-      } else {
-        _showToast("Capture failed.");
-      }
+      // Gal is removed for Web compatibility
+      _showToast("Gallery saving disabled in this build.");
     } catch (e) {
       debugPrint("Save error: $e");
       _showToast("Error saving image.");

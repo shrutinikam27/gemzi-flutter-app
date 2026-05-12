@@ -1,12 +1,24 @@
 import 'dart:typed_data';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detection.dart';
-import 'package:hand_landmarker/hand_landmarker.dart';
+// Stub classes for types that are no longer available (removed for Web compatibility)
+class FaceMesh {
+  final List<FaceMeshPoint> points = [];
+  final Rect boundingBox = Rect.zero;
+}
+class FaceMeshPoint {
+  final double x = 0, y = 0, z = 0;
+}
+class Hand {
+  final List<HandLandmark> landmarks = [];
+}
+class HandLandmark {
+  final double x = 0, y = 0, z = 0;
+}
 
 class OverlayRenderer extends StatefulWidget {
   final List<FaceMesh> faces;
-  final List<dynamic>? hands; // Kept as dynamic to avoid breaking TryOnScreen for now, though it's always empty
+  final List<dynamic>? hands;
   final Size expectedImageSize;
   final Uint8List? activeJewelleryImage;
   final String? activeJewelleryPath;
