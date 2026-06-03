@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:video_player/video_player.dart';
@@ -21,10 +22,13 @@ import '../utils/translator_service.dart';
 import '../widgets/translated_text.dart';
 import 'saving_scheme_screen.dart';
 import 'wedding_collection_page.dart';
-import 'settings_page.dart';
 import 'live_gold_page.dart';
+import 'settings_page.dart';
 import '../screens/try_on_screen.dart';
 import 'cart_page.dart';
+import 'wishlist_page.dart';
+import '../services/wishlist_service.dart';
+import 'profile_page.dart';
 import 'payment_methods_page.dart';
 import 'dart:async';
 import '../utils/responsive.dart';
@@ -38,8 +42,6 @@ class GemziHome extends StatefulWidget {
 }
 
 class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
-  TextEditingController searchController = TextEditingController();
-  List<Map<String, dynamic>> filteredItems = [];
   final Color darkBg = const Color(0xFF0F2F2B); // Forest Green
   final Color surfaceDark = const Color(0xFF17453F); // Dark Teal
   final Color richGold = const Color(0xFFD4AF37); // Gold accent
@@ -66,6 +68,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   // ── Video Player ──────────────────────────────────────────────────────────
   VideoPlayerController? _videoController;
   bool _videoInitialized = false;
+  bool _videoError = false;
+  bool _isUserPaused = false;
   // ─────────────────────────────────────────────────────────────────────────
 
   Future<void> loadGoldRate() async {
@@ -123,7 +127,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       }
     });
 
-    filteredItems = trendingItems;
     _startLiveTimer();
     _listenToUserData();
     _initVideoPlayer();
@@ -145,7 +148,10 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       await _videoController!.setLooping(true);
       
       if (mounted) {
-        setState(() => _videoInitialized = true);
+        setState(() {
+          _videoInitialized = true;
+          _videoError = false;
+        });
         await _videoController!.play();
         debugPrint("✅ Video Initialized & Playing: assets/video/video.mp4");
       }
@@ -154,14 +160,22 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     } catch (e) {
       debugPrint("❌ Video Initialization Failed: $e");
       if (mounted) {
-        setState(() => _videoInitialized = false);
+        setState(() {
+          _videoInitialized = false;
+          _videoError = true;
+        });
       }
     }
   }
 
   void _videoListener() {
-    if (mounted && _videoController != null && _videoController!.value.hasError) {
-      debugPrint("❌ Video Runtime Error: ${_videoController!.value.errorDescription}");
+    if (mounted && _videoController != null) {
+      if (_videoController!.value.hasError) {
+        debugPrint("❌ Video Runtime Error: ${_videoController!.value.errorDescription}");
+      } else if (_videoInitialized && !_videoController!.value.isPlaying && !_videoError) {
+        // If it got paused or stopped playing, auto-resume it immediately!
+        _videoController!.play();
+      }
     }
   }
 
@@ -180,23 +194,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           walletBalance = (doc.data()?['walletBalance'] ?? 0.0).toDouble();
         });
       }
-    });
-  }
-
-  void searchProducts(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        filteredItems = trendingItems;
-      });
-      return;
-    }
-    final results = trendingItems.where((item) {
-      final name = item["name"]!.toLowerCase();
-      return name.contains(query.toLowerCase());
-    }).toList();
-
-    setState(() {
-      filteredItems = results;
     });
   }
 
@@ -313,7 +310,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   void dispose() {
     _countdownTimer?.cancel();
     _userSubscription?.cancel();
-    searchController.dispose();
     _videoController?.removeListener(_videoListener);
     _videoController?.dispose();
     super.dispose();
@@ -383,7 +379,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildTopHeader(context),
-                                _buildSearchBar(),
                                 const GemziCarousel(),
                                 _buildServiceTrustRow(),
                                 _buildCategoryList(),
@@ -427,14 +422,22 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
           const SizedBox(height: 60),
         Padding(
           padding: const EdgeInsets.all(12),
-          child: Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: surfaceDark,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: richGold.withValues(alpha: 0.2)),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfilePage()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: surfaceDark,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: richGold.withValues(alpha: 0.2)),
+              ),
+              child: user == null ? _buildLoginCard() : _buildProfileCard(user),
             ),
-            child: user == null ? _buildLoginCard() : _buildProfileCard(user),
           ),
         ),
         const Divider(color: Colors.white12),
@@ -466,6 +469,12 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                 "Digital Gold Vault",
                 const PaymentMethodsPage(),
                 trailingText: "₹${walletBalance.toStringAsFixed(2)}",
+              ),
+              _menuItem(
+                context,
+                Icons.settings_outlined,
+                "Settings",
+                const SettingsPage(),
               ),
             ],
           ),
@@ -537,10 +546,12 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
       builder: (context, snapshot) {
         String name = "User";
         String email = user.email ?? "";
+        String? profileImage;
 
         if (snapshot.hasData && snapshot.data!.exists) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
           name = data['name'] ?? "User";
+          profileImage = data['profileImage'];
         }
 
         return Row(
@@ -556,7 +567,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                   BoxShadow(color: richGold.withValues(alpha: 0.1), blurRadius: 10, spreadRadius: 2),
                 ],
               ),
-              child: Icon(Icons.person, size: 30, color: richGold),
+              child: _buildAvatarWidget(profileImage, name, radius: 28, fontSize: 22),
             ),
             const SizedBox(width: 15),
             Expanded(
@@ -658,6 +669,37 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               ),
             ),
             const Spacer(),
+            // Wishlist icon with badge
+            Consumer<WishlistService>(
+              builder: (context, wishlist, _) {
+                return GestureDetector(
+                  onTap: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => const WishlistPage())),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(Icons.favorite_border, color: textLight, size: 26),
+                      if (wishlist.itemCount > 0)
+                        Positioned(
+                          right: -6,
+                          top: -6,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                                color: richGold, shape: BoxShape.circle),
+                            child: Text('${wishlist.itemCount}',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 16),
             Consumer<CartService>(
               builder: (context, cartService, child) {
                 return GestureDetector(
@@ -733,37 +775,6 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
     if (mounted) {
       navigator.pop();
     }
-  }
-
-  Widget _buildSearchBar() {
-    return FadeInDown(
-      delay: const Duration(milliseconds: 200),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: surfaceDark,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: TextField(
-            controller: searchController,
-            style: const TextStyle(color: Colors.white),
-            onChanged: (value) => searchProducts(value),
-            decoration: InputDecoration(
-              hintText: "Search jewellery...",
-              hintStyle: TextStyle(color: textSubdued),
-              prefixIcon: Icon(Icons.search, color: textSubdued),
-              suffixIcon: IconButton(
-                icon: Icon(Icons.search, color: textSubdued),
-                onPressed: () => searchProducts(searchController.text),
-              ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 15),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   // 📢 PREMIUM ADVERTISEMENT BANNER
@@ -1240,8 +1251,8 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
         border: 2,
         linearGradient: LinearGradient(
           colors: [
-            surfaceDark.withAlpha(229), // 0.9 * 255
-            darkBg.withAlpha(153), // 0.6 * 255
+            surfaceDark.withAlpha(229),
+            darkBg.withAlpha(153),
           ],
         ),
         borderGradient: LinearGradient(colors: [richGold, richGold]),
@@ -1272,6 +1283,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               },
               child: _navItem(Icons.trending_up, "Live", false),
             ),
+            // Settings button
             GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -1281,7 +1293,7 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
                   ),
                 );
               },
-              child: _navItem(Icons.settings, "settings", false),
+              child: _navItem(Icons.settings_outlined, "Settings", false),
             ),
           ],
         ),
@@ -1685,19 +1697,26 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
   // ════════════════════════════════════════════════════════════════════════
   // 🎬  HOMEPAGE VIDEO SECTION
   Widget _buildVideoSection() {
-    // 🎨 Placeholder while loading
+    // If the video failed to load, show a premium static banner instead of an infinite spinner
+    if (_videoError || (!_videoInitialized && _videoController == null)) {
+      return _buildVideoFallbackBanner();
+    }
+
     if (!_videoInitialized || _videoController == null) {
-      return Container(
-        height: 160,
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
-          color: surfaceDark,
-          border: Border.all(color: richGold.withValues(alpha: 0.1)),
-        ),
-        child: Center(
-          child: CircularProgressIndicator(color: richGold, strokeWidth: 2),
-        ),
+      // While loading, show the fallback banner with a subtle loading spinner overlaid
+      return Stack(
+        children: [
+          _buildVideoFallbackBanner(),
+          Positioned(
+            right: 36,
+            top: 24,
+            child: SizedBox(
+              height: 16,
+              width: 16,
+              child: CircularProgressIndicator(color: richGold, strokeWidth: 1.5),
+            ),
+          ),
+        ],
       );
     }
 
@@ -1744,23 +1763,134 @@ class _GemziHomeState extends State<GemziHome> with TickerProviderStateMixin {
               ),
             ),
 
-            // ── Video Player (Cinematic Ratio) ──────────────────────────────
+            // ── Video Player — Silent looping showcase, no controls ─────────
             ClipRRect(
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
               child: AspectRatio(
-                aspectRatio: 2.35 / 1, // 🎬 Cinematic widescreen ratio
-                child: FittedBox(
+                aspectRatio: ctrl.value.isInitialized ? ctrl.value.aspectRatio : 2.35 / 1,
+                child: VideoPlayer(ctrl),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVideoFallbackBanner() {
+    return FadeInUp(
+      duration: const Duration(milliseconds: 600),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          color: surfaceDark,
+          border: Border.all(color: richGold.withValues(alpha: 0.3), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: richGold.withValues(alpha: 0.12),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome, color: richGold, size: 18),
+                  const SizedBox(width: 8),
+                  TranslatedText(
+                    'Exclusive Showcase',
+                    style: TextStyle(
+                      color: textLight,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(Icons.stars, color: richGold.withValues(alpha: 0.5), size: 18),
+                ],
+              ),
+            ),
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
+              child: AspectRatio(
+                aspectRatio: 2.35 / 1,
+                child: Image.network(
+                  "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=1000",
                   fit: BoxFit.cover,
-                  clipBehavior: Clip.hardEdge,
-                  child: SizedBox(
-                    width: ctrl.value.size.width > 0 ? ctrl.value.size.width : 1920,
-                    height: ctrl.value.size.height > 0 ? ctrl.value.size.height : 817,
-                    child: VideoPlayer(ctrl),
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: surfaceDark,
+                    child: Center(
+                      child: Icon(Icons.diamond_outlined, color: richGold, size: 48),
+                    ),
                   ),
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarWidget(String? imagePath, String name, {double radius = 40, double fontSize = 32}) {
+    final double size = radius * 2;
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+      ),
+      child: ClipOval(
+        child: imagePath != null && imagePath.isNotEmpty
+            ? _buildImage(imagePath, name, fontSize)
+            : _buildInitials(name, fontSize),
+      ),
+    );
+  }
+
+  Widget _buildImage(String path, String name, double fontSize) {
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(child: CircularProgressIndicator(color: richGold, strokeWidth: 2));
+        },
+        errorBuilder: (context, error, stackTrace) => _buildInitials(name, fontSize),
+      );
+    } else if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildInitials(name, fontSize),
+      );
+    } else {
+      return Image.file(
+        File(path),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildInitials(name, fontSize),
+      );
+    }
+  }
+
+  Widget _buildInitials(String name, double fontSize) {
+    return Container(
+      color: darkBg,
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : 'U',
+          style: TextStyle(
+              color: richGold,
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -1885,7 +2015,5 @@ class _GemziCarouselState extends State<GemziCarousel> {
       },
     );
   }
-
-
 }
 

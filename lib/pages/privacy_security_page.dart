@@ -3,6 +3,7 @@ import '../widgets/translated_text.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/email_service.dart';
+import 'security_lock_screen.dart';
 
 class PrivacySecurityPage extends StatefulWidget {
   const PrivacySecurityPage({super.key});
@@ -20,6 +21,7 @@ class _PrivacySecurityPageState extends State<PrivacySecurityPage> {
   bool privateProfile = true;
   bool secureLogin = true;
   bool personalizedAds = false;
+  bool vaultLock = false;
 
   bool isScanning = false;
   bool isDownloading = false;
@@ -39,6 +41,7 @@ class _PrivacySecurityPageState extends State<PrivacySecurityPage> {
         privateProfile = prefs.getBool('privacy_private_profile') ?? true;
         secureLogin = prefs.getBool('privacy_secure_login') ?? true;
         personalizedAds = prefs.getBool('privacy_ads') ?? false;
+        vaultLock = prefs.getBool('security_pin_enabled') ?? false;
       });
     }
   }
@@ -62,6 +65,19 @@ class _PrivacySecurityPageState extends State<PrivacySecurityPage> {
   }
 
   Future<void> _compileData() async {
+    if (vaultLock) {
+      final verified = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SecurityLockScreen(mode: 'verify')),
+      );
+      if (verified != true) {
+        if (mounted) {
+          _showStatus(context, "Verification failed. Action aborted.");
+        }
+        return;
+      }
+    }
+
     setState(() => isDownloading = true);
     
     // 🔥 Trigger Real Email
@@ -137,6 +153,42 @@ class _PrivacySecurityPageState extends State<PrivacySecurityPage> {
              setState(() => secureLogin = val);
              _saveSetting('privacy_secure_login', val);
              _showStatus(context, val ? "High-security mode active" : "Standard security mode");
+          }),
+
+          _buildSwitchTile(Icons.lock_person_rounded, "Vault Security Lock", "Require PIN / biometrics to enter Digital Gold Vault", vaultLock, (val) async {
+             if (val) {
+               final result = await Navigator.push(
+                 context,
+                 MaterialPageRoute(builder: (_) => const SecurityLockScreen(mode: 'setup')),
+               );
+               if (result == true) {
+                 setState(() => vaultLock = true);
+                 if (mounted) {
+                   _showStatus(context, "Vault Security Lock enabled!");
+                 }
+               } else {
+                 if (mounted) {
+                   _showStatus(context, "Lock setup canceled.");
+                 }
+               }
+             } else {
+               final result = await Navigator.push(
+                 context,
+                 MaterialPageRoute(builder: (_) => const SecurityLockScreen(mode: 'verify')),
+               );
+               if (result == true) {
+                 final prefs = await SharedPreferences.getInstance();
+                 await prefs.setBool('security_pin_enabled', false);
+                 setState(() => vaultLock = false);
+                 if (mounted) {
+                   _showStatus(context, "Vault Security Lock disabled.");
+                 }
+               } else {
+                 if (mounted) {
+                   _showStatus(context, "Verification failed. Lock remains active.");
+                 }
+               }
+             }
           }),
 
           _buildSwitchTile(Icons.ads_click_rounded, "Personalized Ads", "Better suggestions based on interests", personalizedAds, (val) {
@@ -245,7 +297,24 @@ class _PrivacySecurityPageState extends State<PrivacySecurityPage> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const TranslatedText("Cancel")),
           TextButton(
-            onPressed: () { Navigator.pop(context); _showStatus(context, "Account deletion initiated."); },
+            onPressed: () async {
+              Navigator.pop(context);
+              if (vaultLock) {
+                final verified = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SecurityLockScreen(mode: 'verify')),
+                );
+                if (verified != true) {
+                  if (mounted) {
+                    _showStatus(context, "Verification failed. Account deletion aborted.");
+                  }
+                  return;
+                }
+              }
+              if (mounted) {
+                _showStatus(context, "Account deletion initiated.");
+              }
+            },
             child: const Text("Delete", style: TextStyle(color: Colors.redAccent)),
           ),
         ],

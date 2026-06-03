@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,6 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../services/notification_service.dart';
 import 'my_investments_page.dart';
 import 'my_orders_page.dart';
+import 'profile_page.dart';
 import '../main.dart';
 
 
@@ -33,6 +35,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   bool notifications = true;
   String userName = "Loading...";
+  String? profileImage;
 
   @override
   void initState() {
@@ -57,6 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
       if (doc.exists) {
         setState(() {
           userName = doc.data()?['name'] ?? "User";
+          profileImage = doc.data()?['profileImage'];
         });
       } else {
         setState(() => userName = "User");
@@ -111,11 +115,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         color: Color(0xFFD4AF37),
                         shape: BoxShape.circle,
                       ),
-                      child: CircleAvatar(
-                        radius: 35,
-                        backgroundColor: darkBg,
-                        child: Icon(Icons.person, color: richGold, size: 35),
-                      ),
+                      child: _buildAvatarWidget(profileImage, userName, radius: 35, fontSize: 28),
                     ),
                     const SizedBox(width: 15),
                     Expanded(
@@ -142,9 +142,34 @@ class _SettingsPageState extends State<SettingsPage> {
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(Icons.edit_note, color: richGold),
-                      onPressed: _editProfile,
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfilePage()),
+                      ).then((_) => _loadProfile()),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: richGold.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: richGold.withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.edit_outlined, color: richGold, size: 13),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Edit',
+                              style: TextStyle(
+                                color: richGold,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     )
                   ],
                 ),
@@ -495,6 +520,63 @@ class _SettingsPageState extends State<SettingsPage> {
             child: const Text("Logout", style: TextStyle(color: Colors.redAccent))
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAvatarWidget(String? imagePath, String name, {double radius = 40, double fontSize = 32}) {
+    final double size = radius * 2;
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+      ),
+      child: ClipOval(
+        child: imagePath != null && imagePath.isNotEmpty
+            ? _buildImage(imagePath, name, fontSize)
+            : _buildInitials(name, fontSize),
+      ),
+    );
+  }
+
+  Widget _buildImage(String path, String name, double fontSize) {
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(child: CircularProgressIndicator(color: richGold, strokeWidth: 2));
+        },
+        errorBuilder: (context, error, stackTrace) => _buildInitials(name, fontSize),
+      );
+    } else if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildInitials(name, fontSize),
+      );
+    } else {
+      return Image.file(
+        File(path),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildInitials(name, fontSize),
+      );
+    }
+  }
+
+  Widget _buildInitials(String name, double fontSize) {
+    return Container(
+      color: darkBg,
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : 'U',
+          style: TextStyle(
+              color: richGold,
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

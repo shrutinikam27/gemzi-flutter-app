@@ -5,6 +5,9 @@ import '../widgets/translated_text.dart';
 import 'package:animate_do/animate_do.dart';
 import '../services/gold_rate_service.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'security_lock_screen.dart';
+import 'gold_certificate_page.dart';
 
 class PaymentMethodsPage extends StatefulWidget {
   const PaymentMethodsPage({super.key});
@@ -36,6 +39,28 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   void initState() {
     super.initState();
     _listenToBalance();
+    _checkSecurityGuard();
+  }
+
+  Future<void> _checkSecurityGuard() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLockEnabled = prefs.getBool('security_pin_enabled') ?? false;
+    if (isLockEnabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final verified = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SecurityLockScreen(mode: 'verify'),
+            fullscreenDialog: true,
+          ),
+        );
+        if (verified != true) {
+          if (mounted) {
+            Navigator.pop(context);
+          }
+        }
+      });
+    }
   }
 
   @override
@@ -404,13 +429,57 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
             children: [
               _vaultAction(Icons.add_task_rounded, "Add Money", () => _showAddMoneyDialog(context)),
               const SizedBox(width: 12),
-              _vaultAction(Icons.savings_rounded, "Test Stash", () => _playPiggyBankAnimation()),
+              _vaultAction(Icons.restore_rounded, "Restore Vault", () => _showRestoreVaultDialog(context)),
               const SizedBox(width: 12),
               _vaultAction(Icons.auto_awesome_motion_rounded, "Demo", () {
                 setState(() => showDemoCoins = !showDemoCoins);
               }),
             ],
-          )
+          ),
+          const SizedBox(height: 15),
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const GoldCertificatePage(),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(15),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [richGold, Colors.amber[600]!],
+                ),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: richGold.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.workspace_premium_rounded, color: Colors.black, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    "View Gold Authenticity Certificate",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -619,6 +688,353 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
       savedCards.removeWhere((c) => c["name"] == name);
     });
     _showStatus("Card removed successfully.");
+  }
+
+  void _showRestoreVaultDialog(BuildContext context) {
+    if (walletBalance <= 0) {
+      _showStatus("Your Digital Gold Vault is empty! Nothing to restore.");
+      return;
+    }
+
+    final amountController = TextEditingController(text: walletBalance.toStringAsFixed(2));
+    String selectedMethod = "Google Pay (gemzi@okaxis)";
+    
+    final List<String> transferMethods = [
+      "Google Pay (gemzi@okaxis)",
+      "PhonePe (gemzi@ybl)",
+      "Visa Platinum (**** 4242)",
+      "Mastercard Gold (**** 8899)",
+    ];
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          double rate = GoldRateService.currentRate > 0 ? GoldRateService.currentRate : 7500.0;
+          double enteredAmount = double.tryParse(amountController.text) ?? 0.0;
+          double gramsEquivalent = enteredAmount / rate;
+
+          return AlertDialog(
+            backgroundColor: surfaceDark,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+            title: Row(
+              children: [
+                Icon(Icons.account_balance_rounded, color: richGold, size: 22),
+                const SizedBox(width: 10),
+                const TranslatedText("Withdraw to Bank"),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const TranslatedText(
+                  "Sell your digital gold and transfer the cash instantly to your bank account.",
+                  style: TextStyle(color: Colors.white54, fontSize: 11),
+                ),
+                const SizedBox(height: 20),
+                
+                // Destination dropdown selector
+                const TranslatedText("Transfer Destination", style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: richGold.withValues(alpha: 0.3)),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: selectedMethod,
+                      dropdownColor: surfaceDark,
+                      isExpanded: true,
+                      icon: Icon(Icons.arrow_drop_down, color: richGold),
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      items: transferMethods.map((String method) {
+                        return DropdownMenuItem<String>(
+                          value: method,
+                          child: Text(method),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() => selectedMethod = val);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Amount controller
+                const TranslatedText("Amount to Sell (INR)", style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  onChanged: (val) => setDialogState(() {}),
+                  decoration: InputDecoration(
+                    hintText: "0.00",
+                    hintStyle: const TextStyle(color: Colors.white10),
+                    prefixText: "₹ ",
+                    prefixStyle: TextStyle(color: richGold, fontSize: 20, fontWeight: FontWeight.bold),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: richGold.withValues(alpha: 0.3))),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: richGold)),
+                  ),
+                ),
+                const SizedBox(height: 15),
+
+                // Real-time grams calculation
+                if (enteredAmount > 0)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.03),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.stars, color: richGold, size: 14),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Liquidating ≈ ${gramsEquivalent.toStringAsFixed(4)}g of 24K Gold",
+                            style: TextStyle(color: richGold, fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const TranslatedText("Cancel", style: TextStyle(color: Colors.white38)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: richGold,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: (enteredAmount <= 0 || enteredAmount > walletBalance)
+                    ? null
+                    : () async {
+                        Navigator.pop(context); // Close selection dialog
+                        
+                        // Proceed to withdraw with interactive multi-step visual loader
+                        _executeBankWithdrawal(enteredAmount, selectedMethod);
+                      },
+                child: const TranslatedText("PROCEED TO SELL", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              )
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _executeBankWithdrawal(double amount, String method) {
+    String stepStatus = "Connecting to Bank Gateway...";
+    double progress = 0.1;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setProgressState) {
+          // Trigger multi-step simulated steps inside dialog lifecycle
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            if (progress == 0.1 && mounted) {
+              setProgressState(() {
+                progress = 0.5;
+                stepStatus = "Liquidating Digital Gold Assets...";
+              });
+            }
+          });
+
+          Future.delayed(const Duration(milliseconds: 2200), () {
+            if (progress == 0.5 && mounted) {
+              setProgressState(() {
+                progress = 0.9;
+                stepStatus = "Transferring Cash to $method...";
+              });
+            }
+          });
+
+          Future.delayed(const Duration(milliseconds: 3200), () async {
+            if (progress == 0.9 && mounted) {
+              Navigator.pop(context); // Close progress dialog
+              
+              // Apply real-time Firestore updates and open final success sheet
+              _finalizeBankTransfer(amount, method);
+            }
+          });
+
+          return Center(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 40),
+              padding: const EdgeInsets.all(25),
+              decoration: BoxDecoration(
+                color: surfaceDark,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: richGold.withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 10),
+                  CircularProgressIndicator(color: richGold),
+                  const SizedBox(height: 25),
+                  Text(
+                    stepStatus,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Container(
+                    width: double.infinity,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white12,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: progress,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: richGold,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _finalizeBankTransfer(double amount, String method) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      
+      // 1. Deduct wallet balance in Firestore
+      await docRef.update({
+        'walletBalance': FieldValue.increment(-amount),
+      });
+
+      // 2. Log transaction in Vault history
+      double rate = GoldRateService.currentRate > 0 ? GoldRateService.currentRate : 7500.0;
+      double gramsSold = amount / rate;
+      String txnId = "TXN${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}";
+
+      await FirebaseFirestore.instance.collection('vault_transactions').add({
+        'userId': user.uid,
+        'userEmail': user.email ?? 'Unknown',
+        'amount': amount,
+        'grams': gramsSold,
+        'type': 'Gold Sold ($method)',
+        'timestamp': FieldValue.serverTimestamp(),
+        'status': 'completed',
+      });
+
+      // 3. Open premium success dialog
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: surfaceDark,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+            title: Column(
+              children: [
+                ZoomIn(
+                  duration: const Duration(milliseconds: 500),
+                  child: Container(
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.green.withValues(alpha: 0.1),
+                      border: Border.all(color: Colors.greenAccent, width: 2),
+                    ),
+                    child: const Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 45),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                const TranslatedText("Transfer Successful!", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "₹${amount.toStringAsFixed(2)}",
+                  style: TextStyle(color: richGold, fontSize: 32, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                const TranslatedText(
+                  "has been credited to your bank account.",
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                const SizedBox(height: 20),
+                
+                // Details
+                _receiptRow("Transaction ID", txnId),
+                _receiptRow("Destination", method.split(" (")[0]),
+                _receiptRow("Gold Sold", "${gramsSold.toStringAsFixed(4)}g"),
+              ],
+            ),
+            actions: [
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: richGold,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("CLOSE", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                ),
+              )
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      _showStatus("Withdrawal failed: $e");
+    }
+  }
+
+  Widget _receiptRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TranslatedText(label, style: const TextStyle(color: Colors.white38, fontSize: 12)),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
   }
 
   void _showAddMoneyDialog(BuildContext context) {

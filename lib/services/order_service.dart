@@ -16,6 +16,7 @@ class Order {
   final String status;
   final double discount;
   final String? appliedScheme;
+  final double vaultAmountUsed;
 
   Order({
     required this.orderId,
@@ -29,6 +30,7 @@ class Order {
     this.status = 'pending',
     this.discount = 0.0,
     this.appliedScheme,
+    this.vaultAmountUsed = 0.0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -43,6 +45,7 @@ class Order {
         'status': status,
         'discount': discount,
         'appliedScheme': appliedScheme,
+        'vaultAmountUsed': vaultAmountUsed,
       };
 }
 

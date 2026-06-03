@@ -7,6 +7,7 @@ import 'package:gemzi_user_app/utils/translator_service.dart';
 import 'package:provider/provider.dart';
 
 import 'services/cart_service.dart';
+import 'services/wishlist_service.dart';
 import 'services/google_auth.dart'; // 🔥 IMPORTANT
 
 import 'firebase_options.dart';
@@ -38,16 +39,15 @@ void main() async {
     debugPrint('Firebase init error (may already be initialized): $e');
   }
 
-  // 🔥🔥🔥 TEMP FIX (VERY IMPORTANT)
-  // Prevent auto-login → fixes splash + success screen issue
-  await GoogleAuthService.signOut();
-  await FirebaseAuth.instance.signOut();
-
   final cartService = CartService()..init();
+  final wishlistService = WishlistService()..init();
 
   runApp(
-    ChangeNotifierProvider<CartService>.value(
-      value: cartService,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<CartService>.value(value: cartService),
+        ChangeNotifierProvider<WishlistService>.value(value: wishlistService),
+      ],
       child: const MyApp(),
     ),
   );

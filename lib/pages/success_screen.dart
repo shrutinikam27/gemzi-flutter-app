@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; // ✅ ADD THIS
+import 'homepage.dart';
 
 class SignupSuccessScreen extends StatefulWidget {
   const SignupSuccessScreen({super.key});
@@ -20,7 +20,7 @@ class _SignupSuccessScreenState extends State<SignupSuccessScreen> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const GemziHome()),
       );
     });
   }
